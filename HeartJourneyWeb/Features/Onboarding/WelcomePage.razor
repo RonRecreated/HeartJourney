@@ -1,0 +1,68 @@
+@page "/welcome"
+@using HeartJourneyWeb.Services.Auth
+@inject IAuthService AuthService
+@inject NavigationManager NavigationManager
+
+<PageTitle>Welcome - Heart Journey</PageTitle>
+
+<section class="welcome-shell">
+    <div class="welcome-card">
+        <p class="eyebrow">Heart Journey</p>
+
+        <h1>Welcome to your journey</h1>
+
+        <p class="intro">
+            Heart Journey is designed to help you reflect prayerfully, answer honestly,
+            and grow with wisdom through each season of relationship life.
+        </p>
+
+        <div class="principle-list">
+            <article>
+                <h2>Move prayerfully</h2>
+                <p>
+                    This journey is not meant to be rushed. You will be encouraged to pause,
+                    pray, and reflect as you go.
+                </p>
+            </article>
+
+            <article>
+                <h2>Answer honestly</h2>
+                <p>
+                    Your answers help shape insights that are personal to your journey.
+                    They are not meant to label your worth.
+                </p>
+            </article>
+
+            <article>
+                <h2>Grow with wisdom</h2>
+                <p>
+                    The goal is not simply to know where you are, but to discern faithful
+                    next steps before God.
+                </p>
+            </article>
+        </div>
+
+        <button type="button"
+                class="primary-button"
+                @onclick="GoToOnboarding">
+            Set Up My Profile
+        </button>
+    </div>
+</section>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        await AuthService.InitializeAsync();
+
+        if (!AuthService.IsSignedIn)
+        {
+            NavigationManager.NavigateTo("/auth");
+        }
+    }
+
+    private void GoToOnboarding()
+    {
+        NavigationManager.NavigateTo("/onboarding");
+    }
+}

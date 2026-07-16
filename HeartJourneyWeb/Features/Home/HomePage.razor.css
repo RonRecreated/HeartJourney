@@ -1,0 +1,73 @@
+.home-shell {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 3rem 1.25rem;
+}
+
+.hero {
+    max-width: 720px;
+    margin-bottom: 2.5rem;
+}
+
+.eyebrow {
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    opacity: 0.75;
+}
+
+.hero h1 {
+    font-size: clamp(2.2rem, 5vw, 4rem);
+    line-height: 1.05;
+    margin: 0.5rem 0 1rem;
+}
+
+.hero-text {
+    font-size: 1.15rem;
+    line-height: 1.7;
+    opacity: 0.8;
+}
+
+.journey-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.25rem;
+}
+
+.journey-card {
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 1.5rem;
+    padding: 1.5rem;
+    background: white;
+    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.06);
+}
+
+.journey-icon {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+}
+
+.journey-card h2 {
+    margin: 0 0 0.75rem;
+    font-size: 1.35rem;
+}
+
+.journey-card p {
+    line-height: 1.6;
+    opacity: 0.8;
+}
+
+.journey-card a {
+    display: inline-block;
+    margin-top: 1rem;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.error-card {
+    border: 1px solid #e7b8b8;
+    border-radius: 1rem;
+    padding: 1rem;
+    background: #fff4f4;
+}

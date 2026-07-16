@@ -1,0 +1,98 @@
+is_global = true
+build_property.EnableAotAnalyzer = 
+build_property.EnableSingleFileAnalyzer = 
+build_property.EnableTrimAnalyzer = false
+build_property.IncludeAllContentForSelfExtract = 
+build_property.VerifyReferenceTrimCompatibility = 
+build_property.VerifyReferenceAotCompatibility = 
+build_property.TargetFramework = net10.0
+build_property.TargetFrameworkIdentifier = .NETCoreApp
+build_property.TargetFrameworkVersion = v10.0
+build_property.TargetPlatformMinVersion = 
+build_property.UsingMicrosoftNETSdkWeb = 
+build_property.ProjectTypeGuids = 
+build_property.InvariantGlobalization = false
+build_property.PlatformNeutralAssembly = 
+build_property.EnforceExtendedAnalyzerRules = 
+build_property.EntryPointFilePath = 
+build_property._SupportedPlatformList = browser
+build_property.RootNamespace = HeartJourneyWeb
+build_property.RootNamespace = HeartJourneyWeb
+build_property.ProjectDir = D:\heart-journey\HeartJourneyWeb\
+build_property.EnableComHosting = 
+build_property.EnableGeneratedComInterfaceComImportInterop = false
+build_property.RazorLangVersion = 10.0
+build_property.SupportLocalizedComponentNames = 
+build_property.GenerateRazorMetadataSourceChecksumAttributes = 
+build_property.MSBuildProjectDirectory = D:\heart-journey\HeartJourneyWeb
+build_property._RazorSourceGeneratorDebug = 
+build_property.EffectiveAnalysisLevelStyle = 10.0
+build_property.EnableCodeStyleSeverity = 
+
+[D:/heart-journey/HeartJourneyWeb/App.razor]
+build_metadata.AdditionalFiles.TargetPath = QXBwLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/heart-journey/HeartJourneyWeb/Components/Auth/RequireAuth.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xBdXRoXFJlcXVpcmVBdXRoLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/heart-journey/HeartJourneyWeb/Features/Counter.razor]
+build_metadata.AdditionalFiles.TargetPath = RmVhdHVyZXNcQ291bnRlci5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/heart-journey/HeartJourneyWeb/Features/NotFound.razor]
+build_metadata.AdditionalFiles.TargetPath = RmVhdHVyZXNcTm90Rm91bmQucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/heart-journey/HeartJourneyWeb/Features/Weather.razor]
+build_metadata.AdditionalFiles.TargetPath = RmVhdHVyZXNcV2VhdGhlci5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/heart-journey/HeartJourneyWeb/_Imports.razor]
+build_metadata.AdditionalFiles.TargetPath = X0ltcG9ydHMucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/heart-journey/HeartJourneyWeb/Components/Auth/AuthStatus.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xBdXRoXEF1dGhTdGF0dXMucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = b-43lepmab37
+
+[D:/heart-journey/HeartJourneyWeb/Features/Auth/AuthConfirmedPage.razor]
+build_metadata.AdditionalFiles.TargetPath = RmVhdHVyZXNcQXV0aFxBdXRoQ29uZmlybWVkUGFnZS5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = b-beu6d5v0a1
+
+[D:/heart-journey/HeartJourneyWeb/Features/Auth/AuthPage.razor]
+build_metadata.AdditionalFiles.TargetPath = RmVhdHVyZXNcQXV0aFxBdXRoUGFnZS5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = b-9q8fd4i1t0
+
+[D:/heart-journey/HeartJourneyWeb/Features/Home/HomePage.razor]
+build_metadata.AdditionalFiles.TargetPath = RmVhdHVyZXNcSG9tZVxIb21lUGFnZS5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = b-ic3ka9ij8o
+
+[D:/heart-journey/HeartJourneyWeb/Features/Journey/JourneyDetailPage.razor]
+build_metadata.AdditionalFiles.TargetPath = RmVhdHVyZXNcSm91cm5leVxKb3VybmV5RGV0YWlsUGFnZS5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = b-asncq3036u
+
+[D:/heart-journey/HeartJourneyWeb/Features/Milestone/MilestoneDetailPage.razor]
+build_metadata.AdditionalFiles.TargetPath = RmVhdHVyZXNcTWlsZXN0b25lXE1pbGVzdG9uZURldGFpbFBhZ2UucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = b-rdjzjgjoxs
+
+[D:/heart-journey/HeartJourneyWeb/Features/Milestone/MilestoneIntroPage.razor]
+build_metadata.AdditionalFiles.TargetPath = RmVhdHVyZXNcTWlsZXN0b25lXE1pbGVzdG9uZUludHJvUGFnZS5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = b-7zzzn0obd8
+
+[D:/heart-journey/HeartJourneyWeb/Features/Onboarding/OnboardingPage.razor]
+build_metadata.AdditionalFiles.TargetPath = RmVhdHVyZXNcT25ib2FyZGluZ1xPbmJvYXJkaW5nUGFnZS5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = b-dmn2v8ll5f
+
+[D:/heart-journey/HeartJourneyWeb/Features/Onboarding/WelcomePage.razor]
+build_metadata.AdditionalFiles.TargetPath = RmVhdHVyZXNcT25ib2FyZGluZ1xXZWxjb21lUGFnZS5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = b-8hthr6b6dt
+
+[D:/heart-journey/HeartJourneyWeb/Features/Reflection/DimensionReflectionPage.razor]
+build_metadata.AdditionalFiles.TargetPath = RmVhdHVyZXNcUmVmbGVjdGlvblxEaW1lbnNpb25SZWZsZWN0aW9uUGFnZS5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = b-kvf0qeugzq
+
+[D:/heart-journey/HeartJourneyWeb/Layout/MainLayout.razor]
+build_metadata.AdditionalFiles.TargetPath = TGF5b3V0XE1haW5MYXlvdXQucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = b-z9cfhjdkjw

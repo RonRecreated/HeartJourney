@@ -1,0 +1,14 @@
+﻿@inherits LayoutComponentBase
+@using HeartJourneyWeb.Components.Auth
+
+<div class="app-shell">
+    <header class="app-header">
+        <a href="/" class="brand">Heart Journey</a>
+
+        <AuthStatus />
+    </header>
+
+    <main>
+        @Body
+    </main>
+</div>

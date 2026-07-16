@@ -1,0 +1,224 @@
+@page "/journeys/{JourneySlug}/milestones/{MilestoneSlug}/intro"
+@using HeartJourney.Core.Features.Milestone
+@using HeartJourney.Core.Services.Interfaces
+@using HeartJourneyWeb.Services.Auth
+@inject IContentRepository ContentRepository
+@inject IAuthService AuthService
+@inject NavigationManager NavigationManager
+
+<PageTitle>@(_intro?.Title ?? "Milestone Intro")</PageTitle>
+
+<section class="milestone-intro-shell">
+    @if (_isLoading)
+    {
+        <p>Loading milestone introduction...</p>
+    }
+    else if (!string.IsNullOrWhiteSpace(_errorMessage))
+    {
+        <div class="error-card">
+            <strong>Something went wrong.</strong>
+            <p>@_errorMessage</p>
+        </div>
+    }
+    else if (_intro is null)
+    {
+        <p>Milestone introduction not found.</p>
+    }
+    else
+    {
+        <nav class="breadcrumb">
+            <a href="/">Home</a>
+            <span>/</span>
+            <a href="@($"/journeys/{_intro.JourneySlug}")">@_intro.JourneyTitle</a>
+            <span>/</span>
+            <span>@_intro.Title</span>
+        </nav>
+
+        <div class="intro-card">
+            <div class="step-indicator">
+                Step @(_currentStep + 1) of @_steps.Count
+            </div>
+
+            @if (_currentStep == 0)
+            {
+                <p class="eyebrow">A hopeful season</p>
+                <h1>@_intro.Title</h1>
+
+                @if (!string.IsNullOrWhiteSpace(_intro.Motto))
+                {
+                    <p class="motto">@_intro.Motto</p>
+                }
+
+                @if (!string.IsNullOrWhiteSpace(_intro.IntroPositiveOutlook))
+                {
+                    <p class="intro-text">@_intro.IntroPositiveOutlook</p>
+                }
+                else if (!string.IsNullOrWhiteSpace(_intro.Summary))
+                {
+                    <p class="intro-text">@_intro.Summary</p>
+                }
+            }
+            else if (_currentStep == 1)
+            {
+                <p class="eyebrow">What this milestone can help with</p>
+                <h1>Practical Readiness</h1>
+
+                @if (!string.IsNullOrWhiteSpace(_intro.IntroHelpsWith))
+                {
+                    <p class="intro-text">@_intro.IntroHelpsWith</p>
+                }
+                else
+                {
+                    <p class="intro-list">
+                        This milestone is designed to help you slow down, reflect honestly, and take wise next steps.
+                    </p>
+                }
+            }
+            else if (_currentStep == 2)
+            {
+                <p class="eyebrow">Scripture Anchors</p>
+                <h1>Keep these passages close as you evaluate the relationship:</h1>
+
+                @if (IntroBibleVerses.Count == 0)
+                {
+                    <p class="intro-text">
+                        God's Word gives wisdom, correction, encouragement, and hope
+                        for every season of life.
+                    </p>
+                }
+                else
+                {
+                    <div class="verse-list">
+                        @foreach (var verse in IntroBibleVerses)
+                        {
+                            if (verse is null)
+                            {
+                                continue;
+                            }
+
+                            <article class="verse-card">
+                                @if (!string.IsNullOrWhiteSpace(verse.Text))
+                                {
+                                    <p>“@verse.Text”</p>
+                                }
+
+                                @if (!string.IsNullOrWhiteSpace(verse.Reference))
+                                {
+                                    <strong>@verse.Reference</strong>
+                                }
+                            </article>
+                        }
+                    </div>
+                }
+            }
+            else if (_currentStep == 3)
+            {
+                <p class="eyebrow">Pause before continuing</p>
+                <h1>Take a moment to pray</h1>
+
+                @if (!string.IsNullOrWhiteSpace(_intro.IntroPrayerInvitation))
+                {
+                    <p class="intro-text">@_intro.IntroPrayerInvitation</p>
+                }
+                else
+                {
+                    <p class="intro-text">
+                        Before continuing, pause and ask God for honesty, wisdom,
+                        humility, and courage as you reflect.
+                    </p>
+                }
+            }
+
+            <div class="intro-actions">
+                @if (_currentStep > 0)
+                {
+                    <button type="button"
+                            class="secondary-button"
+                            @onclick="PreviousStep">
+                        Back
+                    </button>
+                }
+
+                <button type="button"
+                        class="primary-button"
+                        @onclick="NextStep">
+                    @(_currentStep == _steps.Count - 1
+                        ? "Continue to Growth Areas"
+                        : "Continue")
+                </button>
+            </div>
+        </div>
+    }
+</section>
+
+@code {
+    [Parameter]
+    public string JourneySlug { get; set; } = string.Empty;
+
+    [Parameter]
+    public string MilestoneSlug { get; set; } = string.Empty;
+
+    private MilestoneIntroView? _intro;
+    private bool _isLoading = true;
+    private string? _errorMessage;
+    private int _currentStep;
+    
+    private IReadOnlyList<HeartJourney.Core.Features.Shared.BibleVerseView> IntroBibleVerses =>
+    _intro?.IntroBibleVerses ?? new List<HeartJourney.Core.Features.Shared.BibleVerseView>();
+
+    private readonly List<int> _steps = new() { 0, 1, 2, 3 };
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _isLoading = true;
+        _errorMessage = null;
+        _currentStep = 0;
+
+        await AuthService.InitializeAsync();
+
+        if (!AuthService.IsSignedIn)
+        {
+            var currentPath = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+
+            NavigationManager.NavigateTo(
+                $"/auth?returnUrl=/{Uri.EscapeDataString(currentPath)}");
+
+            return;
+        }
+
+        try
+        {
+            _intro = await ContentRepository.GetMilestoneIntroBySlugsAsync(
+                JourneySlug,
+                MilestoneSlug);
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = ex.Message;
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private void PreviousStep()
+    {
+        if (_currentStep > 0)
+        {
+            _currentStep--;
+        }
+    }
+
+    private void NextStep()
+    {
+        if (_currentStep < _steps.Count - 1)
+        {
+            _currentStep++;
+            return;
+        }
+
+        NavigationManager.NavigateTo(
+            $"/journeys/{JourneySlug}/milestones/{MilestoneSlug}");
+    }
+}

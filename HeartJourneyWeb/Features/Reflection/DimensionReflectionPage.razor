@@ -1,0 +1,544 @@
+@page "/journeys/{JourneySlug}/milestones/{MilestoneSlug}/dimensions/{DimensionSlug}"
+@using HeartJourney.Core.Features.Reflection
+@using HeartJourney.Core.Services.Interfaces
+@using HeartJourneyWeb.Components.Auth
+@using HeartJourneyWeb.Services.ReflectionAnswers
+@inject IReflectionAnswerService ReflectionAnswerService
+@inject IContentRepository ContentRepository
+
+<PageTitle>@(_view?.DimensionTitle ?? "Reflection")</PageTitle>
+
+<RequireAuth>
+<section class="reflection-shell">
+    @if (_isLoading)
+    {
+        <p>Loading reflection...</p>
+    }
+    else if (!string.IsNullOrWhiteSpace(_errorMessage))
+    {
+        <div class="error-card">
+            <strong>Something went wrong.</strong>
+            <p>@_errorMessage</p>
+        </div>
+    }
+    else if (_view is null)
+    {
+        <p>Reflection not found.</p>
+    }
+    else if (_isComplete)
+    {
+        <nav class="breadcrumb">
+            <a href="/">Home</a>
+            <span>/</span>
+            <a href="@($"/journeys/{_view.JourneySlug}")">@_view.JourneyTitle</a>
+            <span>/</span>
+            <a href="@($"/journeys/{_view.JourneySlug}/milestones/{_view.MilestoneSlug}")">@_view.MilestoneTitle</a>
+            <span>/</span>
+            <span>@_view.DimensionTitle</span>
+        </nav>
+        
+        <article class="reflection-card completion-card">
+            <p class="eyebrow">Reflection complete</p>
+            <h1 class="reflection-question">
+                You’ve completed this growth area.
+            </h1>
+
+            <p class="intro-text">
+                You have answered the available questions for @_view.DimensionTitle.
+                Take a moment to reflect on what you noticed, then return to your growth areas when you’re ready.
+            </p>
+
+            <div class="completion-summary">
+                <strong>@_view.DimensionTitle</strong>
+                <span>@_prompts.Count question@(_prompts.Count == 1 ? "" : "s") completed</span>
+            </div>
+
+            <div class="reflection-actions">
+                <a class="secondary-link"
+                    href="@($"/journeys/{JourneySlug}/milestones/{MilestoneSlug}")">
+                    Back to Growth Areas
+                </a>
+
+                <button type="button"
+                        class="primary-button"
+                        disabled>
+                    Insights coming soon
+                </button>
+            </div>
+        </article>
+    }
+    else if (CurrentPrompt is null)
+    {
+        <div class="empty-card">
+            <h1>No reflection prompt yet</h1>
+            <p>
+                This dimension does not have a reflection question available yet.
+            </p>
+        </div>
+    }
+    // Reflection Card goes here
+    else
+    {
+        <nav class="breadcrumb">
+            <a href="/">Home</a>
+            <span>/</span>
+            <a href="@($"/journeys/{_view.JourneySlug}")">@_view.JourneyTitle</a>
+            <span>/</span>
+            <a href="@($"/journeys/{_view.JourneySlug}/milestones/{_view.MilestoneSlug}")">@_view.MilestoneTitle</a>
+            <span>/</span>
+            <span>@_view.DimensionTitle</span>
+        </nav>
+
+        <article class="reflection-card">
+            <div class="reflection-header">
+                <p class="eyebrow">
+                    @_view.DimensionTitle
+                </p>
+
+                <p class="step-indicator">
+                    Question @(_currentPromptIndex + 1) of @_prompts.Count
+                </p>
+
+                <h1 class="reflection-question">
+                    @CurrentPrompt.Question
+                </h1>
+            </div>
+
+            @if (CurrentPrompt.AnswerOptions.Count == 0)
+            {
+                <p class="intro-text">
+                    No answer options have been added for this question yet.
+                </p>
+            }
+            else
+            {
+                <div class="answer-list">
+                    @foreach (var answer in CurrentPrompt.AnswerOptions)
+                    {
+                        var isSelected = ReferenceEquals(_selectedAnswer, answer);
+
+                        <button type="button"
+                                class="answer-card @(isSelected ? "selected" : null)"
+                                @onclick="() => SelectAnswer(answer)">
+                            <span class="answer-label">@answer.Label</span>
+
+                            @if (!string.IsNullOrWhiteSpace(answer.Description))
+                            {
+                                <span class="answer-description">@answer.Description</span>
+                            }
+                        </button>
+                    }
+                </div>
+            }
+
+            @if (_selectedAnswer is not null
+                && !string.IsNullOrWhiteSpace(_selectedAnswer.GuidanceMessage))
+            {
+                <div class="guidance-card">
+                    <strong>Gentle guidance</strong>
+                    <p>@_selectedAnswer.GuidanceMessage</p>
+                </div>
+            }
+
+            @if (CurrentPrompt.AllowNotes)
+            {
+                <div class="notes-section">
+                    <label for="reflectionNotes">
+                        @if (!string.IsNullOrWhiteSpace(CurrentPrompt.NotesPrompt))
+                        {
+                            @CurrentPrompt.NotesPrompt
+                        }
+                        else
+                        {
+                            <span>Optional notes</span>
+                        }
+                    </label>
+
+                    <textarea id="reflectionNotes"
+                        @bind="_notes"
+                        rows="5"
+                        placeholder="Write anything you want to remember from this reflection.">
+                    </textarea>
+                </div>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(_saveErrorMessage))
+            {
+                <div class="error-card">
+                    <p>@_saveErrorMessage</p>
+                </div>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(_saveMessage))
+            {
+                <div class="success-card">
+                    <p>@_saveMessage</p>
+                </div>
+            }
+
+            <div class="reflection-actions">
+                <div class="reflection-actions-left">
+                    <a class="secondary-link"
+                        href="@($"/journeys/{JourneySlug}/milestones/{MilestoneSlug}")">
+                        Back to Growth Areas
+                    </a>
+
+                    @if (_currentPromptIndex > 0)
+                    {
+                        <button type="button"
+                                class="secondary-button"
+                                @onclick="PreviousPrompt">
+                            Back
+                        </button>
+                    }
+                </div>
+
+                <button type="button"
+                        class="primary-button"
+                        disabled="@(_selectedAnswer is null || _isSavingAnswer)"
+                        @onclick="SaveAndContinueAsync">
+                    @(_isSavingAnswer ? "Saving..." : "Save and Continue")
+                </button>
+            </div>
+        </article>
+    }
+</section>
+</RequireAuth>
+
+@code {
+    [Parameter]
+    public string JourneySlug { get; set; } = string.Empty;
+
+    [Parameter]
+    public string MilestoneSlug { get; set; } = string.Empty;
+
+    [Parameter]
+    public string DimensionSlug { get; set; } = string.Empty;
+
+    private DimensionReflectionView? _view;
+    private AnswerOptionView? _selectedAnswer;
+    private List<ReflectionPromptView> _prompts = new();
+    private Dictionary<string, ReflectionAnswerRecord> _savedAnswersByPromptId = new();
+    private int _currentPromptIndex;
+    private bool _isComplete;
+    private bool _isLoading = true;
+    private bool _isSavingAnswer;
+    private string? _errorMessage;
+    private string? _saveMessage;
+    private string? _saveErrorMessage;
+    private string _notes = string.Empty;
+
+    private ReflectionPromptView? CurrentPrompt =>
+    _currentPromptIndex >= 0 && _currentPromptIndex < _prompts.Count
+        ? _prompts[_currentPromptIndex]
+        : null;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _isLoading = true;
+        _errorMessage = null;
+        _saveMessage = null;
+        _saveErrorMessage = null;
+        _selectedAnswer = null;
+        _notes = string.Empty;
+
+        try
+        {
+            _view = await ContentRepository.GetDimensionReflectionBySlugsAsync(
+                JourneySlug,
+                MilestoneSlug,
+                DimensionSlug);
+
+            _prompts = _view?.ReflectionPrompts ?? new List<ReflectionPromptView>();
+
+            if (_prompts.Count == 0 && _view?.ReflectionPrompt is not null)
+            {
+                _prompts = new List<ReflectionPromptView>
+                {
+                    _view.ReflectionPrompt
+                };
+            }
+
+            var promptIds = _prompts
+                .Select(prompt => prompt.Id)
+                .Where(id => !string.IsNullOrWhiteSpace(id))
+                .Distinct()
+                .ToList();
+
+            var savedAnswers = await ReflectionAnswerService.GetAnswersForPromptsAsync(
+                promptIds);
+
+            _savedAnswersByPromptId = savedAnswers
+                .Where(answer => !string.IsNullOrWhiteSpace(answer.ReflectionPromptId))
+                .GroupBy(answer => answer.ReflectionPromptId)
+                .ToDictionary(group => group.Key, group => group.First());
+
+            MoveToNextPromptFromSavedPath();
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = ex.Message;
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private void MoveToNextPromptFromSavedPath()
+    {
+        _selectedAnswer = null;
+        _notes = string.Empty;
+        _saveMessage = null;
+        _saveErrorMessage = null;
+        _isComplete = false;
+
+        if (_prompts.Count == 0)
+        {
+            _currentPromptIndex = 0;
+            return;
+        }
+
+        var visitedPromptIds = new HashSet<string>();
+        var currentPromptIndex = 0;
+
+        while (currentPromptIndex >= 0 && currentPromptIndex < _prompts.Count)
+        {
+            var prompt = _prompts[currentPromptIndex];
+
+            if (!visitedPromptIds.Add(prompt.Id))
+            {
+                break;
+            }
+
+            if (!_savedAnswersByPromptId.TryGetValue(prompt.Id, out var savedAnswer))
+            {
+                _currentPromptIndex = currentPromptIndex;
+                LoadSavedAnswerForCurrentPrompt();
+                return;
+            }
+
+            var savedOption = FindAnswerOptionForSavedAnswer(prompt, savedAnswer);
+
+            if (savedOption?.EndsPath == true)
+            {
+                _isComplete = true;
+                _currentPromptIndex = currentPromptIndex;
+                return;
+            }
+
+            var targetedPromptIndex = FindTargetPromptIndex(savedOption);
+
+            if (targetedPromptIndex >= 0)
+            {
+                currentPromptIndex = targetedPromptIndex;
+                continue;
+            }
+
+            currentPromptIndex++;
+        }
+
+        _isComplete = true;
+        _currentPromptIndex = _prompts.Count - 1;
+    }
+
+    private void LoadSavedAnswerForCurrentPrompt()
+    {
+        _selectedAnswer = null;
+        _notes = string.Empty;
+
+        var prompt = CurrentPrompt;
+
+        if (prompt is null)
+        {
+            return;
+        }
+
+        if (!_savedAnswersByPromptId.TryGetValue(prompt.Id, out var savedAnswer))
+        {
+            return;
+        }
+
+        _selectedAnswer = prompt.AnswerOptions.FirstOrDefault(answer =>
+            string.Equals(
+                answer.Label,
+                savedAnswer.SelectedAnswerLabel,
+                StringComparison.OrdinalIgnoreCase));
+
+        _notes = savedAnswer.Notes ?? string.Empty;
+    }
+
+    private void SelectAnswer(AnswerOptionView option)
+    {
+        _selectedAnswer = option;
+        _saveMessage = null;
+        _saveErrorMessage = null;
+    }
+
+    private async Task SaveAndContinueAsync()
+    {
+        var currentPrompt = CurrentPrompt;
+        var selectedAnswer = _selectedAnswer;
+
+        if (_view is null || currentPrompt is null || selectedAnswer is null)
+        {
+            return;
+        }
+
+        _isSavingAnswer = true;
+        _saveMessage = null;
+        _saveErrorMessage = null;
+
+        try
+        {
+            var savedAnswer = await ReflectionAnswerService.SaveAnswerAsync(
+            new SaveReflectionAnswerRequest
+                {
+                    JourneySlug = JourneySlug,
+                    MilestoneSlug = MilestoneSlug,
+                    DimensionSlug = DimensionSlug,
+
+                    ReflectionPromptId = currentPrompt.Id,
+                    ReflectionPromptSlug = currentPrompt.Slug,
+                    ReflectionPromptTitle = currentPrompt.Title,
+
+                    SelectedAnswerLabel = selectedAnswer.Label,
+                    SelectedAnswerDescription = selectedAnswer.Description,
+                    SelectedStatus = selectedAnswer.Status,
+                    SelectedConcernLevel = selectedAnswer.ConcernLevel,
+                    GuidanceMessage = selectedAnswer.GuidanceMessage,
+
+                    Notes = _notes
+                });
+
+            _savedAnswersByPromptId[currentPrompt.Id] = savedAnswer;
+
+            MoveAfterSavedAnswer(currentPrompt, selectedAnswer);
+        }
+        catch (Exception ex)
+        {
+            _saveErrorMessage = ex.Message;
+        }
+        finally
+        {
+            _isSavingAnswer = false;
+        }
+    }
+
+    private void MoveAfterSavedAnswer(
+        ReflectionPromptView answeredPrompt,
+        AnswerOptionView selectedAnswer)
+    {
+        _selectedAnswer = null;
+        _notes = string.Empty;
+        _saveMessage = null;
+        _saveErrorMessage = null;
+
+        if (selectedAnswer.EndsPath)
+        {
+            _isComplete = true;
+            return;
+        }
+
+        var targetedPromptIndex = FindTargetPromptIndex(selectedAnswer);
+
+        if (targetedPromptIndex >= 0)
+        {
+            _currentPromptIndex = targetedPromptIndex;
+            LoadSavedAnswerForCurrentPrompt();
+            return;
+        }
+
+        MoveToNextUnansweredPromptAfter(answeredPrompt);
+    }
+
+    private void MoveToNextUnansweredPrompt()
+    {
+        var currentPrompt = CurrentPrompt;
+
+        if (currentPrompt is null)
+        {
+            _isComplete = true;
+            return;
+        }
+
+        MoveToNextUnansweredPromptAfter(currentPrompt);
+    }
+
+    private void MoveToNextUnansweredPromptAfter(ReflectionPromptView answeredPrompt)
+    {
+        _selectedAnswer = null;
+        _notes = string.Empty;
+        _saveMessage = null;
+        _saveErrorMessage = null;
+
+        var answeredPromptIndex = _prompts.FindIndex(prompt =>
+            string.Equals(prompt.Id, answeredPrompt.Id, StringComparison.Ordinal));
+
+        for (var i = answeredPromptIndex + 1; i < _prompts.Count; i++)
+        {
+            if (!_savedAnswersByPromptId.ContainsKey(_prompts[i].Id))
+            {
+                _currentPromptIndex = i;
+                LoadSavedAnswerForCurrentPrompt();
+                return;
+            }
+        }
+
+        _isComplete = true;
+    }
+
+    private AnswerOptionView? FindAnswerOptionForSavedAnswer(
+        ReflectionPromptView prompt,
+        ReflectionAnswerRecord savedAnswer)
+    {
+        return prompt.AnswerOptions.FirstOrDefault(answer =>
+            string.Equals(
+                answer.Label,
+                savedAnswer.SelectedAnswerLabel,
+                StringComparison.OrdinalIgnoreCase));
+    }
+
+    private int FindTargetPromptIndex(AnswerOptionView? answer)
+    {
+        if (answer is null)
+        {
+            return -1;
+        }
+
+        if (!string.IsNullOrWhiteSpace(answer.NextPromptId))
+        {
+            var indexById = _prompts.FindIndex(prompt =>
+                string.Equals(prompt.Id, answer.NextPromptId, StringComparison.Ordinal));
+
+            if (indexById >= 0)
+            {
+                return indexById;
+            }
+        }
+
+        if (!string.IsNullOrWhiteSpace(answer.NextPromptSlug))
+        {
+            return _prompts.FindIndex(prompt =>
+                string.Equals(prompt.Slug, answer.NextPromptSlug, StringComparison.OrdinalIgnoreCase));
+        }
+
+        return -1;
+    }
+
+    private void PreviousPrompt()
+    {
+        if (_currentPromptIndex <= 0)
+        {
+            return;
+        }
+
+        _currentPromptIndex--;
+
+        _saveMessage = null;
+        _saveErrorMessage = null;
+        _isComplete = false;
+
+        LoadSavedAnswerForCurrentPrompt();
+    }
+}

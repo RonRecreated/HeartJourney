@@ -1,0 +1,74 @@
+﻿@page "/"
+@using HeartJourney.Core.Features.Home
+@using HeartJourney.Core.Services.Interfaces
+@inject IContentRepository ContentRepository
+
+<PageTitle>Heart Journey</PageTitle>
+
+<section class="home-shell">
+    <div class="hero">
+        <p class="eyebrow">Heart Journey</p>
+        <h1>Helping you grow in Christ-centered relationships.</h1>
+        <p class="hero-text">
+            Choose the journey that best describes where you are today.
+        </p>
+    </div>
+
+    @if (_isLoading)
+    {
+        <p>Loading journeys...</p>
+    }
+    else if (!string.IsNullOrWhiteSpace(_errorMessage))
+    {
+        <div class="error-card">
+            <strong>Something went wrong.</strong>
+            <p>@_errorMessage</p>
+        </div>
+    }
+    else if (_journeys.Count == 0)
+    {
+        <p>No published journeys were found.</p>
+    }
+    else
+    {
+        <div class="journey-grid">
+            @foreach (var journey in _journeys)
+            {
+                <article class="journey-card">
+                    <div class="journey-icon">@journey.Icon</div>
+
+                    <h2>@journey.Title</h2>
+
+                    <p>@journey.Summary</p>
+
+                    <a href="@($"/journeys/{journey.Slug}")">
+                        Begin Journey
+                    </a>
+                </article>
+            }
+        </div>
+    }
+</section>
+
+@code {
+    private List<JourneyCard> _journeys = new();
+    private bool _isLoading = true;
+    private string? _errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var journeys = await ContentRepository.GetJourneyCardsAsync();
+            _journeys = journeys.ToList();
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = ex.Message;
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+}

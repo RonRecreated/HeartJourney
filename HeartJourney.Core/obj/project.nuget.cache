@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "dgSpecHash": "EUA39MxhACA=",
+  "success": true,
+  "projectFilePath": "D:\\heart-journey\\HeartJourney.Core\\HeartJourney.Core.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\ronal\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\10.0.9\\microsoft.extensions.dependencyinjection.abstractions.10.0.9.nupkg.sha512",
+    "C:\\Users\\ronal\\.nuget\\packages\\microsoft.extensions.options\\10.0.9\\microsoft.extensions.options.10.0.9.nupkg.sha512",
+    "C:\\Users\\ronal\\.nuget\\packages\\microsoft.extensions.primitives\\10.0.9\\microsoft.extensions.primitives.10.0.9.nupkg.sha512"
+  ],
+  "logs": []
+}

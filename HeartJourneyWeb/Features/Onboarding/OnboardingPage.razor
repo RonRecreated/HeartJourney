@@ -1,0 +1,173 @@
+@page "/onboarding"
+@using HeartJourneyWeb.Features.Onboarding
+@using HeartJourneyWeb.Services.Auth
+@using HeartJourneyWeb.Services.Profiles
+@inject IAuthService AuthService
+@inject IProfileService ProfileService
+@inject NavigationManager NavigationManager
+
+<PageTitle>Set Up Profile - Heart Journey</PageTitle>
+
+<section class="onboarding-shell">
+    <div class="onboarding-card">
+        <p class="eyebrow">Profile Setup</p>
+
+        <h1>Help us personalize your journey</h1>
+
+        <p class="intro">
+            These questions help Heart Journey guide you with honesty, clarity, and care from the beginning.
+        </p>
+
+        @if (_isLoading)
+        {
+            <p>Loading profile...</p>
+        }
+        else if (!string.IsNullOrWhiteSpace(_errorMessage))
+        {
+            <div class="message error">
+                @_errorMessage
+            </div>
+        }
+        else
+        {
+            <EditForm Model="_form" OnValidSubmit="SaveProfileAsync">
+                <DataAnnotationsValidator />
+
+                <div class="form-field">
+                    <label for="display-name">Display Name</label>
+                    <InputText id="display-name"
+                               @bind-Value="_form.DisplayName" />
+                </div>
+
+                <div class="form-field">
+                    <label for="age-bracket">Age Bracket</label>
+                    <InputSelect id="age-bracket"
+                                 @bind-Value="_form.AgeBracket">
+                        <option value="">Choose one</option>
+                        <option value="under18">Under 18</option>
+                        <option value="18-24">18–24</option>
+                        <option value="25-34">25–34</option>
+                        <option value="35-44">35–44</option>
+                        <option value="45-54">45–54</option>
+                        <option value="55plus">55+</option>
+                    </InputSelect>
+                </div>
+
+                <div class="form-field">
+                    <label for="gender">Gender</label>
+                    <InputSelect id="gender"
+                                 @bind-Value="_form.Gender">
+                        <option value="">Choose one</option>
+                        <option value="female">Female</option>
+                        <option value="male">Male</option>
+                    </InputSelect>
+                </div>
+
+                <div class="form-field">
+                    <label for="religious-background">Religious Background</label>
+                    <InputSelect id="religious-background"
+                                 @bind-Value="_form.ReligiousBackground">
+                        <option value="">Choose one</option>
+                        <option value="christian">Christian</option>
+                        <option value="exploringChristianity">Exploring Christianity</option>
+                        <option value="otherFaith">Other faith background</option>
+                        <option value="none">No religious background</option>
+                    </InputSelect>
+                </div>
+
+                <div class="form-field">
+                    <label for="relationship-season">Current Relationship Season</label>
+                    <InputSelect id="relationship-season"
+                                 @bind-Value="_form.CurrentRelationshipSeason">
+                        <option value="">Choose one</option>
+                        <option value="single">Single</option>
+                        <option value="talking">Talking</option>
+                        <option value="courting">Courting</option>
+                        <option value="engaged">Engaged</option>
+                        <option value="married">Married</option>
+                        <option value="divorced">Divorced</option>
+                    </InputSelect>
+                    <ValidationMessage For="@(() => _form.CurrentRelationshipSeason)" />
+                </div>
+
+                <button type="submit"
+                        class="primary-button"
+                        disabled="@_isSaving">
+                    @(_isSaving ? "Saving..." : "Begin My Journey")
+                </button>
+            </EditForm>
+        }
+    </div>
+</section>
+
+@code {
+    private readonly OnboardingFormModel _form = new();
+
+    private HeartJourneyProfile? _profile;
+    private bool _isLoading = true;
+    private bool _isSaving;
+    private string? _errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await AuthService.InitializeAsync();
+
+        if (!AuthService.IsSignedIn)
+        {
+            NavigationManager.NavigateTo("/auth");
+            return;
+        }
+
+        try
+        {
+            _profile = await ProfileService.EnsureProfileAsync();
+
+            _form.DisplayName = _profile.DisplayName;
+            _form.AgeBracket = _profile.AgeBracket;
+            _form.Gender = _profile.Gender;
+            _form.ReligiousBackground = _profile.ReligiousBackground;
+            _form.CurrentRelationshipSeason = _profile.CurrentRelationshipSeason;
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = ex.Message;
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task SaveProfileAsync()
+    {
+        if (_profile is null)
+        {
+            return;
+        }
+
+        _isSaving = true;
+        _errorMessage = null;
+
+        try
+        {
+            _profile.DisplayName = _form.DisplayName;
+            _profile.AgeBracket = _form.AgeBracket;
+            _profile.Gender = _form.Gender;
+            _profile.ReligiousBackground = _form.ReligiousBackground;
+            _profile.CurrentRelationshipSeason = _form.CurrentRelationshipSeason;
+            _profile.OnboardingCompleted = true;
+
+            await ProfileService.UpdateProfileAsync(_profile);
+
+            NavigationManager.NavigateTo("/");
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = ex.Message;
+        }
+        finally
+        {
+            _isSaving = false;
+        }
+    }
+}

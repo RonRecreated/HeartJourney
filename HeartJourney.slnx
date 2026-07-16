@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="HeartJourney.Core/HeartJourney.Core.csproj" />
+  <Project Path="HeartJourneyWeb/HeartJourneyWeb.csproj" />
+</Solution>

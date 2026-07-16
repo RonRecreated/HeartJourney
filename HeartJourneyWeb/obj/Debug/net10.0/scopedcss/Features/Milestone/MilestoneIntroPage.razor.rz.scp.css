@@ -1,0 +1,139 @@
+.milestone-intro-shell[b-7zzzn0obd8] {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 3rem 1.25rem;
+}
+
+.breadcrumb[b-7zzzn0obd8] {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+    font-size: 0.95rem;
+    opacity: 0.75;
+}
+
+.breadcrumb a[b-7zzzn0obd8] {
+    text-decoration: none;
+    font-weight: 700;
+}
+
+.intro-card[b-7zzzn0obd8] {
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 1.75rem;
+    padding: clamp(1.5rem, 4vw, 2.5rem);
+    background: white;
+    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.08);
+}
+
+.step-indicator[b-7zzzn0obd8] {
+    display: inline-block;
+    margin-bottom: 1.25rem;
+    border-radius: 999px;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.8rem;
+    font-weight: 800;
+    background: rgba(0, 0, 0, 0.055);
+}
+
+.eyebrow[b-7zzzn0obd8] {
+    font-size: 0.85rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    opacity: 0.7;
+}
+
+.intro-card h1[b-7zzzn0obd8] {
+    max-width: 760px;
+    margin: 0.5rem 0 1rem;
+    font-size: clamp(2.2rem, 5vw, 4rem);
+    line-height: 1.05;
+}
+
+.motto[b-7zzzn0obd8] {
+    font-size: 1.25rem;
+    font-weight: 800;
+    line-height: 1.55;
+}
+
+.intro-text[b-7zzzn0obd8] {
+    max-width: 760px;
+    font-size: 1.1rem;
+    line-height: 1.8;
+    opacity: 0.84;
+}
+
+.intro-list[b-7zzzn0obd8] {
+    display: grid;
+    gap: 0.85rem;
+    padding-left: 1.25rem;
+    font-size: 1.05rem;
+    line-height: 1.7;
+}
+
+.verse-list[b-7zzzn0obd8] {
+    display: grid;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.verse-card[b-7zzzn0obd8] {
+    border-radius: 1.25rem;
+    padding: 1.25rem;
+    background: rgba(0, 0, 0, 0.035);
+}
+
+.verse-card p[b-7zzzn0obd8] {
+    margin-top: 0;
+    font-size: 1.08rem;
+    line-height: 1.8;
+}
+
+.verse-card strong[b-7zzzn0obd8] {
+    display: block;
+}
+
+.intro-actions[b-7zzzn0obd8] {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    margin-top: 2rem;
+}
+
+.primary-button[b-7zzzn0obd8],
+.secondary-button[b-7zzzn0obd8] {
+    border-radius: 999px;
+    padding: 0.9rem 1.35rem;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.primary-button[b-7zzzn0obd8] {
+    border: none;
+    background: #1f2a24;
+    color: white;
+}
+
+.secondary-button[b-7zzzn0obd8] {
+    border: 1px solid rgba(0, 0, 0, 0.16);
+    background: white;
+}
+
+.error-card[b-7zzzn0obd8] {
+    border: 1px solid #e7b8b8;
+    border-radius: 1rem;
+    padding: 1rem;
+    background: #fff4f4;
+}
+
+@media (max-width: 640px) {
+    .intro-actions[b-7zzzn0obd8] {
+        flex-direction: column-reverse;
+    }
+
+    .primary-button[b-7zzzn0obd8],
+    .secondary-button[b-7zzzn0obd8] {
+        width: 100%;
+    }
+}

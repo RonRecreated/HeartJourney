@@ -1,0 +1,89 @@
+.onboarding-shell[b-dmn2v8ll5f] {
+    min-height: 80vh;
+    display: grid;
+    place-items: center;
+    padding: 3rem 1.25rem;
+}
+
+.onboarding-card[b-dmn2v8ll5f] {
+    width: min(100%, 640px);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 1.75rem;
+    padding: 2rem;
+    background: white;
+    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.08);
+}
+
+.eyebrow[b-dmn2v8ll5f] {
+    font-size: 0.85rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    opacity: 0.7;
+}
+
+.onboarding-card h1[b-dmn2v8ll5f] {
+    margin: 0.5rem 0 0.75rem;
+    font-size: 2.25rem;
+    line-height: 1.1;
+}
+
+.intro[b-dmn2v8ll5f] {
+    line-height: 1.7;
+    opacity: 0.8;
+    margin-bottom: 1.5rem;
+}
+
+.form-field[b-dmn2v8ll5f] {
+    display: grid;
+    gap: 0.45rem;
+    margin-bottom: 1rem;
+}
+
+.form-field label[b-dmn2v8ll5f] {
+    font-weight: 800;
+}
+
+.form-field input[b-dmn2v8ll5f],
+.form-field select[b-dmn2v8ll5f] {
+    width: 100%;
+    border: 1px solid rgba(0, 0, 0, 0.18);
+    border-radius: 0.85rem;
+    padding: 0.85rem 1rem;
+    font: inherit;
+    background: white;
+}
+
+.validation-message[b-dmn2v8ll5f] {
+    color: #9f1d1d;
+    font-size: 0.9rem;
+}
+
+.primary-button[b-dmn2v8ll5f] {
+    width: 100%;
+    border: none;
+    border-radius: 999px;
+    padding: 0.95rem 1.4rem;
+    margin-top: 0.75rem;
+    font-weight: 800;
+    cursor: pointer;
+    background: #1f2a24;
+    color: white;
+}
+
+.primary-button:disabled[b-dmn2v8ll5f] {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+.message[b-dmn2v8ll5f] {
+    border-radius: 1rem;
+    padding: 0.85rem 1rem;
+    margin-bottom: 1rem;
+    line-height: 1.5;
+}
+
+.message.error[b-dmn2v8ll5f] {
+    background: #fff4f4;
+    border: 1px solid #e7b8b8;
+}

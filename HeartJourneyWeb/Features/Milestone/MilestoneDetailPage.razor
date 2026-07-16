@@ -1,0 +1,199 @@
+@page "/journeys/{JourneySlug}/milestones/{MilestoneSlug}"
+@using HeartJourney.Core.Features.Milestone
+@using HeartJourney.Core.Services.Interfaces
+@using HeartJourneyWeb.Services.Auth
+@using HeartJourneyWeb.Services.ReflectionAnswers
+@inject IReflectionAnswerService ReflectionAnswerService
+@inject IAuthService AuthService
+@inject NavigationManager NavigationManager
+@inject IContentRepository ContentRepository
+
+<PageTitle>@(_milestone?.Title ?? "Milestone")</PageTitle>
+
+<section class="milestone-detail-shell">
+    @if (_isLoading)
+    {
+        <p>Loading milestone...</p>
+    }
+    else if (!string.IsNullOrWhiteSpace(_errorMessage))
+    {
+        <div class="error-card">
+            <strong>Something went wrong.</strong>
+            <p>@_errorMessage</p>
+        </div>
+    }
+    else if (_milestone is null)
+    {
+        <p>Milestone not found.</p>
+    }
+    else
+    {
+        <nav class="breadcrumb">
+            <a href="/">Home</a>
+            <span>/</span>
+            <a href="@($"/journeys/{_milestone.JourneySlug}")">@_milestone.JourneyTitle</a>
+            <span>/</span>
+            <span>@_milestone.Title</span>
+        </nav>
+
+        <header class="milestone-hero">
+            <p class="eyebrow">Current Milestone</p>
+            <h1>@_milestone.Title</h1>
+
+            @if (!string.IsNullOrWhiteSpace(_milestone.Motto))
+            {
+                <p class="motto">@_milestone.Motto</p>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(_milestone.Summary))
+            {
+                <p class="summary">@_milestone.Summary</p>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(_milestone.Purpose))
+            {
+                <p class="purpose">@_milestone.Purpose</p>
+            }
+        </header>
+
+        <section class="guidance-grid">
+            @if (_milestone.HealthyCharacteristics?.Count > 0)
+            {
+                <article class="guidance-card">
+                    <h2>Healthy Characteristics</h2>
+
+                    <ul>
+                        @foreach (var item in _milestone.HealthyCharacteristics)
+                        {
+                            <li>@item</li>
+                        }
+                    </ul>
+                </article>
+            }
+
+            @if (_milestone.PotentialPitfalls?.Count > 0)
+            {
+                <article class="guidance-card">
+                    <h2>Potential Pitfalls</h2>
+
+                    <ul>
+                        @foreach (var item in _milestone.PotentialPitfalls)
+                        {
+                            <li>@item</li>
+                        }
+                    </ul>
+                </article>
+            }
+        </section>
+
+        @if (!string.IsNullOrWhiteSpace(_milestone.DesiredOutcome))
+        {
+            <section class="desired-outcome">
+                <h2>Desired Outcome</h2>
+                <p>@_milestone.DesiredOutcome</p>
+            </section>
+        }
+
+        <section class="dimension-section">
+            <h2>What area would you like to reflect on?</h2>
+            <p class="section-text">
+                Choose a growth area connected to this milestone.
+            </p>
+
+            @if (_milestone.Dimensions is null || _milestone.Dimensions.Count == 0)
+            {
+                <p>No published dimensions were found for this milestone.</p>
+            }
+            else
+            {
+                <div class="dimension-grid">
+                    @foreach (var dimension in _milestone.Dimensions ?? [])
+                    {
+                        <!-- Dimension Card Markup -->
+                        var isInProgress = IsDimensionInProgress(dimension.Slug);
+
+                        <article class="dimension-card @(isInProgress ? "in-progress" : null)">
+                            @if (isInProgress)
+                            {
+                                <div class="progress-badge">In Progress</div>
+                            }
+                            
+                            <h3>@dimension.Title</h3>
+
+                            @if (!string.IsNullOrWhiteSpace(dimension.Summary))
+                            {
+                                <p>@dimension.Summary</p>
+                            }
+
+                            <a href="@($"/journeys/{JourneySlug}/milestones/{MilestoneSlug}/dimensions/{dimension.Slug}")">
+                                @(isInProgress ? "Continue Reflection" : $"Reflect on {dimension.Title}")
+                            </a>
+                        </article>
+                    }
+                </div>
+            }
+        </section>
+    }
+</section>
+
+@code {
+    [Parameter]
+    public string JourneySlug { get; set; } = string.Empty;
+
+    [Parameter]
+    public string MilestoneSlug { get; set; } = string.Empty;
+
+    private MilestoneDetailView? _milestone;
+    private bool _isLoading = true;
+    private string? _errorMessage;
+    private HashSet<string> _startedDimensionSlugs = new(StringComparer.OrdinalIgnoreCase);
+    
+    private bool IsDimensionInProgress(string dimensionSlug)
+    {
+        return _startedDimensionSlugs.Contains(dimensionSlug);
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _isLoading = true;
+        _errorMessage = null;
+
+        await AuthService.InitializeAsync();
+
+        if (!AuthService.IsSignedIn)
+        {
+            var currentPath = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+
+            NavigationManager.NavigateTo(
+            $"/auth?returnUrl=/{Uri.EscapeDataString(currentPath)}");
+
+            return;
+        }
+
+        try
+        {
+            // Load the milestone details view
+            _milestone = await ContentRepository.GetMilestoneDetailBySlugsAsync(
+                JourneySlug,
+                MilestoneSlug);
+
+            // Load the user's answers for this milestone to determine which dimensions have been started
+            var answers = await ReflectionAnswerService.GetAnswersForMilestoneAsync(
+                JourneySlug,
+                MilestoneSlug);
+
+            _startedDimensionSlugs = answers
+                .Where(answer => !string.IsNullOrWhiteSpace(answer.DimensionSlug))
+                .Select(answer => answer.DimensionSlug)
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = ex.Message;
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+}

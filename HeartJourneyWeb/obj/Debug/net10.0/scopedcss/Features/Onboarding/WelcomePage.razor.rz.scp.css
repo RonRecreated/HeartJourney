@@ -1,0 +1,69 @@
+.welcome-shell[b-8hthr6b6dt] {
+    min-height: 80vh;
+    display: grid;
+    place-items: center;
+    padding: 3rem 1.25rem;
+}
+
+.welcome-card[b-8hthr6b6dt] {
+    width: min(100%, 820px);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 1.75rem;
+    padding: 2rem;
+    background: white;
+    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.08);
+}
+
+.eyebrow[b-8hthr6b6dt] {
+    font-size: 0.85rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    opacity: 0.7;
+}
+
+.welcome-card h1[b-8hthr6b6dt] {
+    margin: 0.5rem 0 1rem;
+    font-size: clamp(2.1rem, 5vw, 3.75rem);
+    line-height: 1.05;
+}
+
+.intro[b-8hthr6b6dt] {
+    max-width: 680px;
+    font-size: 1.08rem;
+    line-height: 1.7;
+    opacity: 0.8;
+}
+
+.principle-list[b-8hthr6b6dt] {
+    display: grid;
+    gap: 1rem;
+    margin: 2rem 0;
+}
+
+.principle-list article[b-8hthr6b6dt] {
+    border-radius: 1.25rem;
+    padding: 1.1rem 1.25rem;
+    background: rgba(0, 0, 0, 0.035);
+}
+
+.principle-list h2[b-8hthr6b6dt] {
+    margin: 0 0 0.4rem;
+    font-size: 1.15rem;
+}
+
+.principle-list p[b-8hthr6b6dt] {
+    margin: 0;
+    line-height: 1.65;
+    opacity: 0.8;
+}
+
+.primary-button[b-8hthr6b6dt] {
+    border: none;
+    border-radius: 999px;
+    padding: 0.95rem 1.4rem;
+    font-weight: 800;
+    cursor: pointer;
+    background: #1f2a24;
+    color: white;
+}

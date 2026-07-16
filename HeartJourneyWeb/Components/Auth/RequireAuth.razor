@@ -1,0 +1,36 @@
+@using HeartJourneyWeb.Services.Auth
+@inject IAuthService AuthService
+@inject NavigationManager NavigationManager
+
+@if (_isChecking)
+{
+    <p>Checking account...</p>
+}
+else if (AuthService.IsSignedIn)
+{
+    @ChildContent
+}
+
+@code {
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    private bool _isChecking = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await AuthService.InitializeAsync();
+
+        if (!AuthService.IsSignedIn)
+        {
+            var currentPath = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+
+            NavigationManager.NavigateTo(
+                $"/auth?returnUrl=/{Uri.EscapeDataString(currentPath)}");
+
+            return;
+        }
+
+        _isChecking = false;
+    }
+}

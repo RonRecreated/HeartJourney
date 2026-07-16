@@ -1,0 +1,149 @@
+@page "/auth"
+@using HeartJourneyWeb.Services.Auth
+@using HeartJourneyWeb.Services.Profiles
+@inject IProfileService ProfileService
+@inject IAuthService AuthService
+@inject NavigationManager NavigationManager
+
+<PageTitle>Sign In - Heart Journey</PageTitle>
+
+<section class="auth-shell">
+    <div class="auth-card">
+        <p class="eyebrow">Heart Journey</p>
+
+        <h1>@(_isCreateAccountMode ? "Create your account" : "Welcome back")</h1>
+
+        <p class="intro">
+            Sign in to save your journey, reflection answers, notes, and future insights.
+        </p>
+
+        @if (!string.IsNullOrWhiteSpace(_message))
+        {
+            <div class="@(_isError ? "message error" : "message success")">
+                @_message
+            </div>
+        }
+
+        <EditForm Model="_form" OnValidSubmit="HandleSubmitAsync">
+            <DataAnnotationsValidator />
+
+            <div class="form-field">
+                <label for="email">Email</label>
+                <InputText id="email"
+                           type="email"
+                           @bind-Value="_form.Email" />
+                <ValidationMessage For="@(() => _form.Email)" />
+            </div>
+
+            <div class="form-field">
+                <label for="password">Password</label>
+                <InputText id="password"
+                           type="password"
+                           @bind-Value="_form.Password" />
+                <ValidationMessage For="@(() => _form.Password)" />
+            </div>
+
+            <button type="submit" class="primary-button" disabled="@_isBusy">
+                @if (_isBusy)
+                {
+                    <span>Please wait...</span>
+                }
+                else
+                {
+                    <span>@(_isCreateAccountMode ? "Create Account" : "Sign In")</span>
+                }
+            </button>
+        </EditForm>
+
+        <button type="button"
+                class="mode-button"
+                @onclick="ToggleMode"
+                disabled="@_isBusy">
+            @if (_isCreateAccountMode)
+            {
+                <span>Already have an account? Sign in</span>
+            }
+            else
+            {
+                <span>Need an account? Create one</span>
+            }
+        </button>
+    </div>
+</section>
+
+@code {
+    private readonly AuthFormModel _form = new();
+
+    private bool _isCreateAccountMode;
+    private bool _isBusy;
+    private bool _isError;
+    private string? _message;
+
+    [SupplyParameterFromQuery]
+    public string? ReturnUrl { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await AuthService.InitializeAsync();
+
+        if (AuthService.IsSignedIn)
+        {
+            NavigationManager.NavigateTo(
+                string.IsNullOrWhiteSpace(ReturnUrl) ? "/" : ReturnUrl);
+        }
+    }
+
+    private async Task HandleSubmitAsync()
+    {
+        _isBusy = true;
+        _message = null;
+        _isError = false;
+
+        try
+        {
+            AuthResult result;
+
+            if (_isCreateAccountMode)
+            {
+                result = await AuthService.SignUpAsync(
+                    _form.Email,
+                    _form.Password);
+            }
+            else
+            {
+                result = await AuthService.SignInAsync(
+                    _form.Email,
+                    _form.Password);
+            }
+
+            _message = result.Message;
+            _isError = !result.Succeeded;
+            _form.Password = string.Empty;
+
+            if (result.Succeeded && AuthService.IsSignedIn)
+            {
+                var profile = await ProfileService.EnsureProfileAsync();
+
+                if (!profile.OnboardingCompleted)
+                {
+                    NavigationManager.NavigateTo("/welcome");
+                    return;
+                }
+                
+                NavigationManager.NavigateTo(
+                    string.IsNullOrWhiteSpace(ReturnUrl) ? "/" : ReturnUrl);
+            }
+        }
+        finally
+        {
+            _isBusy = false;
+        }
+    }
+
+    private void ToggleMode()
+    {
+        _isCreateAccountMode = !_isCreateAccountMode;
+        _message = null;
+        _isError = false;
+    }
+}

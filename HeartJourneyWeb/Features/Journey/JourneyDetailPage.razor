@@ -1,0 +1,138 @@
+@page "/journeys/{Slug}"
+@using HeartJourney.Core.Features.Journey
+@using HeartJourney.Core.Services.Interfaces
+@using HeartJourneyWeb.Services.Auth
+@using HeartJourneyWeb.Services.Profiles
+@inject IAuthService AuthService
+@inject IProfileService ProfileService
+@inject IContentRepository ContentRepository
+
+<PageTitle>@(_journey?.Title ?? "Journey")</PageTitle>
+
+<section class="journey-detail-shell">
+    @if (_isLoading)
+    {
+        <p>Loading journey...</p>
+    }
+    else if (!string.IsNullOrWhiteSpace(_errorMessage))
+    {
+        <div class="error-card">
+            <strong>Something went wrong.</strong>
+            <p>@_errorMessage</p>
+        </div>
+    }
+    else if (_journey is null)
+    {
+        <p>Journey not found.</p>
+    }
+    else
+    {
+        <header class="journey-hero">
+            <p class="eyebrow">Heart Journey</p>
+            <h1>@_journey.Title</h1>
+
+            @if (!string.IsNullOrWhiteSpace(_journey.Summary))
+            {
+                <p class="summary">@_journey.Summary</p>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(_journey.Purpose))
+            {
+                <p class="purpose">@_journey.Purpose</p>
+            }
+        </header>
+
+        <section class="milestone-section">
+            <h2>Where are you today?</h2>
+            <p class="section-text">
+                Choose the milestone that best reflects your current season.
+            </p>
+
+            @if (_journey.Milestones.Count == 0)
+            {
+                <p>No published milestones were found for this journey.</p>
+            }
+            else
+            {
+                <div class="milestone-grid">
+                    @foreach (var milestone in _journey.Milestones)
+                    {
+                        var isCurrentSeason = IsCurrentSeason(milestone);
+                        
+                        <article class="milestone-card @(isCurrentSeason ? "current-season" : null)">
+                            @if (isCurrentSeason)
+                            {
+                                <div class="season-badge">Your Current Season</div>
+                            }
+                            
+                            <div class="milestone-icon">@milestone.Icon</div>
+
+                            <h3>@milestone.Title</h3>
+
+                            @if (!string.IsNullOrWhiteSpace(milestone.Motto))
+                            {
+                                <p class="motto">@milestone.Motto</p>
+                            }
+
+                            @if (!string.IsNullOrWhiteSpace(milestone.Summary))
+                            {
+                                <p>@milestone.Summary</p>
+                            }
+
+                            <a href="@($"/journeys/{Slug}/milestones/{milestone.Slug}/intro")">
+                                @(isCurrentSeason ? "Begin here" : "Walk this milestone")
+                            </a>
+                        </article>
+                    }
+                </div>
+            }
+        </section>
+    }
+</section>
+
+@code {
+    [Parameter]
+    public string Slug { get; set; } = string.Empty;
+
+    private JourneyDetailView? _journey;
+    private HeartJourneyProfile? _profile;
+    private string? _currentSeasonSlug;
+    private bool _isLoading = true;
+    private string? _errorMessage;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _isLoading = true;
+        _errorMessage = null;
+
+        try
+        {
+            _journey = await ContentRepository.GetJourneyDetailBySlugAsync(Slug);
+
+            await AuthService.InitializeAsync();
+
+            if (AuthService.IsSignedIn)
+            {
+                _profile = await ProfileService.GetProfileAsync();
+                _currentSeasonSlug = _profile?.CurrentRelationshipSeason;
+            }
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = ex.Message;
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private bool IsCurrentSeason(MilestoneCard milestone)
+    {
+        return !string.IsNullOrWhiteSpace(_currentSeasonSlug)
+            && string.Equals(
+                milestone.Slug,
+                _currentSeasonSlug,
+                StringComparison.OrdinalIgnoreCase);
+    }
+}

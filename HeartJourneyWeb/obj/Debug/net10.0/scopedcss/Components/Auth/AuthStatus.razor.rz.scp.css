@@ -1,0 +1,57 @@
+.auth-status[b-43lepmab37] {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.auth-loading[b-43lepmab37] {
+    font-size: 0.9rem;
+    opacity: 0.7;
+}
+
+.signed-in[b-43lepmab37] {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.user-email[b-43lepmab37] {
+    font-size: 0.9rem;
+    font-weight: 700;
+    opacity: 0.8;
+}
+
+.sign-in-link[b-43lepmab37],
+.sign-out-button[b-43lepmab37] {
+    border-radius: 999px;
+    padding: 0.65rem 1rem;
+    font-weight: 800;
+    text-decoration: none;
+}
+
+.sign-in-link[b-43lepmab37] {
+    display: inline-block;
+    background: #1f2a24;
+    color: white;
+}
+
+.sign-out-button[b-43lepmab37] {
+    border: 1px solid rgba(0, 0, 0, 0.16);
+    background: white;
+    cursor: pointer;
+}
+
+@media (max-width: 640px) {
+    .signed-in[b-43lepmab37] {
+        align-items: flex-end;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .user-email[b-43lepmab37] {
+        max-width: 180px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+}

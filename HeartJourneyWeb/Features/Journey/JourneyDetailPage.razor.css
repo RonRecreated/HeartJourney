@@ -1,0 +1,106 @@
+.journey-detail-shell {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 3rem 1.25rem;
+}
+
+.journey-hero {
+    max-width: 780px;
+    margin-bottom: 3rem;
+}
+
+.eyebrow {
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    opacity: 0.75;
+}
+
+.journey-hero h1 {
+    font-size: clamp(2.25rem, 5vw, 4.25rem);
+    line-height: 1.05;
+    margin: 0.5rem 0 1rem;
+}
+
+.summary,
+.purpose,
+.section-text {
+    font-size: 1.05rem;
+    line-height: 1.7;
+    opacity: 0.82;
+}
+
+.milestone-section h2 {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.milestone-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.25rem;
+    margin-top: 1.5rem;
+}
+
+.milestone-card {
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 1.5rem;
+    padding: 1.5rem;
+    background: white;
+    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.06);
+}
+
+.milestone-icon {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+}
+
+.milestone-card h3 {
+    margin: 0 0 0.6rem;
+    font-size: 1.35rem;
+}
+
+.motto {
+    font-weight: 700;
+}
+
+.milestone-card p {
+    line-height: 1.6;
+    opacity: 0.82;
+}
+
+.milestone-card a {
+    display: inline-block;
+    margin-top: 1rem;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.error-card {
+    border: 1px solid #e7b8b8;
+    border-radius: 1rem;
+    padding: 1rem;
+    background: #fff4f4;
+}
+
+.milestone-card {
+    position: relative;
+}
+
+.milestone-card.current-season {
+    border-width: 2px;
+    box-shadow: 0 22px 55px rgba(0, 0, 0, 0.1);
+}
+
+.season-badge {
+    display: inline-block;
+    margin-bottom: 0.85rem;
+    border-radius: 999px;
+    padding: 0.35rem 0.75rem;
+    font-size: 0.8rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    background: rgba(0, 0, 0, 0.06);
+}

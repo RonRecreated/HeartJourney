@@ -1,0 +1,24 @@
+.app-shell[b-z9cfhjdkjw] {
+    min-height: 100vh;
+}
+
+.app-header[b-z9cfhjdkjw] {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    background: white;
+}
+
+.brand[b-z9cfhjdkjw] {
+    font-size: 1.1rem;
+    font-weight: 900;
+    text-decoration: none;
+    color: inherit;
+}
+
+main[b-z9cfhjdkjw] {
+    min-height: calc(100vh - 72px);
+}
