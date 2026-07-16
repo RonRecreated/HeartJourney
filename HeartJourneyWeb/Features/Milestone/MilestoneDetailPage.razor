@@ -2,15 +2,18 @@
 @using HeartJourney.Core.Features.Milestone
 @using HeartJourney.Core.Services.Interfaces
 @using HeartJourneyWeb.Services.Auth
+@using Microsoft.JSInterop
 @using HeartJourneyWeb.Services.ReflectionAnswers
 @inject IReflectionAnswerService ReflectionAnswerService
 @inject IAuthService AuthService
 @inject NavigationManager NavigationManager
 @inject IContentRepository ContentRepository
+@inject IJSRuntime JSRuntime
 
 <PageTitle>@(_milestone?.Title ?? "Milestone")</PageTitle>
 
 <section class="milestone-detail-shell">
+    <!-- Loading, error, and content will be rendered here -->
     @if (_isLoading)
     {
         <p>Loading milestone...</p>
@@ -94,6 +97,22 @@
             </section>
         }
 
+        <!-- Show Reset Success/Error Messages -->
+        @if (!string.IsNullOrWhiteSpace(_resetErrorMessage))
+        {
+            <div class="error-card">
+                <p>@_resetErrorMessage</p>
+            </div>
+        }
+
+        @if (!string.IsNullOrWhiteSpace(_resetSuccessMessage))
+        {
+            <div class="success-card">
+                <p>@_resetSuccessMessage</p>
+            </div>
+        }
+
+        <!-- Dimension Section -->
         <section class="dimension-section">
             <h2>What area would you like to reflect on?</h2>
             <p class="section-text">
@@ -125,9 +144,21 @@
                                 <p>@dimension.Summary</p>
                             }
 
-                            <a href="@($"/journeys/{JourneySlug}/milestones/{MilestoneSlug}/dimensions/{dimension.Slug}")">
-                                @(isInProgress ? "Continue Reflection" : $"Reflect on {dimension.Title}")
-                            </a>
+                            <div class="dimension-actions">
+                                <a href="@($"/journeys/{JourneySlug}/milestones/{MilestoneSlug}/dimensions/{dimension.Slug}")">
+                                    @(isInProgress ? "Continue Reflection" : $"Reflect on {dimension.Title}")
+                                </a>
+
+                                @if (isInProgress)
+                                {
+                                    <button type="button"
+                                            class="restart-button"
+                                            disabled="@(_resettingDimensionSlug == dimension.Slug)"
+                                            @onclick="() => ResetDimensionAsync(dimension.Slug, dimension.Title)">
+                                        @(_resettingDimensionSlug == dimension.Slug ? "Resetting..." : "Restart")
+                                    </button>
+                                }
+                            </div>
                         </article>
                     }
                 </div>
@@ -142,6 +173,10 @@
 
     [Parameter]
     public string MilestoneSlug { get; set; } = string.Empty;
+
+    private string? _resetErrorMessage;
+    private string? _resetSuccessMessage;
+    private string? _resettingDimensionSlug;
 
     private MilestoneDetailView? _milestone;
     private bool _isLoading = true;
@@ -194,6 +229,44 @@
         finally
         {
             _isLoading = false;
+        }
+    }
+
+    // Reset the answers for a specific dimension after user confirmation
+    private async Task ResetDimensionAsync(string dimensionSlug, string dimensionTitle)
+    {
+        _resetErrorMessage = null;
+        _resetSuccessMessage = null;
+
+        var confirmed = await JSRuntime.InvokeAsync<bool>(
+            "confirm",
+            $"Restart {dimensionTitle}? This will delete your saved answers for this growth area and start the reflection from the beginning. This will not delete answers from other growth areas.");
+
+        if (!confirmed)
+        {
+            return;
+        }
+
+        try
+        {
+            _resettingDimensionSlug = dimensionSlug;
+
+            await ReflectionAnswerService.DeleteAnswersForDimensionAsync(
+                JourneySlug,
+                MilestoneSlug,
+                dimensionSlug);
+
+            _startedDimensionSlugs.Remove(dimensionSlug);
+
+            _resetSuccessMessage = $"{dimensionTitle} has been reset. You can begin this reflection again.";
+        }
+        catch (Exception ex)
+        {
+            _resetErrorMessage = ex.Message;
+        }
+        finally
+        {
+            _resettingDimensionSlug = null;
         }
     }
 }

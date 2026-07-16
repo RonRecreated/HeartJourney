@@ -313,4 +313,39 @@ public class ReflectionAnswerService : IReflectionAnswerService
 
         return answers ?? new List<ReflectionAnswerRecord>();
     }
+
+    public async Task DeleteAnswersForDimensionAsync(
+        string journeySlug,
+        string milestoneSlug,
+        string dimensionSlug,
+        CancellationToken cancellationToken = default)
+    {
+        await _authService.InitializeAsync();
+
+        if (!_authService.IsSignedIn || string.IsNullOrWhiteSpace(_authService.UserId))
+        {
+            throw new InvalidOperationException("You must be signed in to reset reflection answers.");
+        }
+
+        var requestUrl =
+            $"{_options.Url}/rest/v1/reflection_answers" +
+            $"?user_id=eq.{Uri.EscapeDataString(_authService.UserId)}" +
+            $"&journey_slug=eq.{Uri.EscapeDataString(journeySlug)}" +
+            $"&milestone_slug=eq.{Uri.EscapeDataString(milestoneSlug)}" +
+            $"&dimension_slug=eq.{Uri.EscapeDataString(dimensionSlug)}";
+
+        using var request = new HttpRequestMessage(HttpMethod.Delete, requestUrl);
+
+        AddSupabaseHeaders(request);
+
+        using var response = await _httpClient.SendAsync(request, cancellationToken);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            var error = await response.Content.ReadAsStringAsync(cancellationToken);
+
+            throw new InvalidOperationException(
+                $"Unable to reset reflection answers. Status: {(int)response.StatusCode}. Response: {error}");
+        }
+    }
 }

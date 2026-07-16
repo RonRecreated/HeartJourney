@@ -532,6 +532,62 @@
     border-color: rgba(31, 42, 36, 0.28);
     background: rgba(31, 42, 36, 0.025);
 }
+
+.dimension-actions[b-rdjzjgjoxs] {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+    margin-top: 1rem;
+}
+
+.restart-button[b-rdjzjgjoxs] {
+    border: 1px solid rgba(0, 0, 0, 0.16);
+    border-radius: 999px;
+    padding: 0.65rem 1rem;
+    background: white;
+    color: #1f2a24;
+    font: inherit;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.restart-button:hover[b-rdjzjgjoxs] {
+    background: rgba(31, 42, 36, 0.045);
+}
+
+.restart-button:disabled[b-rdjzjgjoxs] {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.success-card[b-rdjzjgjoxs] {
+    border-radius: 1rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    background: rgba(31, 42, 36, 0.055);
+}
+
+.error-card[b-rdjzjgjoxs] {
+    border: 1px solid #e7b8b8;
+    border-radius: 1rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    background: #fff4f4;
+}
+
+@media (max-width: 640px) {
+    .dimension-actions[b-rdjzjgjoxs] {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .dimension-actions a[b-rdjzjgjoxs],
+    .restart-button[b-rdjzjgjoxs] {
+        width: 100%;
+        text-align: center;
+    }
+}
 /* /Features/Milestone/MilestoneIntroPage.razor.rz.scp.css */
 .milestone-intro-shell[b-7zzzn0obd8] {
     max-width: 960px;

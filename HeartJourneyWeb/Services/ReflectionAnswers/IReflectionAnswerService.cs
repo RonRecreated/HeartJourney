@@ -18,4 +18,10 @@ public interface IReflectionAnswerService
         string journeySlug,
         string milestoneSlug,
         CancellationToken cancellationToken = default);
+
+    Task DeleteAnswersForDimensionAsync(
+        string journeySlug,
+        string milestoneSlug,
+        string dimensionSlug,
+        CancellationToken cancellationToken = default);
 }

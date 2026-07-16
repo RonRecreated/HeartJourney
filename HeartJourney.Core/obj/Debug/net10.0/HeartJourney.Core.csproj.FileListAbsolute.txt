@@ -10,3 +10,4 @@ D:\heart-journey\HeartJourney.Core\obj\Debug\net10.0\HeartJourney.Core.dll
 D:\heart-journey\HeartJourney.Core\obj\Debug\net10.0\refint\HeartJourney.Core.dll
 D:\heart-journey\HeartJourney.Core\obj\Debug\net10.0\HeartJourney.Core.pdb
 D:\heart-journey\HeartJourney.Core\obj\Debug\net10.0\ref\HeartJourney.Core.dll
+D:\heart-journey\HeartJourney.Core\obj\Debug\net10.0\HeartJourney.Core.sourcelink.json
