@@ -1,8 +1,11 @@
 @page "/journeys/{JourneySlug}/milestones/{MilestoneSlug}/dimensions/{DimensionSlug}"
+@using System.Text.Json
 @using HeartJourney.Core.Features.Reflection
 @using HeartJourney.Core.Services.Interfaces
 @using HeartJourneyWeb.Components.Auth
 @using HeartJourneyWeb.Services.ReflectionAnswers
+@using HeartJourneyWeb.Services.DimensionProgress
+@inject IDimensionProgressService DimensionProgressService
 @inject IReflectionAnswerService ReflectionAnswerService
 @inject IContentRepository ContentRepository
 
@@ -25,6 +28,69 @@
     {
         <p>Reflection not found.</p>
     }
+    else if (_pathEnded)
+    {
+        <nav class="breadcrumb">
+            <a href="/">Home</a>
+            <span>/</span>
+            <a href="@($"/journeys/{_view.JourneySlug}")">@_view.JourneyTitle</a>
+            <span>/</span>
+            <a href="@($"/journeys/{_view.JourneySlug}/milestones/{_view.MilestoneSlug}")">@_view.MilestoneTitle</a>
+            <span>/</span>
+            <span>@_view.DimensionTitle</span>
+        </nav>
+
+        <article class="reflection-card completion-card">
+            <p class="eyebrow">Reflection outcome</p>
+
+            <h1 class="reflection-question">
+                This reflection path is complete for now.
+            </h1>
+
+            @if (!string.IsNullOrWhiteSpace(_outcomeMessage))
+            {
+                <p class="intro-text">@_outcomeMessage</p>
+            }
+            else
+            {
+                <p class="intro-text">
+                    Based on your answer, this reflection path has reached a natural stopping point.
+                    Take a moment to prayerfully consider what this may be showing you.
+                </p>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(_recommendedMilestoneSlug)
+                    && !string.IsNullOrWhiteSpace(_recommendedMilestoneTitle))
+            {
+                <div class="guidance-card">
+                    <strong>Recommended next step</strong>
+                    <p>
+                        You may want to spend time in the
+                        <strong>@_recommendedMilestoneTitle</strong>
+                        milestone before continuing deeper here.
+                    </p>
+
+                    <a class="secondary-link"
+                        href="@($"/journeys/{JourneySlug}/milestones/{_recommendedMilestoneSlug}/intro")">
+                            Go to @_recommendedMilestoneTitle
+                    </a>
+                </div>
+            }
+
+            <div class="reflection-actions">
+                <a class="secondary-link"
+                    href="@($"/journeys/{JourneySlug}/milestones/{MilestoneSlug}")">
+                        Back to Growth Areas
+                </a>
+
+                <button type="button"
+                        class="primary-button"
+                        @onclick="RestartCurrentDimensionAsync">
+                    Restart This Reflection
+                </button>
+            </div>
+        </article>
+    }
     else if (_isComplete)
     {
         <nav class="breadcrumb">
@@ -44,14 +110,10 @@
             </h1>
 
             <p class="intro-text">
-                You have answered the available questions for @_view.DimensionTitle.
-                Take a moment to reflect on what you noticed, then return to your growth areas when you’re ready.
+                You have reached the end of this reflection path for @_view.DimensionTitle.
+                Take a moment to consider what stood out, what God may be showing you,
+                and what next faithful step you may need to take. When ready, return to your growth areas to continue your journey.
             </p>
-
-            <div class="completion-summary">
-                <strong>@_view.DimensionTitle</strong>
-                <span>@_prompts.Count question@(_prompts.Count == 1 ? "" : "s") completed</span>
-            </div>
 
             <div class="reflection-actions">
                 <a class="secondary-link"
@@ -96,7 +158,7 @@
                 </p>
 
                 <p class="step-indicator">
-                    Question @(_currentPromptIndex + 1) of @_prompts.Count
+                    Question @_visibleQuestionNumber
                 </p>
 
                 <h1 class="reflection-question">
@@ -187,7 +249,8 @@
                     {
                         <button type="button"
                                 class="secondary-button"
-                                @onclick="PreviousPrompt">
+                                disabled="@(_promptHistory.Count == 0)"
+                                @onclick="PreviousPromptAsync">
                             Back
                         </button>
                     }
@@ -227,6 +290,23 @@
     private string? _saveMessage;
     private string? _saveErrorMessage;
     private string _notes = string.Empty;
+    private bool _pathEnded;
+    private string? _outcomeMessage;
+    private string? _outcomeKey;
+    private string? _progressStatus;
+    private string? _recommendedMilestoneSlug;
+    private string? _recommendedMilestoneTitle;
+    private int _visibleQuestionNumber = 1;
+    private DimensionProgressRecord? _dimensionProgress;
+
+    private class PromptHistoryEntry
+    {
+        public int PromptIndex { get; set; }
+
+        public int VisibleQuestionNumber { get; set; }
+    }
+
+    private List<PromptHistoryEntry> _promptHistory = new();
 
     private ReflectionPromptView? CurrentPrompt =>
     _currentPromptIndex >= 0 && _currentPromptIndex < _prompts.Count
@@ -241,6 +321,10 @@
         _saveErrorMessage = null;
         _selectedAnswer = null;
         _notes = string.Empty;
+        _visibleQuestionNumber = 1;
+        _promptHistory.Clear();
+
+        ClearPathOutcome();
 
         try
         {
@@ -273,7 +357,14 @@
                 .GroupBy(answer => answer.ReflectionPromptId)
                 .ToDictionary(group => group.Key, group => group.First());
 
-            MoveToNextPromptFromSavedPath();
+            // Load saved dimension progress
+            _dimensionProgress = await DimensionProgressService.GetProgressAsync(
+                JourneySlug,
+                MilestoneSlug,
+                DimensionSlug);
+
+            // Decide what to show based on saved progress
+            ApplySavedDimensionProgress();
         }
         catch (Exception ex)
         {
@@ -283,6 +374,53 @@
         {
             _isLoading = false;
         }
+    }
+
+    private void ApplySavedDimensionProgress()
+    {
+        if (_dimensionProgress is null)
+        {
+            MoveToNextPromptFromSavedPath();
+            return;
+        }
+
+        _visibleQuestionNumber = Math.Max(1, _dimensionProgress.VisibleQuestionNumber);
+        RestorePromptHistory(_dimensionProgress.PromptHistoryJson);
+
+        if (_dimensionProgress.Status is "completed" or "redirected" or "needs_guidance")
+        {
+            _pathEnded = true;
+            _isComplete = false;
+
+            _outcomeKey = _dimensionProgress.OutcomeKey;
+            _outcomeMessage = _dimensionProgress.OutcomeMessage;
+            _progressStatus = _dimensionProgress.Status;
+            _recommendedMilestoneSlug = _dimensionProgress.RecommendedMilestoneSlug;
+            _recommendedMilestoneTitle = _dimensionProgress.RecommendedMilestoneTitle;
+
+            return;
+        }
+
+        if (!string.IsNullOrWhiteSpace(_dimensionProgress.CurrentPromptId))
+        {
+            var currentIndex = _prompts.FindIndex(prompt =>
+                string.Equals(
+                    prompt.Id,
+                    _dimensionProgress.CurrentPromptId,
+                    StringComparison.OrdinalIgnoreCase));
+
+            if (currentIndex >= 0)
+            {
+                _currentPromptIndex = currentIndex;
+                _isComplete = false;
+
+                ClearPathOutcome();
+                LoadSavedAnswerForCurrentPrompt();
+                return;
+            }
+        }
+
+        MoveToNextPromptFromSavedPath();
     }
 
     private void MoveToNextPromptFromSavedPath()
@@ -322,17 +460,20 @@
 
             if (savedOption?.EndsPath == true)
             {
-                _isComplete = true;
+                EndPathFromAnswer(savedOption);
                 _currentPromptIndex = currentPromptIndex;
                 return;
             }
 
-            var targetedPromptIndex = FindTargetPromptIndex(savedOption);
-
-            if (targetedPromptIndex >= 0)
+            if (savedOption is not null)
             {
-                currentPromptIndex = targetedPromptIndex;
-                continue;
+                var targetedPromptIndex = FindTargetPromptIndex(savedOption);
+
+                if (targetedPromptIndex >= 0)
+                {
+                    currentPromptIndex = targetedPromptIndex;
+                    continue;
+                }
             }
 
             currentPromptIndex++;
@@ -413,7 +554,18 @@
 
             _savedAnswersByPromptId[currentPrompt.Id] = savedAnswer;
 
-            MoveAfterSavedAnswer(currentPrompt, selectedAnswer);
+            if (!selectedAnswer.EndsPath)
+            {
+                _promptHistory.Add(new PromptHistoryEntry
+                {
+                    PromptIndex = _currentPromptIndex,
+                    VisibleQuestionNumber = _visibleQuestionNumber
+                });
+            }
+
+            await SaveProgressAfterAnswerAsync(currentPrompt, selectedAnswer);
+
+            await MoveAfterSavedAnswerAsync(currentPrompt, selectedAnswer);
         }
         catch (Exception ex)
         {
@@ -425,7 +577,71 @@
         }
     }
 
-    private void MoveAfterSavedAnswer(
+    // This stores the next prompt to resume later.
+    private async Task SaveProgressAfterAnswerAsync(
+        ReflectionPromptView currentPrompt,
+        AnswerOptionView selectedAnswer)
+    {
+        if (selectedAnswer.EndsPath)
+        {
+            var status = string.IsNullOrWhiteSpace(selectedAnswer.ProgressStatus)
+                ? "completed"
+                : selectedAnswer.ProgressStatus;
+
+            _dimensionProgress = await DimensionProgressService.SaveProgressAsync(
+                new SaveDimensionProgressRequest
+                {
+                    JourneySlug = JourneySlug,
+                    MilestoneSlug = MilestoneSlug,
+                    DimensionSlug = DimensionSlug,
+                    Status = status,
+                    CurrentPromptId = currentPrompt.Id,
+                    CurrentPromptSlug = currentPrompt.Slug,
+                    VisibleQuestionNumber = _visibleQuestionNumber,
+                    PromptHistoryJson = SerializePromptHistory(),
+                    OutcomeKey = selectedAnswer.OutcomeKey,
+                    OutcomeMessage = selectedAnswer.OutcomeMessage,
+                    RecommendedMilestoneSlug = selectedAnswer.RecommendedMilestoneSlug,
+                    RecommendedMilestoneTitle = selectedAnswer.RecommendedMilestoneTitle,
+                    CompletedAt = DateTime.UtcNow
+                });
+
+            return;
+        }
+
+        var nextPromptId = selectedAnswer.NextPromptId;
+        var nextPromptSlug = selectedAnswer.NextPromptSlug;
+
+        if (string.IsNullOrWhiteSpace(nextPromptId))
+        {
+            var nextIndex = _prompts.FindIndex(prompt =>
+                string.Equals(prompt.Id, currentPrompt.Id, StringComparison.OrdinalIgnoreCase)) + 1;
+
+            var nextPrompt = nextIndex >= 0 && nextIndex < _prompts.Count
+                ? _prompts[nextIndex]
+                : null;
+
+            nextPromptId = nextPrompt?.Id;
+            nextPromptSlug = nextPrompt?.Slug;
+        }
+
+        _dimensionProgress = await DimensionProgressService.SaveProgressAsync(
+            new SaveDimensionProgressRequest
+            {
+                JourneySlug = JourneySlug,
+                MilestoneSlug = MilestoneSlug,
+                DimensionSlug = DimensionSlug,
+                Status = "in_progress",
+                CurrentPromptId = nextPromptId,
+                CurrentPromptSlug = nextPromptSlug,
+                VisibleQuestionNumber = _visibleQuestionNumber + 1,
+                PromptHistoryJson = SerializePromptHistory(),
+                CompletedAt = null
+            });
+    }
+
+    // Moves to the next prompt in the reflection path after saving an answer, handling any branching logic based on the selected answer.
+    private async Task MoveAfterSavedAnswerAsync(
         ReflectionPromptView answeredPrompt,
         AnswerOptionView selectedAnswer)
     {
@@ -436,37 +652,36 @@
 
         if (selectedAnswer.EndsPath)
         {
-            _isComplete = true;
+            EndPathFromAnswer(selectedAnswer);
             return;
         }
+
+        var nextVisibleQuestionNumber = _visibleQuestionNumber + 1;
 
         var targetedPromptIndex = FindTargetPromptIndex(selectedAnswer);
 
         if (targetedPromptIndex >= 0)
         {
+            ClearPathOutcome();
+            
             _currentPromptIndex = targetedPromptIndex;
+            _visibleQuestionNumber = nextVisibleQuestionNumber;
+            _isComplete = false;
+
             LoadSavedAnswerForCurrentPrompt();
             return;
         }
 
-        MoveToNextUnansweredPromptAfter(answeredPrompt);
+        _visibleQuestionNumber = nextVisibleQuestionNumber;
+
+        await MoveToNextUnansweredPromptAfterAsync(answeredPrompt);
     }
 
-    private void MoveToNextUnansweredPrompt()
+    // Moves to the next unanswered prompt in the reflection path, if any, or marks the reflection as complete if all prompts have been answered.
+    private async Task MoveToNextUnansweredPromptAfterAsync(ReflectionPromptView answeredPrompt)
     {
-        var currentPrompt = CurrentPrompt;
-
-        if (currentPrompt is null)
-        {
-            _isComplete = true;
-            return;
-        }
-
-        MoveToNextUnansweredPromptAfter(currentPrompt);
-    }
-
-    private void MoveToNextUnansweredPromptAfter(ReflectionPromptView answeredPrompt)
-    {
+        ClearPathOutcome();
+        
         _selectedAnswer = null;
         _notes = string.Empty;
         _saveMessage = null;
@@ -480,11 +695,15 @@
             if (!_savedAnswersByPromptId.ContainsKey(_prompts[i].Id))
             {
                 _currentPromptIndex = i;
+                _isComplete = false;
+                
                 LoadSavedAnswerForCurrentPrompt();
                 return;
             }
         }
 
+        await MarkDimensionCompletedAsync(answeredPrompt);
+        
         _isComplete = true;
     }
 
@@ -526,19 +745,214 @@
         return -1;
     }
 
-    private void PreviousPrompt()
+    // Navigates to the previous prompt in the reflection path.
+    private async Task PreviousPromptAsync()
     {
-        if (_currentPromptIndex <= 0)
+        if (_promptHistory.Count == 0)
         {
             return;
         }
 
-        _currentPromptIndex--;
+        var previousEntry = _promptHistory[^1];
+        _promptHistory.RemoveAt(_promptHistory.Count - 1);
+
+        _currentPromptIndex = previousEntry.PromptIndex;
+        _visibleQuestionNumber = previousEntry.VisibleQuestionNumber;
 
         _saveMessage = null;
         _saveErrorMessage = null;
         _isComplete = false;
 
+        ClearPathOutcome();
+
         LoadSavedAnswerForCurrentPrompt();
+
+        var currentPrompt = CurrentPrompt;
+
+        if (currentPrompt is not null)
+        {
+            _dimensionProgress = await DimensionProgressService.SaveProgressAsync(
+                new SaveDimensionProgressRequest
+                {
+                    JourneySlug = JourneySlug,
+                    MilestoneSlug = MilestoneSlug,
+                    DimensionSlug = DimensionSlug,
+                    Status = "in_progress",
+                    CurrentPromptId = currentPrompt.Id,
+                    CurrentPromptSlug = currentPrompt.Slug,
+                    VisibleQuestionNumber = _visibleQuestionNumber,
+                    PromptHistoryJson = SerializePromptHistory(),
+                    CompletedAt = null
+                });
+        }
+    }
+
+    // Clears the path outcome state, allowing the user to restart the reflection path.
+    private void ClearPathOutcome()
+    {
+        _pathEnded = false;
+        _outcomeMessage = null;
+        _outcomeKey = null;
+        _progressStatus = null;
+        _recommendedMilestoneSlug = null;
+        _recommendedMilestoneTitle = null;
+    }
+    
+    // Ends the reflection path based on the provided answer option, setting the appropriate outcome state.
+    private void EndPathFromAnswer(AnswerOptionView answer)
+    {
+        _pathEnded = true;
+        _isComplete = false;
+
+        _outcomeMessage = answer.OutcomeMessage;
+        _outcomeKey = answer.OutcomeKey;
+        _progressStatus = answer.ProgressStatus;
+        _recommendedMilestoneSlug = answer.RecommendedMilestoneSlug;
+        _recommendedMilestoneTitle = answer.RecommendedMilestoneTitle;
+
+        _saveMessage = null;
+        _saveErrorMessage = null;
+    }
+
+    // Attempts to move to a specific prompt in the reflection path based on the provided prompt ID.
+    private bool TryMoveToPrompt(string promptId)
+    {
+        if (string.IsNullOrWhiteSpace(promptId))
+        {
+            return false;
+        }
+
+        var nextIndex = _prompts.FindIndex(prompt =>
+            string.Equals(prompt.Id, promptId, StringComparison.OrdinalIgnoreCase));
+
+        if (nextIndex < 0)
+        {
+            _saveErrorMessage = "The next reflection prompt could not be found.";
+            return false;
+        }
+
+        ClearPathOutcome();
+
+        _currentPromptIndex = nextIndex;
+        _selectedAnswer = null;
+        _notes = string.Empty;
+        _saveMessage = null;
+        _saveErrorMessage = null;
+        _isComplete = false;
+
+        LoadSavedAnswerForCurrentPrompt();
+
+        return true;
+    }
+
+    private async Task RestartCurrentDimensionAsync()
+    {
+        if (_view is null)
+        {
+            return;
+        }
+
+        _isSavingAnswer = true;
+        _saveErrorMessage = null;
+        _saveMessage = null;
+
+        try
+        {
+            await ReflectionAnswerService.DeleteAnswersForDimensionAsync(
+                JourneySlug,
+                MilestoneSlug,
+                DimensionSlug);
+
+            await DimensionProgressService.DeleteProgressForDimensionAsync(
+                JourneySlug,
+                MilestoneSlug,
+                DimensionSlug);
+
+            _savedAnswersByPromptId.Clear();
+            _dimensionProgress = null;
+
+            MoveToBeginningOfReflection();
+        }
+        catch (Exception ex)
+        {
+            _saveErrorMessage = ex.Message;
+        }
+        finally
+        {
+            _isSavingAnswer = false;
+        }
+    }
+
+    private void MoveToBeginningOfReflection()
+    {
+        ClearPathOutcome();
+
+        _promptHistory.Clear();
+        _visibleQuestionNumber = 1;
+
+        _selectedAnswer = null;
+        _notes = string.Empty;
+        _saveMessage = null;
+        _saveErrorMessage = null;
+        _isComplete = false;
+
+        if (_prompts.Count == 0)
+        {
+            _currentPromptIndex = 0;
+            _isComplete = true;
+            return;
+        }
+
+        _currentPromptIndex = 0;
+
+        LoadSavedAnswerForCurrentPrompt();
+    }
+
+    private string SerializePromptHistory()
+    {
+        return JsonSerializer.Serialize(_promptHistory);
+    }
+
+    private void RestorePromptHistory(string? promptHistoryJson)
+    {
+        _promptHistory.Clear();
+
+        if (string.IsNullOrWhiteSpace(promptHistoryJson))
+        {
+            return;
+        }
+
+        try
+        {
+            var restoredHistory = JsonSerializer.Deserialize<List<PromptHistoryEntry>>(
+                promptHistoryJson);
+
+            if (restoredHistory is not null)
+            {
+                _promptHistory = restoredHistory;
+            }
+        }
+        catch
+        {
+            _promptHistory.Clear();
+        }
+    }
+
+    // This tells Supabase that this dimension is completed, even though it did not end through an EndsPath answer.
+    private async Task MarkDimensionCompletedAsync(ReflectionPromptView finalPrompt)
+    {
+        _dimensionProgress = await DimensionProgressService.SaveProgressAsync(
+            new SaveDimensionProgressRequest
+            {
+                JourneySlug = JourneySlug,
+                MilestoneSlug = MilestoneSlug,
+                DimensionSlug = DimensionSlug,
+                Status = "completed",
+                CurrentPromptId = finalPrompt.Id,
+                CurrentPromptSlug = finalPrompt.Slug,
+                VisibleQuestionNumber = _visibleQuestionNumber,
+                PromptHistoryJson = SerializePromptHistory(),
+                CompletedAt = DateTime.UtcNow
+            });
     }
 }

@@ -4,8 +4,10 @@ using HeartJourney.Core.Services.Interfaces;
 using HeartJourney.Core.Services.Sanity;
 using HeartJourneyWeb.Services.Supabase;
 using HeartJourneyWeb.Services.Auth;
+using HeartJourneyWeb.Services.DimensionProgress;
 using HeartJourneyWeb.Services.Profiles;
 using HeartJourneyWeb.Services.ReflectionAnswers;
+using HeartJourneyWeb.Services.BrowserStorage;
 using HeartJourneyWeb;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
@@ -32,5 +34,7 @@ builder.Services.AddScoped(sp =>
 builder.Services.AddScoped<IAuthService, SupabaseAuthService>();
 builder.Services.AddScoped<IProfileService, ProfileService>();
 builder.Services.AddScoped<IReflectionAnswerService, ReflectionAnswerService>();
+builder.Services.AddScoped<IDimensionProgressService, DimensionProgressService>();
+builder.Services.AddScoped<BrowserStorageService>();
 
 await builder.Build().RunAsync();

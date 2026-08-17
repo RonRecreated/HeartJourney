@@ -4,6 +4,8 @@
 @using HeartJourneyWeb.Services.Auth
 @using Microsoft.JSInterop
 @using HeartJourneyWeb.Services.ReflectionAnswers
+@using HeartJourneyWeb.Services.DimensionProgress
+@inject IDimensionProgressService DimensionProgressService
 @inject IReflectionAnswerService ReflectionAnswerService
 @inject IAuthService AuthService
 @inject NavigationManager NavigationManager
@@ -129,12 +131,14 @@
                     @foreach (var dimension in _milestone.Dimensions ?? [])
                     {
                         <!-- Dimension Card Markup -->
-                        var isInProgress = IsDimensionInProgress(dimension.Slug);
+                        var statusLabel = GetDimensionStatusLabel(dimension.Slug);
+                        var statusClass = GetDimensionStatusClass(dimension.Slug);
+                        var hasStarted = IsDimensionStarted(dimension.Slug);
 
-                        <article class="dimension-card @(isInProgress ? "in-progress" : null)">
-                            @if (isInProgress)
+                        <article class="dimension-card @statusClass">
+                            @if (!string.IsNullOrWhiteSpace(statusLabel))
                             {
-                                <div class="progress-badge">In Progress</div>
+                                <div class="status-badge @statusClass">@statusLabel</div>
                             }
                             
                             <h3>@dimension.Title</h3>
@@ -146,10 +150,10 @@
 
                             <div class="dimension-actions">
                                 <a href="@($"/journeys/{JourneySlug}/milestones/{MilestoneSlug}/dimensions/{dimension.Slug}")">
-                                    @(isInProgress ? "Continue Reflection" : $"Reflect on {dimension.Title}")
+                                    @GetDimensionActionText(dimension)
                                 </a>
 
-                                @if (isInProgress)
+                                @if (hasStarted)
                                 {
                                     <button type="button"
                                             class="restart-button"
@@ -181,6 +185,8 @@
     private MilestoneDetailView? _milestone;
     private bool _isLoading = true;
     private string? _errorMessage;
+    private Dictionary<string, DimensionProgressRecord> _progressByDimensionSlug =
+        new(StringComparer.OrdinalIgnoreCase);
     private HashSet<string> _startedDimensionSlugs = new(StringComparer.OrdinalIgnoreCase);
     
     private bool IsDimensionInProgress(string dimensionSlug)
@@ -221,6 +227,18 @@
                 .Where(answer => !string.IsNullOrWhiteSpace(answer.DimensionSlug))
                 .Select(answer => answer.DimensionSlug)
                 .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+            var progressRecords = await DimensionProgressService.GetProgressForMilestoneAsync(
+                JourneySlug,
+                MilestoneSlug);
+
+            _progressByDimensionSlug = progressRecords
+                .Where(progress => !string.IsNullOrWhiteSpace(progress.DimensionSlug))
+                .GroupBy(progress => progress.DimensionSlug)
+                .ToDictionary(
+                    group => group.Key,
+                    group => group.First(),
+                    StringComparer.OrdinalIgnoreCase);
         }
         catch (Exception ex)
         {
@@ -255,8 +273,14 @@
                 JourneySlug,
                 MilestoneSlug,
                 dimensionSlug);
+            
+            await DimensionProgressService.DeleteProgressForDimensionAsync(
+                JourneySlug,
+                MilestoneSlug,
+                dimensionSlug);
 
             _startedDimensionSlugs.Remove(dimensionSlug);
+            _progressByDimensionSlug.Remove(dimensionSlug);
 
             _resetSuccessMessage = $"{dimensionTitle} has been reset. You can begin this reflection again.";
         }
@@ -268,5 +292,64 @@
         {
             _resettingDimensionSlug = null;
         }
+    }
+
+    // Helper methods
+    private DimensionProgressRecord? GetDimensionProgress(string dimensionSlug)
+    {
+        return _progressByDimensionSlug.TryGetValue(dimensionSlug, out var progress)
+            ? progress
+            : null;
+    }
+
+    private bool IsDimensionStarted(string dimensionSlug)
+    {
+        return GetDimensionProgress(dimensionSlug) is not null
+            || _startedDimensionSlugs.Contains(dimensionSlug);
+    }
+
+    private string GetDimensionStatusLabel(string dimensionSlug)
+    {
+        var progress = GetDimensionProgress(dimensionSlug);
+
+        return progress?.Status switch
+        {
+            "completed" => "Completed",
+            "redirected" => "Redirected",
+            "needs_guidance" => "Needs Guidance",
+            "in_progress" => "In Progress",
+            _ when _startedDimensionSlugs.Contains(dimensionSlug) => "In Progress",
+            _ => string.Empty
+        };
+    }
+
+    private string GetDimensionStatusClass(string dimensionSlug)
+    {
+        var progress = GetDimensionProgress(dimensionSlug);
+
+        return progress?.Status switch
+        {
+            "completed" => "completed",
+            "redirected" => "redirected",
+            "needs_guidance" => "needs-guidance",
+            "in_progress" => "in-progress",
+            _ when _startedDimensionSlugs.Contains(dimensionSlug) => "in-progress",
+            _ => string.Empty
+        };
+    }
+
+    private string GetDimensionActionText(dynamic dimension)
+    {
+        var progress = GetDimensionProgress(dimension.Slug);
+
+        return progress?.Status switch
+        {
+            "completed" => "Review Outcome",
+            "redirected" => "Review Outcome",
+            "needs_guidance" => "Review Guidance",
+            "in_progress" => "Continue Reflection",
+            _ when _startedDimensionSlugs.Contains(dimension.Slug) => "Continue Reflection",
+            _ => $"Reflect on {dimension.Title}"
+        };
     }
 }

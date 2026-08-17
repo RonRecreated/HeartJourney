@@ -1,4 +1,5 @@
 using Supabase;
+using HeartJourneyWeb.Services.BrowserStorage;
 
 namespace HeartJourneyWeb.Services.Auth;
 
@@ -7,9 +8,14 @@ public class SupabaseAuthService : IAuthService
     private readonly Client _supabaseClient;
     private bool _isInitialized;
 
-    public SupabaseAuthService(Client supabaseClient)
+    private const string AuthSessionKey = "heartjourney.auth.session";
+
+    private readonly BrowserStorageService _browserStorage;
+
+    public SupabaseAuthService(Client supabaseClient, BrowserStorageService browserStorage)
     {
         _supabaseClient = supabaseClient;
+        _browserStorage = browserStorage;
     }
 
     public event Action? AuthStateChanged;
@@ -28,6 +34,27 @@ public class SupabaseAuthService : IAuthService
         }
 
         await _supabaseClient.InitializeAsync();
+
+        var savedSession = await _browserStorage.GetAsync<PersistedAuthSession>(
+            AuthSessionKey);
+
+        if (savedSession is not null
+            && !string.IsNullOrWhiteSpace(savedSession.AccessToken)
+            && !string.IsNullOrWhiteSpace(savedSession.RefreshToken))
+        {
+            try
+            {
+                await _supabaseClient.Auth.SetSession(
+                    savedSession.AccessToken,
+                    savedSession.RefreshToken);
+            }
+            catch
+            {
+                // The saved token pair is no longer valid.
+                // Remove it so the app does not keep trying to restore it.
+                await _browserStorage.RemoveAsync(AuthSessionKey);
+            }
+        }
 
         _isInitialized = true;
 
@@ -74,6 +101,17 @@ public class SupabaseAuthService : IAuthService
                 return AuthResult.Failure("Sign in failed. Please check your email and password.");
             }
 
+            if (_supabaseClient.Auth.CurrentSession is not null)
+            {
+                await _browserStorage.SetAsync(
+                    AuthSessionKey,
+                    new PersistedAuthSession
+                    {
+                        AccessToken = _supabaseClient.Auth.CurrentSession.AccessToken ?? string.Empty,
+                        RefreshToken = _supabaseClient.Auth.CurrentSession.RefreshToken ?? string.Empty
+                    });
+            }
+
             NotifyAuthStateChanged();
 
             return AuthResult.Success("Signed in successfully.");
@@ -86,9 +124,16 @@ public class SupabaseAuthService : IAuthService
 
     public async Task SignOutAsync()
     {
-        await _supabaseClient.Auth.SignOut();
+        try
+        {
+            await _supabaseClient.Auth.SignOut();
+        }
+        finally
+        {
+            await _browserStorage.RemoveAsync(AuthSessionKey);
 
-        NotifyAuthStateChanged();
+            NotifyAuthStateChanged();
+        }
     }
 
     private void NotifyAuthStateChanged()
