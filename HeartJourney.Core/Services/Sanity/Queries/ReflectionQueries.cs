@@ -103,7 +103,19 @@ public static class ReflectionQueries
                                 "outcomeMessage": outcomeMessage,
 
                                 "recommendedMilestoneSlug": recommendedMilestone->slug.current,
-                                "recommendedMilestoneTitle": recommendedMilestone->title
+                                "recommendedMilestoneTitle": recommendedMilestone->title,
+
+                                "actionSteps": coalesce(actionSteps, [])
+                                    | order(sortOrder asc)
+                                    {
+                                        "key": _key,
+                                        title,
+                                        description,
+                                        category,
+                                        sortOrder,
+                                        resourceLabel,
+                                        resourceUrl
+                                    }
                         },
                     allowNotes,
                     notesPrompt,
@@ -153,7 +165,19 @@ public static class ReflectionQueries
                                 "outcomeMessage": outcomeMessage,
 
                                 "recommendedMilestoneSlug": recommendedMilestone->slug.current,
-                                "recommendedMilestoneTitle": recommendedMilestone->title
+                                "recommendedMilestoneTitle": recommendedMilestone->title,
+
+                                "actionSteps": coalesce(actionSteps, [])
+                                    | order(sortOrder asc)
+                                    {
+                                        "key": _key,
+                                        title,
+                                        description,
+                                        category,
+                                        sortOrder,
+                                        resourceLabel,
+                                        resourceUrl
+                                    }
                             },
                         allowNotes,
                         notesPrompt,

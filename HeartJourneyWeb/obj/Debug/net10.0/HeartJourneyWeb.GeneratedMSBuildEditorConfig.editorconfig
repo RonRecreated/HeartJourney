@@ -89,6 +89,10 @@ build_metadata.AdditionalFiles.CssScope = b-dmn2v8ll5f
 build_metadata.AdditionalFiles.TargetPath = RmVhdHVyZXNcT25ib2FyZGluZ1xXZWxjb21lUGFnZS5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = b-8hthr6b6dt
 
+[D:/heart-journey/HeartJourneyWeb/Features/Reflection/DimensionInsightPage.razor]
+build_metadata.AdditionalFiles.TargetPath = RmVhdHVyZXNcUmVmbGVjdGlvblxEaW1lbnNpb25JbnNpZ2h0UGFnZS5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = b-iu4qj4law2
+
 [D:/heart-journey/HeartJourneyWeb/Features/Reflection/DimensionReflectionPage.razor]
 build_metadata.AdditionalFiles.TargetPath = RmVhdHVyZXNcUmVmbGVjdGlvblxEaW1lbnNpb25SZWZsZWN0aW9uUGFnZS5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = b-kvf0qeugzq

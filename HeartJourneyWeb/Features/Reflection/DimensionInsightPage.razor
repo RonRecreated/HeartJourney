@@ -1,0 +1,453 @@
+@page "/journeys/{JourneySlug}/milestones/{MilestoneSlug}/dimensions/{DimensionSlug}/insights"
+
+@using HeartJourney.Core.Features.Reflection
+@using HeartJourney.Core.Services.Interfaces
+@using HeartJourneyWeb.Services.Auth
+@using HeartJourneyWeb.Services.ReflectionAnswers
+@using HeartJourneyWeb.Services.DimensionProgress
+@using HeartJourneyWeb.Components.Auth
+@using HeartJourneyWeb.Features.Reflection
+
+@inject IContentRepository ContentRepository
+@inject IAuthService AuthService
+@inject IReflectionAnswerService ReflectionAnswerService
+@inject IDimensionProgressService DimensionProgressService
+
+<RequireAuth>
+    @if (_isLoading)
+    {
+        <section class="insight-shell">
+            <article class="insight-card">
+                <p>Preparing your insight...</p>
+            </article>
+        </section>
+    }
+    else if (!string.IsNullOrWhiteSpace(_errorMessage))
+    {
+        <section class="insight-shell">
+            <article class="insight-card">
+                <p class="error-message">@_errorMessage</p>
+
+                <a class="secondary-link"
+                   href="@($"/journeys/{JourneySlug}/milestones/{MilestoneSlug}")">
+                    Back to Growth Areas
+                </a>
+            </article>
+        </section>
+    }
+    else if (_view is null)
+    {
+        <section class="insight-shell">
+            <article class="insight-card">
+                <p>We could not find this reflection area.</p>
+
+                <a class="secondary-link"
+                   href="@($"/journeys/{JourneySlug}/milestones/{MilestoneSlug}")">
+                    Back to Growth Areas
+                </a>
+            </article>
+        </section>
+    }
+    else
+    {
+        <section class="insight-shell">
+            <article class="insight-card">
+                <p class="eyebrow">Reflection insight</p>
+
+                <h1>@_view.DimensionTitle</h1>
+
+                <p class="intro-text">
+                    You have completed this reflection path. Below is a gentle summary of what stood out from your answers.
+                </p>
+
+                @if (_progress is not null && !string.IsNullOrWhiteSpace(_progress.OutcomeMessage))
+                {
+                    <div class="insight-section outcome-section">
+                        <h2>Outcome</h2>
+                        <p>@_progress.OutcomeMessage</p>
+                    </div>
+                }
+
+                <div class="insight-grid">
+                    <div class="insight-section">
+                        <h2>What looks steady</h2>
+
+                        @if (_strengthAnswers.Count == 0)
+                        {
+                            <p>
+                                This area may still be forming. That does not mean failure; it simply gives you a place to keep growing intentionally.
+                            </p>
+                        }
+                        else
+                        {
+                            <ul>
+                                @foreach (var answer in _strengthAnswers.Take(3))
+                                {
+                                    <li>@GetStrengthText(answer)</li>
+                                }
+                            </ul>
+                        }
+                    </div>
+
+                    <div class="insight-section">
+                        <h2>What may need attention</h2>
+
+                        @if (_attentionAnswers.Count == 0)
+                        {
+                            <p>
+                                Your answers did not strongly point to urgent concerns in this area.
+                            </p>
+                        }
+                        else
+                        {
+                            <ul>
+                                @foreach (var answer in _attentionAnswers.Take(3))
+                                {
+                                    <li>@GetAttentionText(answer)</li>
+                                }
+                            </ul>
+                        }
+                    </div>
+                </div>
+
+                @if (_actionSteps.Count > 0)
+                {
+                    <div class="insight-section action-plan-section">
+                        <h2>Your Growth Steps</h2>
+
+                        <p class="action-plan-intro">
+                            These steps are based on your answers. Start with one step at a time and move at a faithful, honest pace.
+                        </p>
+
+                        <div class="action-step-list">
+                            @foreach (var step in _actionSteps)
+                            {
+                                <article class="action-step-card @(step.Status == "completed" ? "completed" : null)">
+                                    <button type="button"
+                                            class="action-step-header"
+                                            @onclick="() => ToggleActionStep(step)">
+                                        <span class="action-step-check">
+                                            @(step.Status == "completed" ? "✓" : "○")
+                                        </span>
+
+                                        <span class="action-step-title">
+                                            @step.Title
+                                        </span>
+
+                                        @if (!string.IsNullOrWhiteSpace(step.Category))
+                                        {
+                                            <span class="action-step-category">
+                                                @FormatCategory(step.Category)
+                                            </span>
+                                        }
+
+                                        <span class="action-step-toggle">
+                                            @(step.IsExpanded ? "▲" : "▼")
+                                        </span>
+                                    </button>
+
+                                    @if (step.IsExpanded)
+                                    {
+                                        <div class="action-step-body">
+                                            @if (!string.IsNullOrWhiteSpace(step.Description))
+                                            {
+                                                <p>@step.Description</p>
+                                            }
+
+                                            @if (!string.IsNullOrWhiteSpace(step.ResourceLabel)
+                                                && !string.IsNullOrWhiteSpace(step.ResourceUrl))
+                                            {
+                                                <a class="resource-link"
+                                                href="@step.ResourceUrl"
+                                                target="_blank"
+                                                rel="noopener noreferrer">
+                                                    @step.ResourceLabel
+                                                </a>
+                                            }
+
+                                            <div class="action-step-status">
+                                                <span>Status tracking coming soon</span>
+                                            </div>
+                                        </div>
+                                    }
+                                </article>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="insight-section">
+                        <h2>Keep walking forward</h2>
+                        <p>
+                            Growth does not have to happen all at once. Choose one step to begin with,
+                            invite God into the process, and return when you are ready to continue.
+                        </p>
+                    </div>
+                }
+
+                else
+                {
+                    <div class="insight-section">
+                        <h2>Suggested next step</h2>
+                        <p>@_nextStepMessage</p>
+                    </div>
+                }                
+
+                @if (_answers.Any(answer => !string.IsNullOrWhiteSpace(answer.Notes)))
+                {
+                    <div class="insight-section">
+                        <h2>Your notes</h2>
+
+                        <ul>
+                            @foreach (var answer in _answers.Where(answer => !string.IsNullOrWhiteSpace(answer.Notes)).Take(3))
+                            {
+                                <li>@answer.Notes</li>
+                            }
+                        </ul>
+                    </div>
+                }
+
+                <div class="insight-actions">
+                    <a class="secondary-link"
+                       href="@($"/journeys/{JourneySlug}/milestones/{MilestoneSlug}")">
+                        Back to Growth Areas
+                    </a>
+
+                    <a class="primary-button"
+                       href="@($"/journeys/{JourneySlug}/milestones/{MilestoneSlug}/dimensions/{DimensionSlug}")">
+                        Review Reflection
+                    </a>
+                </div>
+            </article>
+        </section>
+    }
+</RequireAuth>
+
+@code {
+    [Parameter]
+    public string JourneySlug { get; set; } = string.Empty;
+
+    [Parameter]
+    public string MilestoneSlug { get; set; } = string.Empty;
+
+    [Parameter]
+    public string DimensionSlug { get; set; } = string.Empty;
+
+    private bool _isLoading = true;
+    private string? _errorMessage;
+
+    private DimensionReflectionView? _view;
+    private DimensionProgressRecord? _progress;
+
+    private List<ReflectionAnswerRecord> _answers = new();
+    private List<ReflectionAnswerRecord> _strengthAnswers = new();
+    private List<ReflectionAnswerRecord> _attentionAnswers = new();
+
+    private string _nextStepMessage = string.Empty;
+
+    private List<InsightActionStepItem> _actionSteps = new();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _isLoading = true;
+        _errorMessage = null;
+
+        try
+        {
+            _view = await ContentRepository.GetDimensionReflectionBySlugsAsync(
+                JourneySlug,
+                MilestoneSlug,
+                DimensionSlug);
+
+            _progress = await DimensionProgressService.GetProgressAsync(
+                JourneySlug,
+                MilestoneSlug,
+                DimensionSlug);
+
+            var answers = await ReflectionAnswerService.GetAnswersForDimensionAsync(
+                JourneySlug,
+                MilestoneSlug,
+                DimensionSlug);
+
+            _answers = answers.ToList();
+
+            BuildInsight();
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = ex.Message;
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private void BuildInsight()
+    {
+        _strengthAnswers = _answers
+            .Where(answer => IsStrength(answer))
+            .ToList();
+
+        _attentionAnswers = _answers
+            .Where(answer => NeedsAttention(answer))
+            .ToList();
+
+        BuildActionSteps();
+        
+        _nextStepMessage = BuildNextStepMessage();
+    }
+
+    private static bool IsStrength(ReflectionAnswerRecord answer)
+    {
+        var status = answer.SelectedStatus?.Trim().ToLowerInvariant();
+        var concernLevel = answer.SelectedConcernLevel?.Trim().ToLowerInvariant();
+
+        return status is "healthy" or "strong" or "good"
+            || concernLevel is "low" or "none";
+    }
+
+    private static bool NeedsAttention(ReflectionAnswerRecord answer)
+    {
+        var status = answer.SelectedStatus?.Trim().ToLowerInvariant();
+        var concernLevel = answer.SelectedConcernLevel?.Trim().ToLowerInvariant();
+
+        return status is "needs_attention" or "needs attention" or "action_needed" or "action needed"
+            || concernLevel is "medium" or "high";
+    }
+
+    private static string GetStrengthText(ReflectionAnswerRecord answer)
+    {
+        if (!string.IsNullOrWhiteSpace(answer.GuidanceMessage))
+        {
+            return answer.GuidanceMessage;
+        }
+
+        if (!string.IsNullOrWhiteSpace(answer.ReflectionPromptTitle))
+        {
+            return $"Your response to “{answer.ReflectionPromptTitle}” suggests a growing area of steadiness.";
+        }
+
+        return "One of your answers suggests an area of steadiness.";
+    }
+
+    private static string GetAttentionText(ReflectionAnswerRecord answer)
+    {
+        if (!string.IsNullOrWhiteSpace(answer.GuidanceMessage))
+        {
+            return answer.GuidanceMessage;
+        }
+
+        if (!string.IsNullOrWhiteSpace(answer.ReflectionPromptTitle))
+        {
+            return $"Your response to “{answer.ReflectionPromptTitle}” may be worth reflecting on further.";
+        }
+
+        return "One of your answers may be worth reflecting on further.";
+    }
+
+    private string BuildNextStepMessage()
+    {
+        if (_progress?.Status is "needs_guidance")
+        {
+            return "Consider taking this area slowly and talking with a trusted spiritual mentor, counselor, pastor, or mature believer before moving forward.";
+        }
+
+        if (_progress?.Status is "redirected")
+        {
+            return "This reflection may be pointing you toward another season or area that needs attention first. Take that seriously and continue with patience.";
+        }
+
+        if (_attentionAnswers.Count >= 3)
+        {
+            return "Choose one concern that appeared more than once and bring it to prayer. Then consider one practical step you can take this week.";
+        }
+
+        if (_attentionAnswers.Count > 0)
+        {
+            return "There may be one area that deserves extra care. Take time to pray over it and consider what obedience, wisdom, or support may look like.";
+        }
+
+        return "Continue walking faithfully. Take what you noticed here into prayer, and consider one small step that would strengthen this area of your journey.";
+    }
+
+    private void BuildActionSteps()
+    {
+        _actionSteps.Clear();
+
+        if (_view is null)
+        {
+            return;
+        }
+
+        var prompts = _view.ReflectionPrompts ?? new List<ReflectionPromptView>();
+
+        foreach (var answer in _answers)
+        {
+            var prompt = prompts.FirstOrDefault(prompt =>
+                string.Equals(
+                    prompt.Id,
+                    answer.ReflectionPromptId,
+                    StringComparison.OrdinalIgnoreCase));
+
+            if (prompt is null)
+            {
+                continue;
+            }
+
+            var selectedOption = prompt.AnswerOptions.FirstOrDefault(option =>
+                string.Equals(
+                    option.Label,
+                    answer.SelectedAnswerLabel,
+                    StringComparison.OrdinalIgnoreCase));
+
+            if (selectedOption is null || selectedOption.ActionSteps.Count == 0)
+            {
+                continue;
+            }
+
+            foreach (var step in selectedOption.ActionSteps)
+            {
+                _actionSteps.Add(new InsightActionStepItem
+                {
+                    Key = $"{answer.ReflectionPromptId}:{answer.SelectedAnswerLabel}:{step.Key}",
+                    Title = step.Title,
+                    Description = step.Description,
+                    Category = step.Category,
+                    SortOrder = step.SortOrder,
+                    ResourceLabel = step.ResourceLabel,
+                    ResourceUrl = step.ResourceUrl,
+                    PromptId = answer.ReflectionPromptId,
+                    AnswerLabel = answer.SelectedAnswerLabel
+                });
+            }
+        }
+
+        _actionSteps = _actionSteps
+            .OrderBy(step => step.SortOrder)
+            .ThenBy(step => step.Title)
+            .ToList();
+
+        if (_actionSteps.Count > 0)
+        {
+            _actionSteps[0].IsExpanded = true;
+        }
+    }
+
+    private void ToggleActionStep(InsightActionStepItem step)
+    {
+        step.IsExpanded = !step.IsExpanded;
+    }
+
+    private static string FormatCategory(string category)
+    {
+        return category switch
+        {
+            "practical_step" => "Practical Step",
+            "spiritual_practice" => "Spiritual Practice",
+            "community_support" => "Community Support",
+            "reflection" => "Reflection",
+            "resource" => "Resource",
+            _ => category
+        };
+    }
+}

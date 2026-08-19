@@ -24,4 +24,10 @@ public interface IReflectionAnswerService
         string milestoneSlug,
         string dimensionSlug,
         CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<ReflectionAnswerRecord>> GetAnswersForDimensionAsync(
+        string journeySlug,
+        string milestoneSlug,
+        string dimensionSlug,
+        CancellationToken cancellationToken = default);
 }

@@ -29,4 +29,6 @@ public class AnswerOptionView
     public string? RecommendedMilestoneSlug { get; set; }
 
     public string? RecommendedMilestoneTitle { get; set; }
+
+    public List<ActionStepView> ActionSteps { get; set; } = new();
 }

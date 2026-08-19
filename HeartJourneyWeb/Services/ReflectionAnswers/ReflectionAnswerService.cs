@@ -348,4 +348,43 @@ public class ReflectionAnswerService : IReflectionAnswerService
                 $"Unable to reset reflection answers. Status: {(int)response.StatusCode}. Response: {error}");
         }
     }
+
+    public async Task<IReadOnlyList<ReflectionAnswerRecord>> GetAnswersForDimensionAsync(
+        string journeySlug,
+        string milestoneSlug,
+        string dimensionSlug,
+        CancellationToken cancellationToken = default)
+    {
+        if (!_authService.IsSignedIn || string.IsNullOrWhiteSpace(_authService.UserId))
+        {
+            return Array.Empty<ReflectionAnswerRecord>();
+        }
+
+        var requestUrl =
+            $"{_options.Url}/rest/v1/reflection_answers" +
+            $"?user_id=eq.{Uri.EscapeDataString(_authService.UserId)}" +
+            $"&journey_slug=eq.{Uri.EscapeDataString(journeySlug)}" +
+            $"&milestone_slug=eq.{Uri.EscapeDataString(milestoneSlug)}" +
+            $"&dimension_slug=eq.{Uri.EscapeDataString(dimensionSlug)}" +
+            "&order=answered_at.asc";
+
+        using var request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
+        AddSupabaseHeaders(request);
+
+        using var response = await _httpClient.SendAsync(request, cancellationToken);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            var error = await response.Content.ReadAsStringAsync(cancellationToken);
+
+            throw new InvalidOperationException(
+                $"Unable to load reflection answers for dimension. Status: {(int)response.StatusCode}. Response: {error}");
+        }
+
+        var answers = await response.Content.ReadFromJsonAsync<List<ReflectionAnswerRecord>>(
+            _jsonOptions,
+            cancellationToken);
+
+        return answers ?? new List<ReflectionAnswerRecord>();
+    }
 }

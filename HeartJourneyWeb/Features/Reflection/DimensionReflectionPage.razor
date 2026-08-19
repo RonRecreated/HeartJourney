@@ -83,10 +83,19 @@
                         Back to Growth Areas
                 </a>
 
+                @if (_progressStatus is "completed" or "redirected" or "needs_guidance")
+                {
+                    <a class="primary-button"
+                        href="@($"/journeys/{JourneySlug}/milestones/{MilestoneSlug}/dimensions/{DimensionSlug}/insights")">
+                            View Insights
+                    </a>
+                }
+
                 <button type="button"
-                        class="primary-button"
+                        class="secondary-button"
+                        disabled="@_isSavingAnswer"
                         @onclick="RestartCurrentDimensionAsync">
-                    Restart This Reflection
+                    @(_isSavingAnswer ? "Restarting..." : "Restart this reflection")
                 </button>
             </div>
         </article>
@@ -121,11 +130,10 @@
                     Back to Growth Areas
                 </a>
 
-                <button type="button"
-                        class="primary-button"
-                        disabled>
-                    Insights coming soon
-                </button>
+                <a class="primary-button"
+                    href="@($"/journeys/{JourneySlug}/milestones/{MilestoneSlug}/dimensions/{DimensionSlug}/insights")">
+                    View Insights
+                </a>
             </div>
         </article>
     }

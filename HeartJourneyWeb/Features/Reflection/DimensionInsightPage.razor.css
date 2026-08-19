@@ -1,0 +1,238 @@
+.action-plan-section {
+    background: rgba(255, 90, 138, 0.04);
+    border-color: rgba(255, 90, 138, 0.16);
+}
+
+.action-plan-intro {
+    margin-bottom: 1rem;
+}
+
+.action-step-list {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.action-step-card {
+    border-radius: 18px;
+    border: 1px solid rgba(31, 42, 36, 0.1);
+    background: white;
+    overflow: hidden;
+}
+
+.action-step-card.completed {
+    border-color: rgba(34, 122, 72, 0.35);
+    background: rgba(34, 122, 72, 0.04);
+}
+
+.action-step-card.completed .action-step-header {
+    color: #1f6b3d;
+}
+
+.action-step-header {
+    width: 100%;
+    border: 0;
+    background: transparent;
+    padding: 1rem;
+    display: grid;
+    grid-template-columns: auto 1fr auto auto;
+    gap: 0.75rem;
+    align-items: center;
+    text-align: left;
+    cursor: pointer;
+    color: #1f2a24;
+}
+
+.action-step-check {
+    font-size: 1.1rem;
+    line-height: 1;
+    font-weight: 900;
+}
+
+.action-step-title {
+    font-weight: 800;
+}
+
+.action-step-category {
+    border-radius: 999px;
+    padding: 0.25rem 0.55rem;
+    background: rgba(31, 42, 36, 0.06);
+    font-size: 0.72rem;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.action-step-toggle {
+    font-size: 0.75rem;
+    color: rgba(31, 42, 36, 0.55);
+}
+
+.action-step-body {
+    padding: 0 1rem 1rem 2.85rem;
+    color: rgba(31, 42, 36, 0.78);
+    line-height: 1.65;
+}
+
+.resource-link {
+    display: inline-flex;
+    margin-top: 0.75rem;
+    font-weight: 800;
+    color: #ff5a8a;
+    text-decoration: none;
+}
+
+.resource-link:hover {
+    text-decoration: underline;
+}
+
+.action-step-status {
+    margin-top: 1rem;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: rgba(31, 42, 36, 0.55);
+}
+
+.insight-shell {
+    min-height: 100%;
+    padding: 2rem 1rem;
+    display: flex;
+    justify-content: center;
+}
+
+.insight-card {
+    width: min(100%, 920px);
+    border-radius: 28px;
+    padding: 2rem;
+    background: #fffaf7;
+    border: 1px solid rgba(31, 42, 36, 0.08);
+    box-shadow: 0 18px 45px rgba(31, 42, 36, 0.08);
+}
+
+.eyebrow {
+    margin: 0 0 0.5rem;
+    font-size: 0.8rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #ff5a8a;
+}
+
+.insight-card h1 {
+    margin: 0;
+    font-size: clamp(2rem, 4vw, 3rem);
+    line-height: 1.05;
+    color: #1f2a24;
+}
+
+.intro-text {
+    margin: 1rem 0 1.5rem;
+    max-width: 720px;
+    color: rgba(31, 42, 36, 0.78);
+    font-size: 1.05rem;
+    line-height: 1.7;
+}
+
+.insight-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+}
+
+.insight-section {
+    margin-top: 1rem;
+    border-radius: 22px;
+    padding: 1.25rem;
+    background: white;
+    border: 1px solid rgba(31, 42, 36, 0.08);
+}
+
+.insight-section h2 {
+    margin: 0 0 0.75rem;
+    font-size: 1.05rem;
+    color: #1f2a24;
+}
+
+.insight-section p {
+    margin: 0;
+    color: rgba(31, 42, 36, 0.78);
+    line-height: 1.65;
+}
+
+.insight-section ul {
+    margin: 0;
+    padding-left: 1.25rem;
+    color: rgba(31, 42, 36, 0.78);
+    line-height: 1.65;
+}
+
+.insight-section li + li {
+    margin-top: 0.5rem;
+}
+
+.outcome-section {
+    background: rgba(255, 90, 138, 0.08);
+    border-color: rgba(255, 90, 138, 0.18);
+}
+
+.insight-actions {
+    margin-top: 1.5rem;
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.primary-button,
+.secondary-link {
+    min-height: 44px;
+    border-radius: 999px;
+    padding: 0.8rem 1.1rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    font-weight: 800;
+}
+
+.primary-button {
+    background: #ff5a8a;
+    color: white;
+}
+
+.secondary-link {
+    background: white;
+    color: #1f2a24;
+    border: 1px solid rgba(31, 42, 36, 0.14);
+}
+
+.error-message {
+    color: #7f2d2d;
+}
+
+@media (max-width: 720px) {
+    .action-step-header {
+        grid-template-columns: auto 1fr auto;
+    }
+
+    .action-step-category {
+        grid-column: 2 / -1;
+        width: fit-content;
+    }
+
+    .action-step-body {
+        padding-left: 1rem;
+    }
+    
+    .insight-card {
+        padding: 1.25rem;
+        border-radius: 22px;
+    }
+
+    .insight-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .insight-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}
