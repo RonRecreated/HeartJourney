@@ -5,6 +5,8 @@
 @using Microsoft.JSInterop
 @using HeartJourneyWeb.Services.ReflectionAnswers
 @using HeartJourneyWeb.Services.DimensionProgress
+@using HeartJourneyWeb.Services.ActionSteps
+@inject IUserActionStepService UserActionStepService
 @inject IDimensionProgressService DimensionProgressService
 @inject IReflectionAnswerService ReflectionAnswerService
 @inject IAuthService AuthService
@@ -275,6 +277,11 @@
                 dimensionSlug);
             
             await DimensionProgressService.DeleteProgressForDimensionAsync(
+                JourneySlug,
+                MilestoneSlug,
+                dimensionSlug);
+
+            await UserActionStepService.DeleteActionStepsForDimensionAsync(
                 JourneySlug,
                 MilestoneSlug,
                 dimensionSlug);

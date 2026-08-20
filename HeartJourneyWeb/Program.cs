@@ -8,6 +8,7 @@ using HeartJourneyWeb.Services.DimensionProgress;
 using HeartJourneyWeb.Services.Profiles;
 using HeartJourneyWeb.Services.ReflectionAnswers;
 using HeartJourneyWeb.Services.BrowserStorage;
+using HeartJourneyWeb.Services.ActionSteps;
 using HeartJourneyWeb;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
@@ -35,6 +36,7 @@ builder.Services.AddScoped<IAuthService, SupabaseAuthService>();
 builder.Services.AddScoped<IProfileService, ProfileService>();
 builder.Services.AddScoped<IReflectionAnswerService, ReflectionAnswerService>();
 builder.Services.AddScoped<IDimensionProgressService, DimensionProgressService>();
+builder.Services.AddScoped<IUserActionStepService, UserActionStepService>();
 builder.Services.AddScoped<BrowserStorageService>();
 
 await builder.Build().RunAsync();

@@ -17,6 +17,19 @@
     border: 1px solid rgba(31, 42, 36, 0.1);
     background: white;
     overflow: hidden;
+    transition:
+        border-color 160ms ease,
+        background-color 160ms ease,
+        box-shadow 160ms ease;
+}
+
+.action-step-card.working-on-it {
+    border-color: rgba(120, 84, 28, 0.32);
+    background: rgba(120, 84, 28, 0.04);
+}
+
+.action-step-card.working-on-it .action-step-header {
+    color: #6b4b1f;
 }
 
 .action-step-card.completed {
@@ -40,6 +53,10 @@
     text-align: left;
     cursor: pointer;
     color: #1f2a24;
+}
+
+.action-step-header:hover {
+    background: rgba(31, 42, 36, 0.025);
 }
 
 .action-step-check {
@@ -86,9 +103,56 @@
 
 .action-step-status {
     margin-top: 1rem;
+}
+
+.status-label {
+    display: block;
+    margin-bottom: 0.65rem;
+    color: rgba(31, 42, 36, 0.7);
     font-size: 0.85rem;
     font-weight: 700;
-    color: rgba(31, 42, 36, 0.55);
+}
+
+.status-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.status-button {
+    border: 1px solid rgba(31, 42, 36, 0.14);
+    border-radius: 999px;
+    padding: 0.55rem 0.8rem;
+    background: white;
+    color: #1f2a24;
+    font-weight: 800;
+    cursor: pointer;
+    transition:
+        background-color 160ms ease,
+        color 160ms ease,
+        border-color 160ms ease,
+        opacity 160ms ease;
+}
+
+.status-button:hover:not(:disabled) {
+    border-color: rgba(31, 42, 36, 0.32);
+}
+
+.status-button.active {
+    background: #1f2a24;
+    color: white;
+    border-color: #1f2a24;
+}
+
+.status-button.completed-button.active {
+    background: #1f6b3d;
+    border-color: #1f6b3d;
+    color: white;
+}
+
+.status-button:disabled {
+    opacity: 0.65;
+    cursor: wait;
 }
 
 .insight-shell {
@@ -234,5 +298,10 @@
     .insight-actions {
         flex-direction: column;
         align-items: stretch;
+    }
+
+    .primary-button,
+    .secondary-link {
+        width: 100%;
     }
 }

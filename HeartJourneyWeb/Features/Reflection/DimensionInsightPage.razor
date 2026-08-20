@@ -7,7 +7,9 @@
 @using HeartJourneyWeb.Services.DimensionProgress
 @using HeartJourneyWeb.Components.Auth
 @using HeartJourneyWeb.Features.Reflection
+@using HeartJourneyWeb.Services.ActionSteps
 
+@inject IUserActionStepService UserActionStepService
 @inject IContentRepository ContentRepository
 @inject IAuthService AuthService
 @inject IReflectionAnswerService ReflectionAnswerService
@@ -122,12 +124,12 @@
                         <div class="action-step-list">
                             @foreach (var step in _actionSteps)
                             {
-                                <article class="action-step-card @(step.Status == "completed" ? "completed" : null)">
+                                <article class="action-step-card @GetActionStepStatusClass(step.Status)">
                                     <button type="button"
                                             class="action-step-header"
                                             @onclick="() => ToggleActionStep(step)">
                                         <span class="action-step-check">
-                                            @(step.Status == "completed" ? "✓" : "○")
+                                            @(step.Status == StatusCompleted ? "✓" : step.Status == StatusWorkingOnIt ? "◐" : "○")
                                         </span>
 
                                         <span class="action-step-title">
@@ -166,7 +168,32 @@
                                             }
 
                                             <div class="action-step-status">
-                                                <span>Status tracking coming soon</span>
+                                                <span class="status-label">
+                                                    Current status: @FormatStatus(step.Status)
+                                                </span>
+
+                                                <div class="status-buttons">
+                                                    <button type="button"
+                                                            class="status-button @(step.Status == StatusNotStarted ? "active" : null)"
+                                                            disabled="@(_updatingActionStepKey == step.Key)"
+                                                            @onclick="() => UpdateActionStepStatusAsync(step, StatusNotStarted)">
+                                                        Not Started
+                                                    </button>
+
+                                                    <button type="button"
+                                                            class="status-button @(step.Status == StatusWorkingOnIt ? "active" : null)"
+                                                            disabled="@(_updatingActionStepKey == step.Key)"
+                                                            @onclick="@(() => UpdateActionStepStatusAsync(step, StatusWorkingOnIt))">
+                                                        Working On It
+                                                    </button>
+
+                                                    <button type="button"
+                                                            class="status-button completed-button @(step.Status == StatusCompleted ? "active" : null)"
+                                                            disabled="@(_updatingActionStepKey == step.Key)"
+                                                            @onclick="@(() => UpdateActionStepStatusAsync(step, StatusCompleted))">
+                                                        Completed
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
                                     }
@@ -174,6 +201,18 @@
                             }
                         </div>
                     </div>
+
+                    @if (AllActionStepsCompleted)
+                    {
+                        <div class="insight-section outcome-section">
+                            <h2>You completed your growth steps</h2>
+                            <p>
+                                You have completed the suggested steps for this reflection path.
+                                Consider returning to this growth area later and reflecting again
+                                to notice what has changed.
+                            </p>
+                        </div>
+                    }
 
                     <div class="insight-section">
                         <h2>Keep walking forward</h2>
@@ -232,6 +271,12 @@
     [Parameter]
     public string DimensionSlug { get; set; } = string.Empty;
 
+    private Dictionary<string, UserActionStepRecord> _savedActionStepsByKey =
+        new(StringComparer.OrdinalIgnoreCase);
+
+    private string? _actionStepErrorMessage;
+    private string? _updatingActionStepKey;
+
     private bool _isLoading = true;
     private string? _errorMessage;
 
@@ -243,6 +288,10 @@
     private List<ReflectionAnswerRecord> _attentionAnswers = new();
 
     private string _nextStepMessage = string.Empty;
+
+    private const string StatusNotStarted = "not_started";
+    private const string StatusWorkingOnIt = "working_on_it";
+    private const string StatusCompleted = "completed";
 
     private List<InsightActionStepItem> _actionSteps = new();
 
@@ -269,6 +318,19 @@
                 DimensionSlug);
 
             _answers = answers.ToList();
+
+            var savedActionSteps = await UserActionStepService.GetActionStepsForDimensionAsync(
+                JourneySlug,
+                MilestoneSlug,
+                DimensionSlug);
+
+            _savedActionStepsByKey = savedActionSteps
+                .Where(step => !string.IsNullOrWhiteSpace(step.ActionStepKey))
+                .GroupBy(step => step.ActionStepKey)
+                .ToDictionary(
+                    group => group.Key,
+                    group => group.First(),
+                    StringComparer.OrdinalIgnoreCase);
 
             BuildInsight();
         }
@@ -407,9 +469,20 @@
 
             foreach (var step in selectedOption.ActionSteps)
             {
+                var actionStepKey = BuildActionStepKey(
+                    answer.ReflectionPromptId,
+                    answer.SelectedAnswerLabel,
+                    step.Key);
+
+                var savedStatus = _savedActionStepsByKey.TryGetValue(
+                    actionStepKey,
+                    out var savedActionStep)
+                        ? savedActionStep.Status
+                        : StatusNotStarted;
+                
                 _actionSteps.Add(new InsightActionStepItem
                 {
-                    Key = $"{answer.ReflectionPromptId}:{answer.SelectedAnswerLabel}:{step.Key}",
+                    Key = actionStepKey,
                     Title = step.Title,
                     Description = step.Description,
                     Category = step.Category,
@@ -417,7 +490,8 @@
                     ResourceLabel = step.ResourceLabel,
                     ResourceUrl = step.ResourceUrl,
                     PromptId = answer.ReflectionPromptId,
-                    AnswerLabel = answer.SelectedAnswerLabel
+                    AnswerLabel = answer.SelectedAnswerLabel,
+                    Status = savedStatus
                 });
             }
         }
@@ -431,6 +505,14 @@
         {
             _actionSteps[0].IsExpanded = true;
         }
+    }
+
+    private static string BuildActionStepKey(
+        string promptId,
+        string answerLabel,
+        string stepKey)
+    {
+        return $"{promptId}:{answerLabel}:{stepKey}";
     }
 
     private void ToggleActionStep(InsightActionStepItem step)
@@ -450,4 +532,67 @@
             _ => category
         };
     }
+
+    private async Task UpdateActionStepStatusAsync(
+        InsightActionStepItem step,
+        string status)
+    {
+        _actionStepErrorMessage = null;
+        _updatingActionStepKey = step.Key;
+
+        try
+        {
+            var saved = await UserActionStepService.SaveActionStepStatusAsync(
+                new SaveUserActionStepRequest
+                {
+                    JourneySlug = JourneySlug,
+                    MilestoneSlug = MilestoneSlug,
+                    DimensionSlug = DimensionSlug,
+                    ActionStepKey = step.Key,
+                    ActionStepTitle = step.Title,
+                    ActionStepCategory = step.Category,
+                    ReflectionPromptId = step.PromptId,
+                    SelectedAnswerLabel = step.AnswerLabel,
+                    Status = status
+                });
+
+            step.Status = saved.Status;
+
+            _savedActionStepsByKey[step.Key] = saved;
+        }
+        catch (Exception ex)
+        {
+            _actionStepErrorMessage = ex.Message;
+        }
+        finally
+        {
+            _updatingActionStepKey = null;
+        }
+    }
+
+    private static string FormatStatus(string status)
+    {
+        return status switch
+        {
+            "not_started" => "Not Started",
+            "working_on_it" => "Working On It",
+            "completed" => "Completed",
+            _ => status
+        };
+    }
+
+    private static string GetActionStepStatusClass(string status)
+    {
+        return status switch
+        {
+            "working_on_it" => "working-on-it",
+            "completed" => "completed",
+            _ => string.Empty
+        };
+    }
+
+    // "All Growth Steps Completed" message
+    private bool AllActionStepsCompleted =>
+        _actionSteps.Count > 0 &&
+        _actionSteps.All(step => step.Status == StatusCompleted);    
 }
