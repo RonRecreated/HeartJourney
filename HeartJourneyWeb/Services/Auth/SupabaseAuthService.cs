@@ -1,4 +1,6 @@
 using Supabase;
+using System.Text;
+using System.Text.Json;
 using HeartJourneyWeb.Services.BrowserStorage;
 
 namespace HeartJourneyWeb.Services.Auth;
@@ -174,15 +176,23 @@ public class SupabaseAuthService : IAuthService
             return null;
         }
 
+        var accessToken = session.AccessToken;
+        
+        // If the token is still comfortably valid, just use it.
+        if (!IsJwtNearExpiration(accessToken, TimeSpan.FromMinutes(5)))
+        {
+            return accessToken;
+        }
+
         try
         {
-            var validSession = await _supabaseClient.Auth.SetSession(
+            var refreshedSession = await _supabaseClient.Auth.SetSession(
                 session.AccessToken,
                 session.RefreshToken,
             true);
 
-            if (validSession is null ||
-                string.IsNullOrWhiteSpace(validSession.AccessToken))
+            if (refreshedSession is null ||
+                string.IsNullOrWhiteSpace(refreshedSession.AccessToken))
             {
                 return null;
             }
@@ -193,17 +203,71 @@ public class SupabaseAuthService : IAuthService
                 AuthSessionKey,
                 new PersistedAuthSession
                 {
-                    AccessToken = validSession.AccessToken ?? string.Empty,
-                    RefreshToken = validSession.RefreshToken ?? string.Empty
+                    AccessToken = refreshedSession.AccessToken ?? string.Empty,
+                    RefreshToken = refreshedSession.RefreshToken ?? string.Empty
                 });
 
-            return validSession.AccessToken;
+            return refreshedSession.AccessToken;
         }
         catch
         {
             // Do NOT return the old access token here.
             // If it has expired, that just causes another JWT expired response.
             return null;
+        }
+    }
+
+    private static bool IsJwtNearExpiration(
+        string accessToken,
+        TimeSpan refreshBeforeExpiration)
+    {
+        try
+        {
+            var parts = accessToken.Split('.');
+
+            if (parts.Length < 2)
+            {
+                return true;
+            }
+
+            var payload = parts[1]
+                .Replace('-', '+')
+                .Replace('_', '/');
+
+            switch (payload.Length % 4)
+            {
+                case 2:
+                    payload += "==";
+                    break;
+
+                case 3:
+                    payload += "=";
+                    break;
+            }
+
+            var bytes = Convert.FromBase64String(payload);
+            var json = Encoding.UTF8.GetString(bytes);
+
+            using var document = JsonDocument.Parse(json);
+
+            if (!document.RootElement.TryGetProperty("exp", out var expElement))
+            {
+                return true;
+            }
+
+            var expirationUnixSeconds = expElement.GetInt64();
+
+            var expirationTime =
+                DateTimeOffset.FromUnixTimeSeconds(expirationUnixSeconds);
+
+            return expirationTime <=
+                DateTimeOffset.UtcNow.Add(refreshBeforeExpiration);
+        }
+        catch
+        {
+            // If we cannot read the token safely,
+            // refresh it rather than risk sending an expired JWT.
+            return true;
         }
     }
 }
