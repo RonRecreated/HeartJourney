@@ -37,16 +37,8 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xBdXRoXFJlcXVpcmVBdXRoLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/heart-journey/HeartJourneyWeb/Features/Counter.razor]
-build_metadata.AdditionalFiles.TargetPath = RmVhdHVyZXNcQ291bnRlci5yYXpvcg==
-build_metadata.AdditionalFiles.CssScope = 
-
 [D:/heart-journey/HeartJourneyWeb/Features/NotFound.razor]
 build_metadata.AdditionalFiles.TargetPath = RmVhdHVyZXNcTm90Rm91bmQucmF6b3I=
-build_metadata.AdditionalFiles.CssScope = 
-
-[D:/heart-journey/HeartJourneyWeb/Features/Weather.razor]
-build_metadata.AdditionalFiles.TargetPath = RmVhdHVyZXNcV2VhdGhlci5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
 [D:/heart-journey/HeartJourneyWeb/_Imports.razor]

@@ -40,8 +40,8 @@ public class ReflectionAnswerRecord
     [JsonPropertyName("selected_concern_level")]
     public string SelectedConcernLevel { get; set; } = string.Empty;
 
-    [JsonPropertyName("guidance_message")]
-    public string? GuidanceMessage { get; set; }
+    [JsonPropertyName("insight_message")]
+    public string? InsightMessage { get; set; }
 
     [JsonPropertyName("notes")]
     public string? Notes { get; set; }

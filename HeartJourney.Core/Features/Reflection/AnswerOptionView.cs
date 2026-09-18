@@ -10,7 +10,9 @@ public class AnswerOptionView
 
     public string ConcernLevel { get; set; } = string.Empty;
 
-    public string GuidanceMessage { get; set; } = string.Empty;
+    public string ResponseMessage { get; set; } = string.Empty;
+    
+    public string InsightMessage { get; set; } = string.Empty;
 
     public int SortOrder { get; set; }
 

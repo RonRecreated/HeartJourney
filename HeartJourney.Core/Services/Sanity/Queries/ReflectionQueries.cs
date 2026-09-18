@@ -91,7 +91,8 @@ public static class ReflectionQueries
                             description,
                             status,
                             concernLevel,
-                            guidanceMessage,
+                            responseMessage,
+                            insightMessage,
                             sortOrder,
 
                             "nextPromptId": nextPrompt->_id,
@@ -153,7 +154,8 @@ public static class ReflectionQueries
                                 description,
                                 status,
                                 concernLevel,
-                                guidanceMessage,
+                                responseMessage,
+                                insightMessage,
                                 sortOrder,
 
                                 "nextPromptId": nextPrompt->_id,

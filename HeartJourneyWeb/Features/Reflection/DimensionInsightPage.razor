@@ -83,7 +83,7 @@
                         else
                         {
                             <ul>
-                                @foreach (var answer in _strengthAnswers.Take(3))
+                                @foreach (var answer in _strengthAnswers.Take(5))
                                 {
                                     <li>@GetStrengthText(answer)</li>
                                 }
@@ -103,7 +103,7 @@
                         else
                         {
                             <ul>
-                                @foreach (var answer in _attentionAnswers.Take(3))
+                                @foreach (var answer in _attentionAnswers.Take(5))
                                 {
                                     <li>@GetAttentionText(answer)</li>
                                 }
@@ -118,7 +118,7 @@
                         <h2>Your Growth Steps</h2>
 
                         <p class="action-plan-intro">
-                            These steps are based on your answers. Start with one step at a time and move at a faithful, honest pace.
+                            These steps are based on your answers. Start with one step at a time and prayerfully move at a faithful, honest pace.
                         </p>
 
                         <div class="action-step-list">
@@ -348,10 +348,13 @@
     {
         _strengthAnswers = _answers
             .Where(answer => IsStrength(answer))
+            .Where(answer => !string.IsNullOrWhiteSpace(answer.InsightMessage))
             .ToList();
 
         _attentionAnswers = _answers
             .Where(answer => NeedsAttention(answer))
+            .Where(answer => !string.IsNullOrWhiteSpace(answer.InsightMessage))
+            .OrderByDescending(answer => GetConcernPriority(answer.SelectedConcernLevel))
             .ToList();
 
         BuildActionSteps();
@@ -361,27 +364,27 @@
 
     private static bool IsStrength(ReflectionAnswerRecord answer)
     {
-        var status = answer.SelectedStatus?.Trim().ToLowerInvariant();
-        var concernLevel = answer.SelectedConcernLevel?.Trim().ToLowerInvariant();
+        var status = NormalizeInsightValue(answer.SelectedStatus);
+        var concernLevel = NormalizeInsightValue(answer.SelectedConcernLevel);
 
-        return status is "healthy" or "strong" or "good"
-            || concernLevel is "low" or "none";
+        return status == "healthy"
+            || concernLevel is "none" or "low";
     }
 
     private static bool NeedsAttention(ReflectionAnswerRecord answer)
     {
-        var status = answer.SelectedStatus?.Trim().ToLowerInvariant();
-        var concernLevel = answer.SelectedConcernLevel?.Trim().ToLowerInvariant();
+        var status = NormalizeInsightValue(answer.SelectedStatus);
+        var concernLevel = NormalizeInsightValue(answer.SelectedConcernLevel);
 
-        return status is "needs_attention" or "needs attention" or "action_needed" or "action needed"
-            || concernLevel is "medium" or "high";
+        return status == "needs_attention"
+            || concernLevel is "moderate" or "high" or "critical";
     }
 
     private static string GetStrengthText(ReflectionAnswerRecord answer)
     {
-        if (!string.IsNullOrWhiteSpace(answer.GuidanceMessage))
+        if (!string.IsNullOrWhiteSpace(answer.InsightMessage))
         {
-            return answer.GuidanceMessage;
+            return answer.InsightMessage;
         }
 
         if (!string.IsNullOrWhiteSpace(answer.ReflectionPromptTitle))
@@ -394,9 +397,9 @@
 
     private static string GetAttentionText(ReflectionAnswerRecord answer)
     {
-        if (!string.IsNullOrWhiteSpace(answer.GuidanceMessage))
+        if (!string.IsNullOrWhiteSpace(answer.InsightMessage))
         {
-            return answer.GuidanceMessage;
+            return answer.InsightMessage;
         }
 
         if (!string.IsNullOrWhiteSpace(answer.ReflectionPromptTitle))
@@ -595,4 +598,30 @@
     private bool AllActionStepsCompleted =>
         _actionSteps.Count > 0 &&
         _actionSteps.All(step => step.Status == StatusCompleted);    
+
+    private static int GetConcernPriority(string? concernLevel)
+    {
+        var normalizedConcern = NormalizeInsightValue(concernLevel);
+
+        return normalizedConcern switch
+        {
+            "critical" => 5,
+            "high_critical" => 5,
+            "high" => 4,
+            "moderate" => 3,
+            "low" => 2,
+            "none" => 1,
+            _ => 0
+        };
+    }
+
+    private static string NormalizeInsightValue(string? value)
+    {
+        return value?
+            .Trim()
+            .ToLowerInvariant()
+            .Replace(" ", "_")
+            .Replace("-", "_")
+            ?? string.Empty;
+    }
 }

@@ -151,7 +151,7 @@
                             }
 
                             <div class="dimension-actions">
-                                <a href="@($"/journeys/{JourneySlug}/milestones/{MilestoneSlug}/dimensions/{dimension.Slug}")">
+                                <a href="@GetDimensionActionUrl(dimension.Slug)">
                                     @GetDimensionActionText(dimension)
                                 </a>
 
@@ -351,12 +351,26 @@
 
         return progress?.Status switch
         {
-            "completed" => "Review Outcome",
-            "redirected" => "Review Outcome",
-            "needs_guidance" => "Review Guidance",
+            "completed" => "View Insights",
+            "redirected" => "View Insights",
+            "needs_guidance" => "View Insights",
             "in_progress" => "Continue Reflection",
             _ when _startedDimensionSlugs.Contains(dimension.Slug) => "Continue Reflection",
             _ => $"Reflect on {dimension.Title}"
+        };
+    }
+
+    private string GetDimensionActionUrl(string dimensionSlug)
+    {
+        var progress = GetDimensionProgress(dimensionSlug);
+
+        return progress?.Status switch
+        {
+            "completed" or "redirected" or "needs_guidance" =>
+                $"/journeys/{JourneySlug}/milestones/{MilestoneSlug}/dimensions/{dimensionSlug}/insights",
+
+            _ =>
+                $"/journeys/{JourneySlug}/milestones/{MilestoneSlug}/dimensions/{dimensionSlug}"
         };
     }
 }

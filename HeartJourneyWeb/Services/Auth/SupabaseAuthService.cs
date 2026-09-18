@@ -162,4 +162,48 @@ public class SupabaseAuthService : IAuthService
 
         return message;
     }
+
+    public async Task<string?> GetValidAccessTokenAsync()
+    {
+        var session = _supabaseClient.Auth.CurrentSession;
+
+        if (session is null ||
+            string.IsNullOrWhiteSpace(session.AccessToken) ||
+            string.IsNullOrWhiteSpace(session.RefreshToken))
+        {
+            return null;
+        }
+
+        try
+        {
+            var validSession = await _supabaseClient.Auth.SetSession(
+                session.AccessToken,
+                session.RefreshToken,
+            true);
+
+            if (validSession is null ||
+                string.IsNullOrWhiteSpace(validSession.AccessToken))
+            {
+                return null;
+            }
+
+            // IMPORTANT:
+            // Save the NEW token pair back to browser localStorage.
+            await _browserStorage.SetAsync(
+                AuthSessionKey,
+                new PersistedAuthSession
+                {
+                    AccessToken = validSession.AccessToken ?? string.Empty,
+                    RefreshToken = validSession.RefreshToken ?? string.Empty
+                });
+
+            return validSession.AccessToken;
+        }
+        catch
+        {
+            // Do NOT return the old access token here.
+            // If it has expired, that just causes another JWT expired response.
+            return null;
+        }
+    }
 }

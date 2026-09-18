@@ -22,7 +22,7 @@ public class SaveReflectionAnswerRequest
 
     public string SelectedConcernLevel { get; set; } = string.Empty;
 
-    public string? GuidanceMessage { get; set; }
+    public string? InsightMessage { get; set; }
 
     public string? Notes { get; set; }
 }

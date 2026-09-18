@@ -48,7 +48,7 @@ public class ProfileService : IProfileService
             $"{_options.Url}/rest/v1/profiles?id=eq.{Uri.EscapeDataString(_authService.UserId)}&select=*";
 
         using var request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
-        AddSupabaseHeaders(request);
+        await AddSupabaseHeadersAsync(request);
 
         using var response = await _httpClient.SendAsync(request, cancellationToken);
 
@@ -96,7 +96,7 @@ public class ProfileService : IProfileService
         var requestUrl = $"{_options.Url}/rest/v1/profiles";
 
         using var request = new HttpRequestMessage(HttpMethod.Post, requestUrl);
-        AddSupabaseHeaders(request);
+        await AddSupabaseHeadersAsync(request);
         request.Headers.TryAddWithoutValidation("Prefer", "return=representation");
         request.Content = JsonContent.Create(newProfile);
 
@@ -120,17 +120,19 @@ public class ProfileService : IProfileService
         return CurrentProfile;
     }
 
-    private void AddSupabaseHeaders(HttpRequestMessage request)
+    private async Task AddSupabaseHeadersAsync(HttpRequestMessage request)
     {
-        var accessToken = _supabaseClient.Auth.CurrentSession?.AccessToken;
+        request.Headers.TryAddWithoutValidation("apikey", _options.Key);
+
+        var accessToken = await _authService.GetValidAccessTokenAsync();
 
         if (string.IsNullOrWhiteSpace(accessToken))
         {
-            throw new InvalidOperationException("The signed-in user session is missing an access token.");
+            throw new InvalidOperationException("Your session has expired. Please refresh the page.");
         }
 
-        request.Headers.TryAddWithoutValidation("apikey", _options.Key);
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+        request.Headers.Authorization =
+            new AuthenticationHeaderValue("Bearer", accessToken);
     }
 
     public async Task<HeartJourneyProfile> UpdateProfileAsync(
@@ -155,7 +157,7 @@ public class ProfileService : IProfileService
             $"{_options.Url}/rest/v1/profiles?id=eq.{Uri.EscapeDataString(profile.Id)}";
 
         using var request = new HttpRequestMessage(HttpMethod.Patch, requestUrl);
-        AddSupabaseHeaders(request);
+        await AddSupabaseHeadersAsync(request);
         request.Headers.TryAddWithoutValidation("Prefer", "return=representation");
         request.Content = JsonContent.Create(profile);
 

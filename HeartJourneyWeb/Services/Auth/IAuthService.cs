@@ -23,4 +23,6 @@ public interface IAuthService
         CancellationToken cancellationToken = default);
 
     Task SignOutAsync();
+
+    Task<string?> GetValidAccessTokenAsync();
 }

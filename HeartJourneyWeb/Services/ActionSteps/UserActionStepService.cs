@@ -55,7 +55,7 @@ public class UserActionStepService : IUserActionStepService
             "&order=created_at.asc";
 
         using var request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
-        AddSupabaseHeaders(request);
+        await AddSupabaseHeadersAsync(request);
 
         using var response = await _httpClient.SendAsync(request, cancellationToken);
 
@@ -114,7 +114,7 @@ public class UserActionStepService : IUserActionStepService
             $"&dimension_slug=eq.{Uri.EscapeDataString(dimensionSlug)}";
 
         using var request = new HttpRequestMessage(HttpMethod.Delete, requestUrl);
-        AddSupabaseHeaders(request);
+        await AddSupabaseHeadersAsync(request);
 
         using var response = await _httpClient.SendAsync(request, cancellationToken);
 
@@ -144,7 +144,7 @@ public class UserActionStepService : IUserActionStepService
             "&select=*";
 
         using var request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
-        AddSupabaseHeaders(request);
+        await AddSupabaseHeadersAsync(request);
 
         using var response = await _httpClient.SendAsync(request, cancellationToken);
 
@@ -191,7 +191,7 @@ public class UserActionStepService : IUserActionStepService
             "?select=*";
 
         using var request = new HttpRequestMessage(HttpMethod.Post, requestUrl);
-        AddSupabaseHeaders(request);
+        await AddSupabaseHeadersAsync(request);
 
         request.Headers.TryAddWithoutValidation("Prefer", "return=representation");
 
@@ -242,7 +242,7 @@ public class UserActionStepService : IUserActionStepService
             "&select=*";
 
         using var request = new HttpRequestMessage(HttpMethod.Patch, requestUrl);
-        AddSupabaseHeaders(request);
+        await AddSupabaseHeadersAsync(request);
 
         request.Headers.TryAddWithoutValidation("Prefer", "return=representation");
 
@@ -266,16 +266,18 @@ public class UserActionStepService : IUserActionStepService
             ?? throw new InvalidOperationException("User action step was updated, but Supabase returned no data.");
     }
 
-    private void AddSupabaseHeaders(HttpRequestMessage request)
+    private async Task AddSupabaseHeadersAsync(HttpRequestMessage request)
     {
-        var accessToken = _supabaseClient.Auth.CurrentSession?.AccessToken;
+        request.Headers.TryAddWithoutValidation("apikey", _options.Key);
 
-        if (!string.IsNullOrWhiteSpace(accessToken))
+        var accessToken = await _authService.GetValidAccessTokenAsync();
+
+        if (string.IsNullOrWhiteSpace(accessToken))
         {
-            request.Headers.TryAddWithoutValidation("Authorization", $"Bearer {accessToken}");
+            throw new InvalidOperationException("Your session has expired. Please sign in again.");
         }
 
-        request.Headers.TryAddWithoutValidation("apikey", _options.Key);
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+        request.Headers.Authorization =
+            new AuthenticationHeaderValue("Bearer", accessToken);
     }
 }

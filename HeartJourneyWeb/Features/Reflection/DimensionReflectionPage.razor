@@ -204,11 +204,11 @@
             }
 
             @if (_selectedAnswer is not null
-                && !string.IsNullOrWhiteSpace(_selectedAnswer.GuidanceMessage))
+                && !string.IsNullOrWhiteSpace(_selectedAnswer.ResponseMessage))
             {
                 <div class="guidance-card">
                     <strong>Gentle guidance</strong>
-                    <p>@_selectedAnswer.GuidanceMessage</p>
+                    <p>@_selectedAnswer.ResponseMessage</p>
                 </div>
             }
 
@@ -557,7 +557,7 @@
                     SelectedAnswerDescription = selectedAnswer.Description,
                     SelectedStatus = selectedAnswer.Status,
                     SelectedConcernLevel = selectedAnswer.ConcernLevel,
-                    GuidanceMessage = selectedAnswer.GuidanceMessage,
+                    InsightMessage = selectedAnswer.InsightMessage,
 
                     Notes = _notes
                 });

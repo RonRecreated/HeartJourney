@@ -52,7 +52,7 @@ public class ReflectionAnswerService : IReflectionAnswerService
             $"&select=*";
 
         using var request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
-        AddSupabaseHeaders(request);
+        await AddSupabaseHeadersAsync(request);
 
         using var response = await _httpClient.SendAsync(request, cancellationToken);
 
@@ -119,7 +119,7 @@ public class ReflectionAnswerService : IReflectionAnswerService
             SelectedAnswerDescription = requestModel.SelectedAnswerDescription,
             SelectedStatus = requestModel.SelectedStatus,
             SelectedConcernLevel = requestModel.SelectedConcernLevel,
-            GuidanceMessage = requestModel.GuidanceMessage,
+            InsightMessage = requestModel.InsightMessage,
             Notes = requestModel.Notes,
             AnsweredAt = now,
             UpdatedAt = now
@@ -128,7 +128,7 @@ public class ReflectionAnswerService : IReflectionAnswerService
         var requestUrl = $"{_options.Url}/rest/v1/reflection_answers";
 
         using var request = new HttpRequestMessage(HttpMethod.Post, requestUrl);
-        AddSupabaseHeaders(request);
+        await AddSupabaseHeadersAsync(request);
         request.Headers.TryAddWithoutValidation("Prefer", "return=representation");
         request.Content = JsonContent.Create(record, options: _jsonOptions);
 
@@ -172,7 +172,7 @@ public class ReflectionAnswerService : IReflectionAnswerService
             selected_answer_description = requestModel.SelectedAnswerDescription,
             selected_status = requestModel.SelectedStatus,
             selected_concern_level = requestModel.SelectedConcernLevel,
-            guidance_message = requestModel.GuidanceMessage,
+            insight_message = requestModel.InsightMessage,
             notes = requestModel.Notes,
             updated_at = DateTime.UtcNow
         };
@@ -184,7 +184,7 @@ public class ReflectionAnswerService : IReflectionAnswerService
 
         using var request = new HttpRequestMessage(HttpMethod.Patch, requestUrl);
 
-        AddSupabaseHeaders(request);
+        await AddSupabaseHeadersAsync(request);
 
         request.Headers.TryAddWithoutValidation("Prefer", "return=representation");
 
@@ -210,17 +210,19 @@ public class ReflectionAnswerService : IReflectionAnswerService
             ?? throw new InvalidOperationException("Reflection answer was updated, but Supabase returned no data.");
     }
 
-    private void AddSupabaseHeaders(HttpRequestMessage request)
+    private async Task AddSupabaseHeadersAsync(HttpRequestMessage request)
     {
-        var accessToken = _supabaseClient.Auth.CurrentSession?.AccessToken;
+        request.Headers.TryAddWithoutValidation("apikey", _options.Key);
+
+        var accessToken = await _authService.GetValidAccessTokenAsync();
 
         if (string.IsNullOrWhiteSpace(accessToken))
         {
-            throw new InvalidOperationException("The signed-in user session is missing an access token.");
+            throw new InvalidOperationException("Your session has expired. Please refresh the page.");
         }
 
-        request.Headers.TryAddWithoutValidation("apikey", _options.Key);
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+        request.Headers.Authorization =
+            new AuthenticationHeaderValue("Bearer", accessToken);
     }
 
     // Resume at first unanswered question
@@ -256,7 +258,7 @@ public class ReflectionAnswerService : IReflectionAnswerService
         $"&select=*";
 
     using var request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
-    AddSupabaseHeaders(request);
+    await AddSupabaseHeadersAsync(request);
 
     using var response = await _httpClient.SendAsync(request, cancellationToken);
 
@@ -295,7 +297,7 @@ public class ReflectionAnswerService : IReflectionAnswerService
             $"&select=*";
 
         using var request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
-        AddSupabaseHeaders(request);
+        await AddSupabaseHeadersAsync(request);
 
         using var response = await _httpClient.SendAsync(request, cancellationToken);
 
@@ -336,7 +338,7 @@ public class ReflectionAnswerService : IReflectionAnswerService
 
         using var request = new HttpRequestMessage(HttpMethod.Delete, requestUrl);
 
-        AddSupabaseHeaders(request);
+        await AddSupabaseHeadersAsync(request);
 
         using var response = await _httpClient.SendAsync(request, cancellationToken);
 
@@ -369,7 +371,7 @@ public class ReflectionAnswerService : IReflectionAnswerService
             "&order=answered_at.asc";
 
         using var request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
-        AddSupabaseHeaders(request);
+        await AddSupabaseHeadersAsync(request);
 
         using var response = await _httpClient.SendAsync(request, cancellationToken);
 
