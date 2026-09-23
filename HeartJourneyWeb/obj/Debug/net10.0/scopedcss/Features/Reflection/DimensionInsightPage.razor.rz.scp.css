@@ -223,13 +223,23 @@
 
 .insight-section ul[b-iu4qj4law2] {
     margin: 0;
-    padding-left: 1.25rem;
+    padding-left: 1.5rem;
     color: rgba(31, 42, 36, 0.78);
     line-height: 1.65;
+    list-style-type: disc;
+    list-style-position: outside;
+}
+
+.insight-section li[b-iu4qj4law2] {
+    display: list-item;
 }
 
 .insight-section li + li[b-iu4qj4law2] {
     margin-top: 0.5rem;
+}
+
+.insight-section li[b-iu4qj4law2]::marker {
+    color: rgba(31, 42, 36, 0.65);
 }
 
 .outcome-section[b-iu4qj4law2] {
