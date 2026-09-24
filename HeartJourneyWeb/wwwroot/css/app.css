@@ -1,23 +1,273 @@
+:root {
+    /* Brand */
+    --color-brand: #FF5A8A;
+    --color-brand-hover: #F04478;
+    --color-brand-soft: #FFE4EC;
+
+    /* Backgrounds */
+    --color-background: #FFF7ED;
+    --color-surface: #FFFFFF;
+    --color-surface-soft: #FFF1E6;
+
+    /* Text */
+    --color-text: #2F241F;
+    --color-text-muted: #7A6B63;
+    --color-text-soft: #A08F86;
+
+    /* Borders */
+    --color-border: #EADDD3;
+    --color-border-strong: #DCCBBF;
+
+    /* Feedback */
+    --color-success: #10B981;
+    --color-warning: #F59E0B;
+    --color-danger: #EF4444;
+
+    /* Milestones */
+    --milestone-single: #FF5A8A;
+    --milestone-talking: #3B82F6;
+    --milestone-courting: #10B981;
+    --milestone-engaged: #F59E0B;
+    --milestone-married: #8B5CF6;
+    --milestone-divorced: #EF4444;
+
+    /* Shape */
+    --radius-sm: 10px;
+    --radius-md: 16px;
+    --radius-lg: 22px;
+
+    /* Shadows */
+    --shadow-sm: 0 4px 14px rgba(47, 36, 31, 0.08);
+    --shadow-md: 0 10px 30px rgba(47, 36, 31, 0.12);
+    --shadow-lg: 0 18px 50px rgba(47, 36, 31, 0.16);
+
+    /* Spacing */
+    --space-xs: .4rem;
+    --space-sm: .75rem;
+    --space-md: 1rem;
+    --space-lg: 1.5rem;
+    --space-xl: 2rem;
+    --space-2xl: 3rem;
+
+    /* Motion */
+    --transition-fast: 150ms ease;
+    --transition-normal: 250ms ease;
+}
+
 html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    background: var(--color-background);
+    color: var(--color-text);
+}
+
+body {
+    margin: 0;
 }
 
 h1:focus {
     outline: none;
 }
 
-a, .btn-link {
-    color: #0071c1;
+a {
+    color: var(--color-brand);
+}
+
+.primary-button {
+    background: var(--color-brand);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    padding: .8rem 1.2rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition:
+        transform var(--transition-fast),
+        background var(--transition-fast),
+        box-shadow var(--transition-fast);
+}
+
+.primary-button:hover {
+    background: var(--color-brand-hover);
+}
+
+.primary-button:active {
+    transform: scale(.98);
+}
+
+.primary-button:disabled {
+    opacity: .55;
+    cursor: not-allowed;
+}
+
+.secondary-button {
+    background: transparent;
+    color: var(--color-text);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
+    padding: .8rem 1.2rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition:
+        background var(--transition-fast),
+        transform var(--transition-fast);
+}
+
+.secondary-button:hover {
+    background: var(--color-surface-soft);
+}
+
+.secondary-button:active {
+    transform: scale(.98);
+}
+
+.secondary-button:disabled {
+    opacity: .55;
+    cursor: not-allowed;
+}
+
+.danger-button {
+    background: transparent;
+    color: var(--color-danger);
+    border: 1px solid var(--color-danger);
+    border-radius: var(--radius-md);
+    padding: .8rem 1.2rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition:
+        background var(--transition-fast),
+        transform var(--transition-fast);
+}
+
+.danger-button:hover {
+    background: rgba(239, 68, 68, 0.08);
+}
+
+.danger-button:active {
+    transform: scale(.98);
+}
+
+.danger-button:disabled {
+    opacity: .55;
+    cursor: not-allowed;
+}
+
+.surface-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+}
+
+.milestone-single {
+    --milestone-color: var(--milestone-single);
+}
+
+.milestone-talking {
+    --milestone-color: var(--milestone-talking);
+}
+
+.milestone-courting {
+    --milestone-color: var(--milestone-courting);
+}
+
+.milestone-engaged {
+    --milestone-color: var(--milestone-engaged);
+}
+
+.milestone-married {
+    --milestone-color: var(--milestone-married);
+}
+
+.milestone-divorced {
+    --milestone-color: var(--milestone-divorced);
+}
+
+.milestone-card {
+    background: var(--color-surface);
+    border: 2px solid var(--milestone-color);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+
+    transition:
+        transform var(--transition-normal),
+        box-shadow var(--transition-normal);
+}
+
+.milestone-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.milestone-intro-card {
+    background: var(--color-surface);
+    border-radius: var(--radius-lg);
+
+    border: 1px solid color-mix(
+        in srgb,
+        var(--milestone-color) 35%,
+        white
+    );
+
+    box-shadow:
+        0 18px 45px color-mix(
+            in srgb,
+            var(--milestone-color) 22%,
+            transparent
+        );
+}
+
+.milestone-primary-button {
+    background: var(--milestone-color);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    padding: .8rem 1.2rem;
+    font-weight: 700;
+    cursor: pointer;
+
+    transition:
+        transform var(--transition-fast),
+        filter var(--transition-fast);
+}
+
+.milestone-primary-button:hover {
+    filter: brightness(.95);
+}
+
+.milestone-primary-button:active {
+    transform: scale(.98);
+}
+
+a,
+.btn-link {
+    color: var(--color-brand);
+}
+
+a:hover,
+.btn-link:hover {
+    color: var(--color-brand-hover);
 }
 
 .btn-primary {
     color: #fff;
-    background-color: #1b6ec2;
-    border-color: #1861ac;
+    background-color: var(--color-brand);
+    border-color: var(--color-brand);
 }
 
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+.btn-primary:hover {
+    color: #fff;
+    background-color: var(--color-brand-hover);
+    border-color: var(--color-brand-hover);
+}
+
+.btn:focus,
+.btn:active:focus,
+.btn-link.nav-link:focus,
+.form-control:focus,
+.form-check-input:focus {
+    box-shadow:
+        0 0 0 0.1rem var(--color-surface),
+        0 0 0 0.25rem rgba(255, 90, 138, 0.35);
 }
 
 .content {
@@ -25,15 +275,15 @@ a, .btn-link {
 }
 
 .valid.modified:not([type=checkbox]) {
-    outline: 1px solid #26b050;
+    outline: 1px solid var(--color-success);
 }
 
 .invalid {
-    outline: 1px solid red;
+    outline: 1px solid var(--color-danger);
 }
 
 .validation-message {
-    color: red;
+    color: var(--color-danger);
 }
 
 #blazor-error-ui {
@@ -78,14 +328,14 @@ a, .btn-link {
 
     .loading-progress circle {
         fill: none;
-        stroke: #e0e0e0;
+        stroke: var(--color-border);
         stroke-width: 0.6rem;
         transform-origin: 50% 50%;
         transform: rotate(-90deg);
     }
 
         .loading-progress circle:last-child {
-            stroke: #1b6ec2;
+            stroke: var(--color-brand);
             stroke-dasharray: calc(3.141 * var(--blazor-load-percentage, 0%) * 0.8), 500%;
             transition: stroke-dasharray 0.05s ease-in-out;
         }

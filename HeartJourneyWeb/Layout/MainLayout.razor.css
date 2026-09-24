@@ -1,22 +1,36 @@
 .app-shell {
     min-height: 100vh;
+    background: var(--color-background);
+    color: var(--color-text);
 }
 
 .app-header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 1rem;
-    padding: 1rem 1.25rem;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-    background: white;
+
+    padding: 1rem 1.5rem;
+
+    background: rgba(255, 247, 237, 0.92);
+    border-bottom: 1px solid var(--color-border);
+
+    backdrop-filter: blur(12px);
 }
 
 .brand {
-    font-size: 1.1rem;
-    font-weight: 900;
+    color: var(--color-brand);
     text-decoration: none;
-    color: inherit;
+    font-size: 1.25rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+}
+
+.brand:hover {
+    color: var(--color-brand-hover);
 }
 
 .header-actions {
@@ -26,10 +40,37 @@
 }
 
 .settings-link {
+    color: var(--color-text-muted);
     text-decoration: none;
     font-weight: 600;
+
+    transition:
+        color var(--transition-fast),
+        transform var(--transition-fast);
+}
+
+.settings-link:hover {
+    color: var(--color-brand);
+}
+
+.settings-link:active {
+    transform: scale(.97);
 }
 
 main {
-    min-height: calc(100vh - 72px);
+    width: 100%;
+}
+
+@media (max-width: 640px) {
+    .app-header {
+        padding: .85rem 1rem;
+    }
+
+    .brand {
+        font-size: 1.1rem;
+    }
+
+    .header-actions {
+        gap: .65rem;
+    }
 }
