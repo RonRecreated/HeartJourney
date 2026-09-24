@@ -1,0 +1,55 @@
+@page "/journeys/{JourneySlug}/milestones/{MilestoneSlug}/resume"
+
+@using HeartJourneyWeb.Components.Auth
+@using HeartJourneyWeb.Services.MilestoneProgress
+
+@inject IMilestoneProgressService MilestoneProgressService
+@inject NavigationManager NavigationManager
+
+<RequireAuth>
+    <section class="resume-shell">
+        <p>Preparing your milestone...</p>
+    </section>
+</RequireAuth>
+
+@code {
+    [Parameter]
+    public string JourneySlug { get; set; } = string.Empty;
+
+    [Parameter]
+    public string MilestoneSlug { get; set; } = string.Empty;
+
+    private bool _hasNavigated;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (_hasNavigated)
+        {
+            return;
+        }
+
+        var progress = await MilestoneProgressService.GetProgressAsync(
+            JourneySlug,
+            MilestoneSlug);
+
+        if (progress is null)
+        {
+            progress = await MilestoneProgressService.StartMilestoneAsync(
+                JourneySlug,
+                MilestoneSlug);
+        }
+
+        _hasNavigated = true;
+
+        if (progress.IntroViewCount < 3)
+        {
+            NavigationManager.NavigateTo(
+                $"/journeys/{JourneySlug}/milestones/{MilestoneSlug}/intro");
+
+            return;
+        }
+
+        NavigationManager.NavigateTo(
+            $"/journeys/{JourneySlug}/milestones/{MilestoneSlug}");
+    }
+}

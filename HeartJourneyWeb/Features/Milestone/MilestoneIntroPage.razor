@@ -2,6 +2,9 @@
 @using HeartJourney.Core.Features.Milestone
 @using HeartJourney.Core.Services.Interfaces
 @using HeartJourneyWeb.Services.Auth
+@using HeartJourneyWeb.Services.MilestoneProgress
+@inject IMilestoneProgressService MilestoneProgressService
+@inject NavigationManager NavigationManager
 @inject IContentRepository ContentRepository
 @inject IAuthService AuthService
 @inject NavigationManager NavigationManager
@@ -139,13 +142,27 @@
                     </button>
                 }
 
-                <button type="button"
-                        class="primary-button"
-                        @onclick="NextStep">
-                    @(_currentStep == _steps.Count - 1
-                        ? "Continue to Growth Areas"
-                        : "Continue")
-                </button>
+                @if (_currentStep == _steps.Count - 1)
+                {
+                    <button type="button"
+                            class="primary-button"
+                            disabled="@_isContinuing"
+                            @onclick="ContinueToGrowthAreasAsync">
+                        @(_isContinuing
+                            ? "Continuing..."
+                            : ReviewMode
+                                ? "Return to Growth Areas"
+                                : "Continue to Growth Areas")
+                    </button>
+                }
+                else
+                {
+                    <button type="button"
+                            class="primary-button"
+                            @onclick="NextStep">
+                        Continue
+                    </button>
+                } 
             </div>
         </div>
     }
@@ -158,8 +175,12 @@
     [Parameter]
     public string MilestoneSlug { get; set; } = string.Empty;
 
+    [SupplyParameterFromQuery(Name = "review")]
+    public bool ReviewMode { get; set; }
+
     private MilestoneIntroView? _intro;
     private bool _isLoading = true;
+    private bool _isContinuing;
     private string? _errorMessage;
     private int _currentStep;
     
@@ -220,5 +241,32 @@
 
         NavigationManager.NavigateTo(
             $"/journeys/{JourneySlug}/milestones/{MilestoneSlug}");
+    }
+
+    private async Task ContinueToGrowthAreasAsync()
+    {
+        if (_isContinuing)
+        {
+            return;
+        }
+
+        _isContinuing = true;
+
+        try
+        {
+            if (!ReviewMode)
+            {
+                await MilestoneProgressService.CompleteIntroVisitAsync(
+                    JourneySlug,
+                    MilestoneSlug);
+            }
+
+            NavigationManager.NavigateTo(
+                $"/journeys/{JourneySlug}/milestones/{MilestoneSlug}");
+        }
+        finally
+        {
+            _isContinuing = false;
+        }
     }
 }

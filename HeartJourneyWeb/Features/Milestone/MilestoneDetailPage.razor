@@ -63,6 +63,10 @@
             }
         </header>
 
+        <a class="review-intro-link" href="@($"/journeys/{JourneySlug}/milestones/{MilestoneSlug}/intro?review=true")">
+            Review Milestone Introduction
+        </a>
+
         <section class="guidance-grid">
             @if (_milestone.HealthyCharacteristics?.Count > 0)
             {

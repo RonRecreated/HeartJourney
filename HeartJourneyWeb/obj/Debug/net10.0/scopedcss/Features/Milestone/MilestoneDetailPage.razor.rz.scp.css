@@ -221,6 +221,18 @@
     background: #fff4f4;
 }
 
+.review-intro-link[b-rdjzjgjoxs] {
+    display: inline-block;
+    margin-top: .75rem;
+    font-size: .95rem;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.review-intro-link:hover[b-rdjzjgjoxs] {
+    text-decoration: underline;
+}
+
 @media (max-width: 640px) {
     .dimension-actions[b-rdjzjgjoxs] {
         flex-direction: column;

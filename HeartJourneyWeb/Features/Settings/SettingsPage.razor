@@ -1,0 +1,381 @@
+@page "/settings"
+
+@using HeartJourneyWeb.Components.Auth
+@using HeartJourneyWeb.Services.MilestoneReset
+@using HeartJourneyWeb.Services.Profiles
+@using HeartJourneyWeb.Services.MilestoneProgress
+@inject IMilestoneProgressService MilestoneProgressService
+@inject IProfileService ProfileService
+@inject IMilestoneResetService MilestoneResetService
+@inject NavigationManager NavigationManager
+
+<PageTitle>Settings</PageTitle>
+
+<RequireAuth>
+    <div class="settings-page">
+
+        <header class="settings-header">
+            <h1>Settings</h1>
+            <p>Manage your Journey Recreated experience.</p>
+        </header>
+
+        <section class="settings-section">
+            <h2>Profile & Onboarding</h2>
+
+            <div class="settings-card profile-settings-card">
+
+                <EditForm Model="_profileForm"
+                        OnValidSubmit="SaveProfileSettingsAsync">
+
+                    <DataAnnotationsValidator />
+
+                    <div class="profile-form">
+
+                        <div class="form-field">
+                            <label for="ageBracket">Age bracket</label>
+
+                            <InputSelect id="ageBracket"
+                                        @bind-Value="_profileForm.AgeBracket">
+                                <option value="">Choose one</option>
+                                <option value="under18">Under 18</option>
+                                <option value="18-24">18–24</option>
+                                <option value="25-34">25–34</option>
+                                <option value="35-44">35–44</option>
+                                <option value="45-54">45–54</option>
+                                <option value="55plus">55+</option>
+                            </InputSelect>
+
+                            <ValidationMessage For="@(() => _profileForm.AgeBracket)" />
+                        </div>
+
+                        <div class="form-field">
+                            <label for="gender">Gender</label>
+
+                            <InputSelect id="gender"
+                                        @bind-Value="_profileForm.Gender">
+                                <option value="">Choose one</option>
+                                <option value="female">Female</option>
+                                <option value="male">Male</option>
+                            </InputSelect>
+
+                            <ValidationMessage For="@(() => _profileForm.Gender)" />
+                        </div>
+
+                        <div class="form-field">
+                            <label for="religiousBackground">
+                                Religious background
+                            </label>
+
+                            <InputSelect id="religiousBackground"
+                                        @bind-Value="_profileForm.ReligiousBackground">
+                                <option value="">Choose one</option>
+                                <option value="christian">Christian</option>
+                                <option value="exploringChristianity">Exploring Christianity</option>
+                                <option value="otherFaith">Other faith background</option>
+                                <option value="none">No religious background</option>
+                            </InputSelect>
+
+                            <ValidationMessage For="@(() => _profileForm.ReligiousBackground)" />
+                        </div>
+
+                        <div class="form-field">
+                            <label for="relationshipSeason">
+                                Current relationship season
+                            </label>
+
+                            <InputSelect id="relationshipSeason"
+                                        @bind-Value="_profileForm.CurrentRelationshipSeason">
+                                <option value="">Choose one</option>
+                                <option value="single">Single</option>
+                                <option value="talking">Talking</option>
+                                <option value="courting">Courting</option>
+                                <option value="engaged">Engaged</option>
+                                <option value="married">Married</option>
+                                <option value="divorced">Divorced</option>
+                            </InputSelect>
+
+                            <ValidationMessage For="@(() => _profileForm.CurrentRelationshipSeason)" />
+                        </div>
+
+                        <button type="submit"
+                                class="primary-button"
+                                disabled="@_isSavingProfile">
+                            @(_isSavingProfile
+                                ? "Saving..."
+                                : "Save Profile Settings")
+                        </button>
+
+                        @if (!string.IsNullOrWhiteSpace(_profileMessage))
+                        {
+                            <p class="profile-message">
+                                @_profileMessage
+                            </p>
+                        }
+
+                    </div>
+
+                </EditForm>
+
+            </div>
+        </section>
+
+        <section class="settings-section">
+            <h2>Journey Data</h2>
+
+            @if (_isLoading)
+            {
+                <p>Loading settings...</p>
+            }
+            else if (_startedMilestones.Count == 0)
+            {
+                <p>You haven't started any milestones yet.</p>
+            }
+            else
+            {
+                @foreach (var milestone in _startedMilestones)
+                {
+                    <div class="settings-card">
+                        <div class="settings-card-content">
+                            <h3>@FormatMilestoneName(milestone.MilestoneSlug)</h3>
+
+                            <p>
+                                Clear your reflections, progress, insights,
+                                growth steps, and introduction progress for this milestone.
+                            </p>
+                        </div>
+
+                        <button type="button"
+                                class="danger-button"
+                                @onclick="() => OpenResetConfirmation(milestone)">
+                            Reset Milestone
+                        </button>
+                    </div>
+                }
+            }
+
+            @if (!string.IsNullOrWhiteSpace(_resetError))
+            {
+                <p class="settings-error">@_resetError</p>
+            }
+        </section>
+
+    </div>
+
+    @if (_showResetConfirmation)
+    {
+        <div class="modal-backdrop"
+            @onclick="CloseResetConfirmation">
+
+            <div class="confirmation-modal"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="resetMilestoneTitle"
+                @onclick:stopPropagation="true">
+
+                <h2 id="resetMilestoneTitle">
+                    Reset @FormatMilestoneName(_milestoneToReset?.MilestoneSlug ?? "") Milestone?
+                </h2>
+
+                <p>
+                    This will permanently clear your reflections,
+                    progress, insights, and growth-step progress
+                    for this milestone.
+                </p>
+
+                <p class="confirmation-note">
+                    Your profile and current relationship season will not change.
+                </p>
+
+                @if (!string.IsNullOrWhiteSpace(_resetError))
+                {
+                    <p class="settings-error">
+                        @_resetError
+                    </p>
+                }
+
+                <div class="confirmation-actions">
+                    <button type="button"
+                            class="secondary-button"
+                            disabled="@_isResetting"
+                            @onclick="CloseResetConfirmation">
+                        Cancel
+                    </button>
+
+                    <button type="button"
+                            class="danger-button"
+                            disabled="@_isResetting"
+                            @onclick="ResetSelectedMilestoneAsync">
+                        @(_isResetting
+                            ? "Resetting..."
+                            : "Reset Milestone")
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    }
+</RequireAuth>
+
+@code{
+    private HeartJourneyProfile _profileForm = new();
+    private bool _isSavingProfile;
+    private string? _profileMessage;
+    private bool _isResetting;
+    private string? _resetError;
+    private const string RelationshipJourneySlug = "relationship";
+
+    private string? _currentMilestoneSlug;
+
+    private bool _isLoading = true;
+    private bool _showResetConfirmation;
+    private string CurrentMilestoneDisplayName =>
+        string.IsNullOrWhiteSpace(_currentMilestoneSlug)
+            ? "Current"
+            : char.ToUpperInvariant(_currentMilestoneSlug[0]) +
+                _currentMilestoneSlug[1..];
+    private IReadOnlyList<MilestoneProgressRecord> _startedMilestones =
+        Array.Empty<MilestoneProgressRecord>();
+
+    private MilestoneProgressRecord? _milestoneToReset;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var profile = await ProfileService.EnsureProfileAsync();
+            
+            _profileForm = new HeartJourneyProfile
+            {
+                Id = profile.Id,
+                AgeBracket = profile.AgeBracket,
+                Gender = profile.Gender,
+                ReligiousBackground = profile.ReligiousBackground,
+                CurrentRelationshipSeason = profile.CurrentRelationshipSeason
+            };
+
+            _currentMilestoneSlug =
+                profile.CurrentRelationshipSeason;
+
+            _startedMilestones =
+                await MilestoneProgressService.GetProgressForJourneyAsync(
+                    RelationshipJourneySlug);
+        }
+        catch (Exception ex)
+        {
+            _resetError =
+                $"Unable to load settings. {ex.Message}";
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task ResetSelectedMilestoneAsync()
+    {
+        if (_isResetting || _milestoneToReset is null)
+        {
+            return;
+        }
+
+        _isResetting = true;
+        _resetError = null;
+
+        try
+        {
+            await MilestoneResetService.ResetMilestoneAsync(
+                RelationshipJourneySlug,
+                _milestoneToReset.MilestoneSlug);
+            
+            _startedMilestones =
+                await MilestoneProgressService.GetProgressForJourneyAsync(
+                    RelationshipJourneySlug);
+
+            _milestoneToReset = null;
+            _showResetConfirmation = false;
+
+            NavigationManager.NavigateTo(
+                $"/journeys/{RelationshipJourneySlug}");
+        }
+        catch (Exception ex)
+        {
+            _resetError = ex.Message;
+        }
+        finally
+        {
+            _isResetting = false;
+        }
+    }
+
+    private void OpenResetConfirmation()
+    {
+        if (string.IsNullOrWhiteSpace(_currentMilestoneSlug))
+        {
+            return;
+        }
+
+        _showResetConfirmation = true;
+    }
+
+    private void CloseResetConfirmation()
+    {
+        if (_isResetting)
+        {
+            return;
+        }
+
+        _showResetConfirmation = false;
+    }
+
+    private void OpenResetConfirmation(
+        MilestoneProgressRecord milestone)
+    {
+        _milestoneToReset = milestone;
+        _showResetConfirmation = true;
+    }
+
+    private static string FormatMilestoneName(string slug)
+    {
+        if (string.IsNullOrWhiteSpace(slug))
+        {
+            return "Milestone";
+        }
+
+        return char.ToUpperInvariant(slug[0]) + slug[1..];
+    }
+
+    private async Task SaveProfileSettingsAsync()
+    {
+        if (_isSavingProfile)
+        {
+            return;
+        }
+
+        _isSavingProfile = true;
+        _profileMessage = null;
+
+        try
+        {
+            var updatedProfile =
+                await ProfileService.UpdateProfileAsync(
+                    _profileForm);
+
+            _profileForm = updatedProfile;
+
+            _currentMilestoneSlug =
+                updatedProfile.CurrentRelationshipSeason;
+
+            _profileMessage =
+                "Your profile settings have been updated.";
+        }
+        catch (Exception ex)
+        {
+            _profileMessage =
+                $"Unable to save your profile settings. {ex.Message}";
+        }
+        finally
+        {
+            _isSavingProfile = false;
+        }
+    }
+}

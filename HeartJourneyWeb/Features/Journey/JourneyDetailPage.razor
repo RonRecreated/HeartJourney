@@ -3,6 +3,8 @@
 @using HeartJourney.Core.Services.Interfaces
 @using HeartJourneyWeb.Services.Auth
 @using HeartJourneyWeb.Services.Profiles
+@using HeartJourneyWeb.Services.MilestoneProgress
+@inject IMilestoneProgressService MilestoneProgressService
 @inject IAuthService AuthService
 @inject IProfileService ProfileService
 @inject IContentRepository ContentRepository
@@ -79,9 +81,24 @@
                                 <p>@milestone.Summary</p>
                             }
 
-                            <a href="@($"/journeys/{Slug}/milestones/{milestone.Slug}/intro")">
-                                @(isCurrentSeason ? "Begin here" : "Walk this milestone")
-                            </a>
+                            @if (HasStartedMilestone(milestone.Slug))
+                            {
+                                <a href="@GetMilestoneResumeUrl(milestone.Slug)">
+                                    Resume
+                                </a>
+                            }
+                            else if (isCurrentSeason)
+                            {
+                                <a href="@GetMilestoneResumeUrl(milestone.Slug)">
+                                    Begin Here
+                                </a>
+                            }
+                            else
+                            {
+                                <a href="@GetMilestoneResumeUrl(milestone.Slug)">
+                                    Walk this milestone
+                                </a>
+                            }
                         </article>
                     }
                 </div>
@@ -99,6 +116,8 @@
     private string? _currentSeasonSlug;
     private bool _isLoading = true;
     private string? _errorMessage;
+    private HashSet<string> _startedMilestoneSlugs =
+        new(StringComparer.OrdinalIgnoreCase);
 
     protected override async Task OnParametersSetAsync()
     {
@@ -116,6 +135,14 @@
                 _profile = await ProfileService.GetProfileAsync();
                 _currentSeasonSlug = _profile?.CurrentRelationshipSeason;
             }
+
+            var milestoneProgress =
+                await MilestoneProgressService.GetProgressForJourneyAsync(Slug);
+
+            _startedMilestoneSlugs = milestoneProgress
+                .Where(progress => !string.IsNullOrWhiteSpace(progress.MilestoneSlug))
+                .Select(progress => progress.MilestoneSlug)
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
         }
         catch (Exception ex)
         {
@@ -134,5 +161,15 @@
                 milestone.Slug,
                 _currentSeasonSlug,
                 StringComparison.OrdinalIgnoreCase);
+    }
+
+    private bool HasStartedMilestone(string milestoneSlug)
+    {
+        return _startedMilestoneSlugs.Contains(milestoneSlug);
+    }
+
+    private string GetMilestoneResumeUrl(string milestoneSlug)
+    {
+        return $"/journeys/{Slug}/milestones/{milestoneSlug}/resume";
     }
 }

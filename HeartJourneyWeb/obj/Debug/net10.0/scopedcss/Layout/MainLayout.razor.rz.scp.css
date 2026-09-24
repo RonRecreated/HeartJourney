@@ -19,6 +19,17 @@
     color: inherit;
 }
 
+.header-actions[b-z9cfhjdkjw] {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.settings-link[b-z9cfhjdkjw] {
+    text-decoration: none;
+    font-weight: 600;
+}
+
 main[b-z9cfhjdkjw] {
     min-height: calc(100vh - 72px);
 }
