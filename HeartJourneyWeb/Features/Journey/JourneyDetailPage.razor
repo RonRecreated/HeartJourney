@@ -61,7 +61,7 @@
                     {
                         var isCurrentSeason = IsCurrentSeason(milestone);
                         
-                        <article class="milestone-card @(isCurrentSeason ? "current-season" : null)">
+                        <article class="milestone-card @GetMilestoneCssClass(milestone.Slug) @(isCurrentSeason ? "current-season" : null)">
                             @if (isCurrentSeason)
                             {
                                 <div class="season-badge">Your Current Season</div>
@@ -83,19 +83,19 @@
 
                             @if (HasStartedMilestone(milestone.Slug))
                             {
-                                <a href="@GetMilestoneResumeUrl(milestone.Slug)">
+                                <a class="milestone-action" href="@GetMilestoneResumeUrl(milestone.Slug)">
                                     Resume
                                 </a>
                             }
                             else if (isCurrentSeason)
                             {
-                                <a href="@GetMilestoneResumeUrl(milestone.Slug)">
+                                <a class="milestone-action" href="@GetMilestoneResumeUrl(milestone.Slug)">
                                     Begin Here
                                 </a>
                             }
                             else
                             {
-                                <a href="@GetMilestoneResumeUrl(milestone.Slug)">
+                                <a class="milestone-action" href="@GetMilestoneResumeUrl(milestone.Slug)">
                                     Walk this milestone
                                 </a>
                             }
@@ -171,5 +171,19 @@
     private string GetMilestoneResumeUrl(string milestoneSlug)
     {
         return $"/journeys/{Slug}/milestones/{milestoneSlug}/resume";
+    }
+
+    private static string GetMilestoneCssClass(string? milestoneSlug)
+    {
+        return milestoneSlug?.ToLowerInvariant() switch
+        {
+            "single" => "milestone-single",
+            "talking" => "milestone-talking",
+            "courting" => "milestone-courting",
+            "engaged" => "milestone-engaged",
+            "married" => "milestone-married",
+            "divorced" => "milestone-divorced",
+            _ => string.Empty
+        };
     }
 }

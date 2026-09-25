@@ -1,25 +1,25 @@
 self.assetsManifest = {
-  "version": "uzUd5vpE",
+  "version": "cf8A42+N",
   "assets": [
     {
-      "hash": "sha256-ElUqP60B963FMV8/0AlywVpp3f9sl+TgOvf5JpdhoI4=",
+      "hash": "sha256-IJCJAOO7wlYNd/Qo1bXfVbX0YkoUlRu6U2KLpLIO3VE=",
       "url": "HeartJourneyWeb.styles.css"
     },
     {
-      "hash": "sha256-ubISqBiNSOO17u5hpbK3YtNxFDiYbwYAjQNiW2IEBBQ=",
-      "url": "_framework/HeartJourney.Core.7stagayors.pdb"
+      "hash": "sha256-AD5QWeIX0niyDBLlZ2SwSCTuVHlJEGril001RdrYrjA=",
+      "url": "_framework/HeartJourney.Core.0s5rgrl307.wasm"
     },
     {
-      "hash": "sha256-BLtDlj9HC1oSfC21crBOI5QNBgxPLjLUiH8Hp7+Ok8M=",
-      "url": "_framework/HeartJourney.Core.g548sarhhn.wasm"
+      "hash": "sha256-obGIt786HiHaqo1wx22Fb6agzL4Q+ttayX0lLQQM/yE=",
+      "url": "_framework/HeartJourney.Core.zbj28ukkj3.pdb"
     },
     {
-      "hash": "sha256-Oha8J3r6fx46TN4s5142+B3YRmzy+o9CVb7e81qLh0g=",
-      "url": "_framework/HeartJourneyWeb.iakqdg89lp.wasm"
+      "hash": "sha256-NAGyFCx2446Z3JGpfMEUnOiFmNvDW7GkltVDOYs95Lk=",
+      "url": "_framework/HeartJourneyWeb.wnzlvq7ne0.pdb"
     },
     {
-      "hash": "sha256-O1lasjJlYAET6hnAT2qGy8OgB1/4GtPuksV5T39Qq3g=",
-      "url": "_framework/HeartJourneyWeb.ndpjel5n7j.pdb"
+      "hash": "sha256-rC7lTLfgd3XDm2neokJbn4qmQ8YzHSDeyRO8yDSO0nE=",
+      "url": "_framework/HeartJourneyWeb.wpvn5nzn2n.wasm"
     },
     {
       "hash": "sha256-TKbWsc5gCE+04slSkrqeNGTb7K8LiRW72Tm+1gzKxqU=",
@@ -886,12 +886,12 @@ self.assetsManifest = {
       "url": "_framework/blazor.webassembly.958z1vx7fr.js"
     },
     {
-      "hash": "sha256-NGhLEUpA17OVblEa11zm7VLtU4VGhJKnibclXmkmEI0=",
-      "url": "_framework/dotnet.8llmpm3ika.js"
-    },
-    {
       "hash": "sha256-gkQ8GxkWyh0BLme64OuSZ0ABha5f8RfJ8n5+z0SaOJI=",
       "url": "_framework/dotnet.js.map"
+    },
+    {
+      "hash": "sha256-y+rErYD/cZVvEsMykRg/GSQIAy3yLDIAWI7Qqr4fs38=",
+      "url": "_framework/dotnet.n9z904ovsl.js"
     },
     {
       "hash": "sha256-hYigRhIZKHyCXxXWqL/yR3ZWzZhV2oSi+2N3/UPeoxk=",
@@ -950,7 +950,7 @@ self.assetsManifest = {
       "url": "icon-512.png"
     },
     {
-      "hash": "sha256-FhzW2Y5lmlCVhJV97nRcp24zSAQkPyV5vTMsRHosPKY=",
+      "hash": "sha256-lgv8y+ColpxvDzYncSsFmlYCkZ2ZR/LKn0Bq1o91bc8=",
       "url": "index.html"
     },
     {

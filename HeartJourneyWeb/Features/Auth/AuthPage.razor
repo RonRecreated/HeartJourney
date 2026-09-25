@@ -124,6 +124,12 @@
             {
                 var profile = await ProfileService.EnsureProfileAsync();
 
+                Console.WriteLine(
+                    $"Profile loaded: User={profile.Id}, " +
+                    $"OnboardingCompleted={profile.OnboardingCompleted}, " +
+                    $"DisplayName='{profile.DisplayName}', " +
+                    $"Email='{profile.Email}'");
+
                 if (!profile.OnboardingCompleted)
                 {
                     NavigationManager.NavigateTo("/welcome");

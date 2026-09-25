@@ -83,6 +83,16 @@ public class ProfileService : IProfileService
 
         if (existingProfile is not null)
         {
+            if (string.IsNullOrWhiteSpace(existingProfile.Email) &&
+                !string.IsNullOrWhiteSpace(_authService.Email))
+            {
+                existingProfile.Email = _authService.Email;
+
+                existingProfile = await UpdateProfileAsync(
+                    existingProfile,
+                    cancellationToken);
+            }
+            
             return existingProfile;
         }
 
