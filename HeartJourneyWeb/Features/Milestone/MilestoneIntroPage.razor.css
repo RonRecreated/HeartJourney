@@ -1,7 +1,7 @@
 .milestone-intro-shell {
-    max-width: 960px;
+    max-width: 760px;
     margin: 0 auto;
-    padding: 3rem 1.25rem;
+    padding: 3rem 1.25rem 4rem;
 }
 
 .breadcrumb {
@@ -19,55 +19,89 @@
 }
 
 .intro-card {
-    border: 1px solid rgba(0, 0, 0, 0.08);
-    border-radius: 1.75rem;
-    padding: clamp(1.5rem, 4vw, 2.5rem);
-    background: white;
-    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.08);
+    position: relative;
+    overflow: hidden;
+
+    background: var(--color-surface);
+
+    border: 1px solid color-mix(
+        in srgb,
+        var(--milestone-color) 32%,
+        white
+    );
+
+    border-radius: var(--radius-lg);
+
+    padding: 2rem;
+
+    box-shadow:
+        0 22px 55px color-mix(
+            in srgb,
+            var(--milestone-color) 20%,
+            transparent
+        );
+}
+
+.intro-card::before {
+    content: "";
+    position: absolute;
+
+    top: 0;
+    left: 0;
+    right: 0;
+
+    height: 4px;
+
+    background: var(--milestone-color);
 }
 
 .step-indicator {
-    display: inline-block;
-    margin-bottom: 1.25rem;
+    display: inline-flex;
+
+    margin-bottom: 1rem;
+    padding: .35rem .65rem;
+
     border-radius: 999px;
-    padding: 0.4rem 0.8rem;
-    font-size: 0.8rem;
-    font-weight: 800;
-    background: rgba(0, 0, 0, 0.055);
+
+    background: color-mix(
+        in srgb,
+        var(--milestone-color) 10%,
+        white
+    );
+
+    color: var(--milestone-color);
+
+    font-size: .8rem;
+    font-weight: 700;
 }
 
 .eyebrow {
-    font-size: 0.85rem;
-    font-weight: 800;
-    letter-spacing: 0.12em;
+    color: var(--milestone-color);
+
+    font-size: .8rem;
+    font-weight: 700;
+    letter-spacing: .1em;
     text-transform: uppercase;
-    opacity: 0.7;
 }
 
 .intro-card h1 {
-    max-width: 760px;
-    margin: 0.5rem 0 1rem;
-    font-size: clamp(2.2rem, 5vw, 4rem);
-    line-height: 1.05;
+    color: var(--color-text);
+
+    margin-top: .4rem;
+    margin-bottom: 1rem;
+
+    line-height: 1.15;
 }
 
 .motto {
-    font-size: 1.25rem;
-    font-weight: 800;
-    line-height: 1.55;
+    color: var(--color-text);
+    font-weight: 700;
 }
 
-.intro-text {
-    max-width: 760px;
-    font-size: 1.1rem;
-    line-height: 1.8;
-    opacity: 0.84;
-}
-
+.intro-text,
 .intro-list {
-    display: grid;
-    gap: 0.85rem;
-    padding-left: 1.25rem;
+    color: var(--color-text-muted);
+
     font-size: 1.05rem;
     line-height: 1.7;
 }
@@ -75,65 +109,114 @@
 .verse-list {
     display: grid;
     gap: 1rem;
-    margin-top: 1.5rem;
+
+    margin-top: 1.25rem;
 }
 
 .verse-card {
-    border-radius: 1.25rem;
-    padding: 1.25rem;
-    background: rgba(0, 0, 0, 0.035);
+    padding: 1rem 1.1rem;
+
+    background: color-mix(
+        in srgb,
+        var(--milestone-color) 6%,
+        white
+    );
+
+    border: 1px solid color-mix(
+        in srgb,
+        var(--milestone-color) 20%,
+        white
+    );
+
+    border-radius: var(--radius-md);
 }
 
 .verse-card p {
-    margin-top: 0;
-    font-size: 1.08rem;
-    line-height: 1.8;
+    margin: 0 0 .5rem;
+
+    color: var(--color-text);
+    line-height: 1.6;
 }
 
 .verse-card strong {
-    display: block;
+    color: var(--milestone-color);
 }
 
 .intro-actions {
     display: flex;
-    justify-content: flex-end;
-    gap: 0.75rem;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 1rem;
     margin-top: 2rem;
 }
 
-.primary-button,
-.secondary-button {
-    border-radius: 999px;
-    padding: 0.9rem 1.35rem;
-    font-weight: 800;
-    cursor: pointer;
-}
-
-.primary-button {
-    border: none;
-    background: #1f2a24;
+.milestone-primary-button {
+    background: var(--milestone-color);
     color: white;
+
+    border: none;
+    border-radius: var(--radius-md);
+
+    padding: .8rem 1.2rem;
+
+    font-weight: 700;
+    cursor: pointer;
+
+    transition:
+        transform var(--transition-fast),
+        filter var(--transition-fast),
+        box-shadow var(--transition-fast);
 }
 
-.secondary-button {
-    border: 1px solid rgba(0, 0, 0, 0.16);
-    background: white;
+.milestone-primary-button:hover {
+    filter: brightness(.95);
+    box-shadow: var(--shadow-sm);
+}
+
+.milestone-primary-button:active {
+    transform: scale(.98);
+}
+
+.milestone-primary-button:disabled {
+    opacity: .55;
+    cursor: not-allowed;
 }
 
 .error-card {
-    border: 1px solid #e7b8b8;
-    border-radius: 1rem;
+    border: 1px solid color-mix(
+        in srgb,
+        var(--color-danger) 35%,
+        white
+    );
+
+    border-radius: var(--radius-md);
     padding: 1rem;
-    background: #fff4f4;
+
+    background: color-mix(
+        in srgb,
+        var(--color-danger) 7%,
+        white
+    );
+
+    color: var(--color-text);
 }
 
 @media (max-width: 640px) {
-    .intro-actions {
-        flex-direction: column-reverse;
+    .milestone-intro-shell {
+        padding: 2rem 1rem 3rem;
     }
 
-    .primary-button,
-    .secondary-button {
+    .intro-card {
+        padding: 1.5rem;
+    }
+
+    .intro-actions {
+        flex-direction: column-reverse;
+        align-items: stretch;
+    }
+
+    .intro-actions button {
         width: 100%;
     }
 }
