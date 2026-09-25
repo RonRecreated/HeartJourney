@@ -53,6 +53,10 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xBdXRoXEF1dGhTdGF0dXMucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = b-43lepmab37
 
+[D:/heart-journey/HeartJourneyWeb/Components/PwaUpdatePrompt.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQd2FVcGRhdGVQcm9tcHQucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = b-k5yw3lbp1g
+
 [D:/heart-journey/HeartJourneyWeb/Features/Auth/AuthConfirmedPage.razor]
 build_metadata.AdditionalFiles.TargetPath = RmVhdHVyZXNcQXV0aFxBdXRoQ29uZmlybWVkUGFnZS5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = b-beu6d5v0a1

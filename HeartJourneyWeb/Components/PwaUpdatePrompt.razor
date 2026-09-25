@@ -1,0 +1,80 @@
+@implements IAsyncDisposable
+@inject IJSRuntime JS
+
+@if (_updateAvailable)
+{
+    <div class="pwa-update-banner"
+         role="status"
+         aria-live="polite">
+
+        <div class="pwa-update-content">
+            <strong>Update available</strong>
+
+            <span>
+                A newer version of Journey Recreated is ready.
+            </span>
+        </div>
+
+        <div class="pwa-update-actions">
+            <button type="button"
+                    class="pwa-update-later"
+                    @onclick="Dismiss">
+                Later
+            </button>
+
+            <button type="button"
+                    class="pwa-update-now"
+                    @onclick="ApplyUpdateAsync">
+                Update now
+            </button>
+        </div>
+
+    </div>
+}
+
+@code {
+    private DotNetObjectReference<PwaUpdatePrompt>? _dotNetReference;
+    private bool _updateAvailable;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+        {
+            return;
+        }
+
+        _dotNetReference =
+            DotNetObjectReference.Create(this);
+
+        await JS.InvokeVoidAsync(
+            "journeyRecreatedPwa.initialize",
+            _dotNetReference);
+    }
+
+    [JSInvokable]
+    public Task ShowUpdateAvailable()
+    {
+        _updateAvailable = true;
+        StateHasChanged();
+
+        return Task.CompletedTask;
+    }
+
+    private async Task ApplyUpdateAsync()
+    {
+        await JS.InvokeVoidAsync(
+            "journeyRecreatedPwa.applyUpdate");
+    }
+
+    private void Dismiss()
+    {
+        _updateAvailable = false;
+    }
+
+    public ValueTask DisposeAsync()
+    {
+        _dotNetReference?.Dispose();
+
+        return ValueTask.CompletedTask;
+    }
+}
