@@ -61,13 +61,69 @@ window.journeyRecreatedPwa = {
             'ShowUpdateAvailable');
     },
 
-    applyUpdate: function () {
-        if (!this.registration?.waiting) {
+    applyUpdate: async function () {
+        const registration =
+            await navigator.serviceWorker.getRegistration();
+
+        if (!registration) {
+            console.warn('PWA update: no service worker registration found.');
             return;
         }
 
-        this.registration.waiting.postMessage({
+        const waitingWorker = registration.waiting;
+
+        if (!waitingWorker) {
+            console.warn('PWA update: no waiting service worker found.');
+            return;
+        }
+
+        console.info('PWA update: activating waiting service worker.');
+
+        let reloading = false;
+
+        const reloadPage = () => {
+            if (reloading) {
+                return;
+            }
+
+            reloading = true;
+
+            console.info('PWA update: reloading with new version.');
+
+            window.location.reload();
+        };
+
+        // Reload when the waiting worker actually reaches activated.
+        waitingWorker.addEventListener('statechange', () => {
+            console.info(
+                `PWA update: worker state changed to ${waitingWorker.state}.`
+            );
+
+            if (waitingWorker.state === 'activated') {
+                reloadPage();
+            }
+        });
+
+        // Keep controllerchange as another reliable signal.
+        navigator.serviceWorker.addEventListener(
+            'controllerchange',
+            reloadPage,
+            { once: true }
+        );
+
+        waitingWorker.postMessage({
             type: 'SKIP_WAITING'
         });
+
+        // Fallback in case the browser activates the worker
+        // without delivering controllerchange/statechange as expected.
+        setTimeout(async () => {
+            const latestRegistration =
+                await navigator.serviceWorker.getRegistration();
+
+            if (!latestRegistration?.waiting) {
+                reloadPage();
+            }
+        }, 2000);
     }
 };
