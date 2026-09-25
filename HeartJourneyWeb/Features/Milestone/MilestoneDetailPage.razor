@@ -16,7 +16,7 @@
 
 <PageTitle>@(_milestone?.Title ?? "Milestone")</PageTitle>
 
-<section class="milestone-detail-shell">
+<section class="milestone-detail-shell @GetMilestoneCssClass(MilestoneSlug)">
     <!-- Loading, error, and content will be rendered here -->
     @if (_isLoading)
     {
@@ -155,7 +155,7 @@
                             }
 
                             <div class="dimension-actions">
-                                <a href="@GetDimensionActionUrl(dimension.Slug)">
+                                <a class="dimension-action-link" href="@GetDimensionActionUrl(dimension.Slug)">
                                     @GetDimensionActionText(dimension)
                                 </a>
 
@@ -358,9 +358,9 @@
             "completed" => "View Insights",
             "redirected" => "View Insights",
             "needs_guidance" => "View Insights",
-            "in_progress" => "Continue Reflection",
-            _ when _startedDimensionSlugs.Contains(dimension.Slug) => "Continue Reflection",
-            _ => $"Reflect on {dimension.Title}"
+            "in_progress" => "Continue",
+            _ when _startedDimensionSlugs.Contains(dimension.Slug) => "Continue",
+            _ => $"Begin Reflection"
         };
     }
 
@@ -375,6 +375,20 @@
 
             _ =>
                 $"/journeys/{JourneySlug}/milestones/{MilestoneSlug}/dimensions/{dimensionSlug}"
+        };
+    }
+
+    private static string GetMilestoneCssClass(string? milestoneSlug)
+    {
+        return milestoneSlug?.ToLowerInvariant() switch
+        {
+            "single" => "milestone-single",
+            "talking" => "milestone-talking",
+            "courting" => "milestone-courting",
+            "engaged" => "milestone-engaged",
+            "married" => "milestone-married",
+            "divorced" => "milestone-divorced",
+            _ => string.Empty
         };
     }
 }
