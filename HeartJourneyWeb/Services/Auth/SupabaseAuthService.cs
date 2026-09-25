@@ -2,6 +2,7 @@ using Supabase;
 using System.Text;
 using System.Text.Json;
 using HeartJourneyWeb.Services.BrowserStorage;
+using Microsoft.AspNetCore.Components;
 
 namespace HeartJourneyWeb.Services.Auth;
 
@@ -13,11 +14,13 @@ public class SupabaseAuthService : IAuthService
     private const string AuthSessionKey = "heartjourney.auth.session";
 
     private readonly BrowserStorageService _browserStorage;
+    private readonly NavigationManager _navigationManager;
 
-    public SupabaseAuthService(Client supabaseClient, BrowserStorageService browserStorage)
+    public SupabaseAuthService(Client supabaseClient, BrowserStorageService browserStorage, NavigationManager navigationManager)
     {
         _supabaseClient = supabaseClient;
         _browserStorage = browserStorage;
+        _navigationManager = navigationManager;
     }
 
     public event Action? AuthStateChanged;
@@ -75,7 +78,7 @@ public class SupabaseAuthService : IAuthService
                 password,
                 new global::Supabase.Gotrue.SignUpOptions
                 {
-                    RedirectTo = "http://localhost:5138/auth/confirmed"
+                    RedirectTo = _navigationManager.ToAbsoluteUri("/auth/confirmed").ToString()
                 });
 
             NotifyAuthStateChanged();
