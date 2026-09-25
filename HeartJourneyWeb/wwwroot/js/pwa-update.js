@@ -19,6 +19,14 @@ window.journeyRecreatedPwa = {
 
         this.registration = registration;
 
+        try {
+            await registration.update();
+            console.info('PWA update: checked for a newer service worker.');
+        }
+        catch (error) {
+            console.warn('PWA update: update check failed.', error);
+        }
+
         // An update may already be waiting when Blazor starts.
         if (registration.waiting) {
             await this.notifyUpdateAvailable();
