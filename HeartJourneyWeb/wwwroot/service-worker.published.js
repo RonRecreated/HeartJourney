@@ -51,5 +51,15 @@ async function onFetch(event) {
         cachedResponse = await cache.match(request);
     }
 
-    return cachedResponse || fetch(event.request);
+    if (cachedResponse) {
+        return cachedResponse;
+    }
+
+    if (event.request.mode === 'navigate') {
+        return fetch(event.request.url, {
+            redirect: 'follow'
+        });
+    }
+
+    return fetch(event.request);
 }
