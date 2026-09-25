@@ -11,7 +11,7 @@
 
 <PageTitle>@(_intro?.Title ?? "Milestone Intro")</PageTitle>
 
-<section class="milestone-intro-shell">
+<section class="milestone-intro-shell @GetMilestoneCssClass(MilestoneSlug)">
     @if (_isLoading)
     {
         <p>Loading milestone introduction...</p>
@@ -145,7 +145,7 @@
                 @if (_currentStep == _steps.Count - 1)
                 {
                     <button type="button"
-                            class="primary-button"
+                            class="milestone-primary-button"
                             disabled="@_isContinuing"
                             @onclick="ContinueToGrowthAreasAsync">
                         @(_isContinuing
@@ -158,7 +158,7 @@
                 else
                 {
                     <button type="button"
-                            class="primary-button"
+                            class="milestone-primary-button"
                             @onclick="NextStep">
                         Continue
                     </button>
@@ -268,5 +268,19 @@
         {
             _isContinuing = false;
         }
+    }
+
+    private static string GetMilestoneCssClass(string? milestoneSlug)
+    {
+        return milestoneSlug?.ToLowerInvariant() switch
+        {
+            "single" => "milestone-single",
+            "talking" => "milestone-talking",
+            "courting" => "milestone-courting",
+            "engaged" => "milestone-engaged",
+            "married" => "milestone-married",
+            "divorced" => "milestone-divorced",
+            _ => string.Empty
+        };
     }
 }
