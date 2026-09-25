@@ -51,15 +51,16 @@ async function onFetch(event) {
         cachedResponse = await cache.match(request);
     }
 
-    if (cachedResponse) {
-        return cachedResponse;
-    }
-
-    if (event.request.mode === 'navigate') {
-        return fetch(event.request.url, {
-            redirect: 'follow'
+    // Cloudflare Pages redirects /index.html to /.
+    // A redirected response can't be returned for a navigation request,
+    // so recreate the cached response without its redirected state.
+    if (cachedResponse && cachedResponse.redirected) {
+        cachedResponse = new Response(cachedResponse.body, {
+            headers: cachedResponse.headers,
+            status: cachedResponse.status,
+            statusText: cachedResponse.statusText
         });
     }
 
-    return fetch(event.request);
+    return cachedResponse || fetch(event.request);
 }
