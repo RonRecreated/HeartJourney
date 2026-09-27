@@ -14,7 +14,7 @@
 <PageTitle>@(_view?.DimensionTitle ?? "Reflection")</PageTitle>
 
 <RequireAuth>
-<section class="reflection-shell">
+<section class="reflection-shell @GetMilestoneCssClass(MilestoneSlug)">
     @if (_isLoading)
     {
         <p>Loading reflection...</p>
@@ -969,5 +969,19 @@
                 PromptHistoryJson = SerializePromptHistory(),
                 CompletedAt = DateTime.UtcNow
             });
+    }
+
+    private static string GetMilestoneCssClass(string? milestoneSlug)
+    {
+        return milestoneSlug?.ToLowerInvariant() switch
+        {
+            "single" => "milestone-single",
+            "talking" => "milestone-talking",
+            "courting" => "milestone-courting",
+            "engaged" => "milestone-engaged",
+            "married" => "milestone-married",
+            "divorced" => "milestone-divorced",
+            _ => string.Empty
+        };
     }
 }

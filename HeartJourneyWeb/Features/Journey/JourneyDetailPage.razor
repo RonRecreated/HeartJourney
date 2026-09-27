@@ -1,5 +1,6 @@
 @page "/journeys/{Slug}"
 @using HeartJourney.Core.Features.Journey
+@using HeartJourneyWeb.Helpers
 @using HeartJourney.Core.Services.Interfaces
 @using HeartJourneyWeb.Services.Auth
 @using HeartJourneyWeb.Services.Profiles
@@ -67,7 +68,10 @@
                                 <div class="season-badge">Your Current Season</div>
                             }
                             
-                            <div class="milestone-icon">@milestone.Icon</div>
+                            <div class="milestone-icon">
+                                <i class="@IconHelper.GetIconClass(milestone.Icon)"
+                                    aria-hidden="true"></i>
+                            </div>
 
                             <h3>@milestone.Title</h3>
 

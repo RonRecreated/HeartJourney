@@ -379,8 +379,34 @@
 }
 
 .journey-icon[b-ic3ka9ij8o] {
-    font-size: 2rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 52px;
+    height: 52px;
+
     margin-bottom: 1rem;
+
+    border-radius: 50%;
+
+    background: color-mix(
+        in srgb,
+        var(--color-brand) 12%,
+        white
+    );
+
+    color: var(--color-brand);
+
+    font-size: 1.45rem;
+
+    border: 1px solid color-mix(
+        in srgb,
+        var(--color-brand) 20%,
+        white
+    );
+
+    box-shadow: var(--shadow-sm);
 }
 
 .journey-card h2[b-ic3ka9ij8o] {
@@ -561,8 +587,26 @@
 }
 
 .milestone-icon[b-asncq3036u] {
-    font-size: 2rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 48px;
+    height: 48px;
+
     margin-bottom: 1rem;
+
+    border-radius: 50%;
+
+    background: color-mix(
+        in srgb,
+        var(--milestone-color) 12%,
+        white
+    );
+
+    color: var(--milestone-color);
+
+    font-size: 1.35rem;
 }
 
 .milestone-card h3[b-asncq3036u] {

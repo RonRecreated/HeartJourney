@@ -142,9 +142,6 @@ export const milestoneType = defineType({
       title: 'Icon',
       description: 'Icon representing this milestone throughout the application.',
       type: 'string',
-      options: {
-        list: IconList
-      },
       fieldset: 'branding'
     }),
 

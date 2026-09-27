@@ -1,6 +1,7 @@
 ﻿@page "/"
 @using HeartJourney.Core.Features.Home
 @using HeartJourney.Core.Services.Interfaces
+@using HeartJourneyWeb.Helpers
 @inject IContentRepository ContentRepository
 
 <PageTitle>Journey Recreated</PageTitle>
@@ -8,7 +9,7 @@
 <section class="home-shell">
     <div class="hero">
         <p class="eyebrow">Journey Recreated</p>
-        <h1>Helping you grow in Christ-centered relationships.</h1>
+        <h1>Helping you grow and have a Christ-centered journey.</h1>
         <p class="hero-text">
             Choose the journey that best describes where you are today.
         </p>
@@ -35,7 +36,9 @@
             @foreach (var journey in _journeys)
             {
                 <article class="journey-card">
-                    <div class="journey-icon">@journey.Icon</div>
+                    <div class="journey-icon">
+                        <i class="@IconHelper.GetIconClass(journey.Icon)" aria-hidden="true"></i>
+                    </div>
 
                     <h2>@journey.Title</h2>
 
