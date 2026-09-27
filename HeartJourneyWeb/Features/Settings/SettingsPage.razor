@@ -217,6 +217,7 @@
 </RequireAuth>
 
 @code{
+    private HeartJourneyProfile? _profile;
     private HeartJourneyProfile _profileForm = new();
     private bool _isSavingProfile;
     private string? _profileMessage;
@@ -242,19 +243,18 @@
     {
         try
         {
-            var profile = await ProfileService.EnsureProfileAsync();
+            _profile = await ProfileService.EnsureProfileAsync();
             
             _profileForm = new HeartJourneyProfile
             {
-                Id = profile.Id,
-                AgeBracket = profile.AgeBracket,
-                Gender = profile.Gender,
-                ReligiousBackground = profile.ReligiousBackground,
-                CurrentRelationshipSeason = profile.CurrentRelationshipSeason
+                AgeBracket = _profile.AgeBracket,
+                Gender = _profile.Gender,
+                ReligiousBackground = _profile.ReligiousBackground,
+                CurrentRelationshipSeason = _profile.CurrentRelationshipSeason
             };
 
             _currentMilestoneSlug =
-                profile.CurrentRelationshipSeason;
+                _profile.CurrentRelationshipSeason;
 
             _startedMilestones =
                 await MilestoneProgressService.GetProgressForJourneyAsync(
@@ -346,7 +346,7 @@
 
     private async Task SaveProfileSettingsAsync()
     {
-        if (_isSavingProfile)
+        if (_isSavingProfile || _profile is null)
         {
             return;
         }
@@ -356,11 +356,24 @@
 
         try
         {
+            // Only copy the fields that Settings is allowed to change.
+            _profile.AgeBracket =
+                _profileForm.AgeBracket;
+
+            _profile.Gender =
+                _profileForm.Gender;
+
+            _profile.ReligiousBackground =
+                _profileForm.ReligiousBackground;
+
+            _profile.CurrentRelationshipSeason =
+                _profileForm.CurrentRelationshipSeason;
+
             var updatedProfile =
                 await ProfileService.UpdateProfileAsync(
-                    _profileForm);
+                    _profile);
 
-            _profileForm = updatedProfile;
+            _profile = updatedProfile;
 
             _currentMilestoneSlug =
                 updatedProfile.CurrentRelationshipSeason;
