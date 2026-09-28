@@ -6,49 +6,85 @@
 }
 
 .auth-card {
-    width: min(100%, 460px);
-    border: 1px solid rgba(0, 0, 0, 0.08);
-    border-radius: 1.5rem;
+    width: min(100%, 520px);
+
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+
     padding: 2rem;
-    background: white;
-    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.08);
+
+    background: var(--color-surface);
+
+    box-shadow: var(--shadow-md);
 }
 
 .eyebrow {
+    margin: 0;
+
+    color: var(--color-brand);
+
     font-size: 0.85rem;
     font-weight: 800;
     letter-spacing: 0.12em;
     text-transform: uppercase;
-    opacity: 0.7;
 }
 
 .auth-card h1 {
     margin: 0.5rem 0 0.75rem;
-    font-size: 2rem;
+
+    color: var(--color-text);
+
+    font-size: 2.25rem;
+    line-height: 1.1;
 }
 
 .intro {
-    line-height: 1.65;
-    opacity: 0.78;
     margin-bottom: 1.5rem;
+
+    color: var(--color-text-muted);
+
+    line-height: 1.7;
 }
 
 .form-field {
     display: grid;
-    gap: 0.4rem;
+    gap: 0.45rem;
     margin-bottom: 1rem;
 }
 
 .form-field label {
-    font-weight: 700;
+    color: var(--color-text);
+
+    font-weight: 800;
 }
 
 .form-field input {
     width: 100%;
-    border: 1px solid rgba(0, 0, 0, 0.18);
-    border-radius: 0.85rem;
+
+    box-sizing: border-box;
+
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+
     padding: 0.85rem 1rem;
+
+    background: var(--color-surface);
+    color: var(--color-text);
+
     font: inherit;
+
+    transition:
+        border-color var(--transition-fast),
+        box-shadow var(--transition-fast);
+}
+
+.form-field input:focus {
+    outline: none;
+
+    border-color: var(--color-brand);
+
+    box-shadow:
+        0 0 0 3px rgba(255, 90, 138, 0.14);
 }
 
 .validation-message {
@@ -67,9 +103,32 @@
 }
 
 .primary-button {
-    margin-top: 0.5rem;
-    background: #1f2a24;
+    width: 100%;
+
+    border: none;
+    border-radius: var(--radius-md);
+
+    padding: 0.95rem 1.4rem;
+
+    background: var(--color-brand);
     color: white;
+
+    font-weight: 800;
+    cursor: pointer;
+
+    transition:
+        background var(--transition-fast),
+        transform var(--transition-fast),
+        box-shadow var(--transition-fast);
+}
+
+.primary-button:hover {
+    background: var(--color-brand-hover);
+    box-shadow: var(--shadow-sm);
+}
+
+.primary-button:active {
+    transform: scale(.98);
 }
 
 .primary-button:disabled,
@@ -98,4 +157,140 @@
 .message.error {
     background: #fff4f4;
     border: 1px solid #e7b8b8;
+}
+
+.modal-backdrop {
+    position: fixed;
+    inset: 0;
+
+    display: grid;
+    place-items: center;
+
+    padding: 1rem;
+
+    background: rgba(47, 36, 31, 0.35);
+
+    z-index: 1000;
+}
+
+.confirmation-modal {
+    width: min(100%, 480px);
+
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+
+    padding: 1.75rem;
+
+    background: var(--color-surface);
+    color: var(--color-text);
+
+    box-shadow: var(--shadow-lg);
+}
+
+.confirmation-modal h2 {
+    margin: 0 0 0.75rem;
+
+    color: var(--color-text);
+
+    font-size: 1.6rem;
+}
+
+.confirmation-modal p {
+    margin: 0 0 1rem;
+
+    color: var(--color-text-muted);
+    line-height: 1.6;
+}
+
+.confirmation-modal input {
+    width: 100%;
+    box-sizing: border-box;
+
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+
+    padding: 0.85rem 1rem;
+
+    background: var(--color-surface);
+    color: var(--color-text);
+
+    font: inherit;
+
+    transition:
+        border-color var(--transition-fast),
+        box-shadow var(--transition-fast);
+}
+
+.confirmation-modal input:focus {
+    outline: none;
+
+    border-color: var(--color-brand);
+
+    box-shadow:
+        0 0 0 3px rgba(255, 90, 138, 0.14);
+}
+
+.confirmation-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+
+    margin-top: 1.25rem;
+}
+
+.secondary-button {
+    width: 100%;
+
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
+
+    padding: 0.9rem 1.25rem;
+
+    background: var(--color-surface);
+    color: var(--color-text);
+
+    font-weight: 800;
+    cursor: pointer;
+
+    transition:
+        background var(--transition-fast),
+        border-color var(--transition-fast),
+        transform var(--transition-fast);
+}
+
+.secondary-button:hover {
+    background: var(--color-surface-soft);
+    border-color: var(--color-brand);
+}
+
+.secondary-button:active {
+    transform: scale(.98);
+}
+
+.forgot-password-link {
+    border: none;
+    padding: 0;
+
+    background: transparent;
+    color: var(--color-brand);
+
+    font: inherit;
+    font-weight: 700;
+
+    cursor: pointer;
+}
+
+.forgot-password-link:hover {
+    color: var(--color-brand-hover);
+    text-decoration: underline;
+}
+
+@media (max-width: 640px) {
+    .confirmation-actions {
+        flex-direction: column-reverse;
+    }
+
+    .confirmation-actions button {
+        width: 100%;
+    }
 }

@@ -25,4 +25,18 @@ public interface IAuthService
     Task SignOutAsync();
 
     Task<string?> GetValidAccessTokenAsync();
+
+    Task<bool> SendPasswordResetEmailAsync(
+    string email,
+    CancellationToken cancellationToken = default);
+
+    Task<bool> UpdatePasswordAsync(
+    string newPassword,
+    CancellationToken cancellationToken = default);
+
+    Task<bool> EstablishRecoverySessionAsync(
+    string callbackUrl,
+    CancellationToken cancellationToken = default);
+
+    Task ClearLocalSessionAsync();
 }

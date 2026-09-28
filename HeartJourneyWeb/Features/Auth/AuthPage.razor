@@ -5,11 +5,11 @@
 @inject IAuthService AuthService
 @inject NavigationManager NavigationManager
 
-<PageTitle>Sign In - Heart Journey</PageTitle>
+<PageTitle>Sign In - Journey Recreated</PageTitle>
 
 <section class="auth-shell">
     <div class="auth-card">
-        <p class="eyebrow">Heart Journey</p>
+        <p class="eyebrow">Journey Recreated</p>
 
         <h1>@(_isCreateAccountMode ? "Create your account" : "Welcome back")</h1>
 
@@ -43,6 +43,15 @@
                 <ValidationMessage For="@(() => _form.Password)" />
             </div>
 
+            @if (!_isCreateAccountMode)
+            {
+                <button type="button"
+                        class="forgot-password-link"
+                        @onclick="OpenForgotPassword">
+                    Forgot password?
+                </button>
+            }
+
             <button type="submit" class="primary-button" disabled="@_isBusy">
                 @if (_isBusy)
                 {
@@ -54,6 +63,51 @@
                 }
             </button>
         </EditForm>
+
+        @if (_showForgotPassword)
+        {
+            <div class="modal-backdrop"
+                @onclick="() => _showForgotPassword = false">
+
+                <div class="confirmation-modal"
+                    role="dialog"
+                    aria-modal="true"
+                    @onclick:stopPropagation="true">
+
+                    <h2>Reset your password</h2>
+
+                    <p>
+                        Enter your email address and we'll send you
+                        a password reset link.
+                    </p>
+
+                    <input type="email"
+                        class="form-control"
+                        @bind="_resetEmail" />
+
+                    @if (!string.IsNullOrWhiteSpace(_resetMessage))
+                    {
+                        <p>@_resetMessage</p>
+                    }
+
+                    <div class="confirmation-actions">
+                        <button type="button"
+                                class="secondary-button"
+                                disabled="@_isSendingReset"
+                                @onclick="() => _showForgotPassword = false">
+                            Cancel
+                        </button>
+
+                        <button type="button"
+                                class="primary-button"
+                                disabled="@_isSendingReset"
+                                @onclick="SendPasswordResetAsync">
+                            @(_isSendingReset ? "Sending..." : "Send Reset Link")
+                        </button>
+                    </div>
+                </div>
+            </div>
+        }
 
         <button type="button"
                 class="mode-button"
@@ -78,6 +132,10 @@
     private bool _isBusy;
     private bool _isError;
     private string? _message;
+    private bool _showForgotPassword;
+    private string _resetEmail = string.Empty;
+    private bool _isSendingReset;
+    private string? _resetMessage;
 
     [SupplyParameterFromQuery]
     public string? ReturnUrl { get; set; }
@@ -151,5 +209,41 @@
         _isCreateAccountMode = !_isCreateAccountMode;
         _message = null;
         _isError = false;
+    }
+
+    private void OpenForgotPassword()
+    {
+        _resetEmail = _form.Email;
+        _resetMessage = null;
+        _showForgotPassword = true;
+    }
+
+    private async Task SendPasswordResetAsync()
+    {
+        if (_isSendingReset ||
+            string.IsNullOrWhiteSpace(_resetEmail))
+        {
+            return;
+        }
+
+        _isSendingReset = true;
+        _resetMessage = null;
+
+        try
+        {
+            await AuthService.SendPasswordResetEmailAsync(_resetEmail);
+
+            _resetMessage =
+                "If an account exists for that email address, a reset link has been sent.";
+        }
+        catch
+        {
+            _resetMessage =
+                "Unable to send the reset email right now. Please try again.";
+        }
+        finally
+        {
+            _isSendingReset = false;
+        }
     }
 }

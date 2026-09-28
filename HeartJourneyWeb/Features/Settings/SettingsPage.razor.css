@@ -48,13 +48,95 @@
     line-height: 1.6;
 }
 
+/* =========================
+   Danger Zone
+   ========================= */
+
+.danger-zone {
+    margin-top: 2rem;
+}
+
+.danger-zone > h2 {
+    color: var(--color-danger);
+}
+
+.danger-card {
+    border: 1px solid color-mix(
+        in srgb,
+        var(--color-danger) 28%,
+        var(--color-border)
+    );
+
+    border-radius: var(--radius-lg);
+
+    padding: 1.5rem;
+
+    background: color-mix(
+        in srgb,
+        var(--color-danger) 3%,
+        white
+    );
+
+    box-shadow: var(--shadow-sm);
+}
+
+.danger-card h3 {
+    margin: 0 0 0.5rem;
+
+    color: var(--color-text);
+
+    font-size: 1.15rem;
+}
+
+.danger-card p {
+    margin: 0 0 0.75rem;
+
+    color: var(--color-text-muted);
+
+    line-height: 1.65;
+}
+
+.danger-card p:last-of-type {
+    margin-bottom: 1.25rem;
+
+    color: var(--color-danger);
+
+    font-weight: 700;
+}
+
 .danger-button {
-    border: 1px solid currentColor;
-    background: transparent;
-    border-radius: 10px;
-    padding: .75rem 1rem;
-    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    min-height: 42px;
+
+    border: 1px solid var(--color-danger);
+    border-radius: var(--radius-md);
+
+    padding: 0.75rem 1rem;
+
+    background: var(--color-danger);
+    color: white;
+
+    font: inherit;
+    font-weight: 800;
+
     cursor: pointer;
+
+    transition:
+        filter var(--transition-fast),
+        transform var(--transition-fast),
+        box-shadow var(--transition-fast);
+}
+
+.danger-button:hover {
+    filter: brightness(.94);
+    box-shadow: var(--shadow-sm);
+}
+
+.danger-button:active {
+    transform: scale(.98);
 }
 
 .danger-button:disabled,
@@ -63,18 +145,135 @@
     cursor: not-allowed;
 }
 
+/* =========================
+   Delete Account Modal
+   ========================= */
+
 .modal-backdrop {
     position: fixed;
     inset: 0;
-    z-index: 1000;
 
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: grid;
+    place-items: center;
 
     padding: 1rem;
 
-    background: rgba(0, 0, 0, 0.45);
+    background: rgba(47, 36, 31, 0.38);
+
+    z-index: 1000;
+}
+
+.delete-account-modal {
+    width: min(100%, 500px);
+
+    border: 1px solid color-mix(
+        in srgb,
+        var(--color-danger) 24%,
+        var(--color-border)
+    );
+
+    border-radius: var(--radius-lg);
+
+    padding: 1.75rem;
+
+    background: var(--color-surface);
+    color: var(--color-text);
+
+    box-shadow: var(--shadow-lg);
+}
+
+.danger-eyebrow {
+    margin: 0 0 0.45rem;
+
+    color: var(--color-danger);
+
+    font-size: 0.8rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.delete-account-modal h2 {
+    margin: 0 0 0.75rem;
+
+    color: var(--color-text);
+
+    font-size: 1.6rem;
+    line-height: 1.2;
+}
+
+.delete-account-modal p {
+    margin: 0 0 0.85rem;
+
+    color: var(--color-text-muted);
+
+    line-height: 1.65;
+}
+
+.delete-account-modal .confirmation-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+}
+
+.delete-account-modal .secondary-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    min-height: 42px;
+
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
+
+    padding: 0.75rem 1rem;
+
+    background: var(--color-surface);
+    color: var(--color-text);
+
+    font: inherit;
+    font-weight: 800;
+
+    cursor: pointer;
+
+    transition:
+        background var(--transition-fast),
+        transform var(--transition-fast);
+}
+
+.delete-account-modal .secondary-button:hover {
+    background: var(--color-surface-soft);
+}
+
+.delete-account-modal .secondary-button:active {
+    transform: scale(.98);
+}
+
+.delete-account-modal .message.error {
+    margin-top: 1rem;
+
+    border: 1px solid color-mix(
+        in srgb,
+        var(--color-danger) 35%,
+        white
+    );
+
+    border-radius: var(--radius-md);
+
+    padding: 0.85rem 1rem;
+
+    background: color-mix(
+        in srgb,
+        var(--color-danger) 7%,
+        white
+    );
+
+    color: var(--color-text);
+
+    line-height: 1.5;
 }
 
 .confirmation-modal {
@@ -150,6 +349,66 @@
     line-height: 1.5;
 }
 
+/* =========================
+   Support
+   ========================= */
+
+.support-card {
+    display: grid;
+    gap: 0.75rem;
+
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+
+    padding: 1.5rem;
+
+    background: var(--color-surface);
+
+    box-shadow: var(--shadow-sm);
+}
+
+.support-card h3 {
+    margin: 0;
+
+    color: var(--color-text);
+
+    font-size: 1.15rem;
+}
+
+.support-card p {
+    margin: 0;
+
+    color: var(--color-text-muted);
+
+    line-height: 1.65;
+}
+
+.support-email-link {
+    display: inline-flex;
+    align-items: center;
+
+    width: fit-content;
+    margin-top: 0.25rem;
+
+    color: var(--color-brand);
+
+    font-weight: 800;
+    text-decoration: none;
+
+    transition:
+        color var(--transition-fast),
+        transform var(--transition-fast);
+}
+
+.support-email-link:hover {
+    color: var(--color-brand-hover);
+    text-decoration: underline;
+}
+
+.support-email-link:active {
+    transform: scale(.98);
+}
+
 @media (max-width: 520px) {
     .confirmation-actions {
         flex-direction: column-reverse;
@@ -164,6 +423,24 @@
     .settings-card {
         flex-direction: column;
         align-items: stretch;
+    }
+
+    .support-card,
+    .danger-card {
+        padding: 1.25rem;
+    }
+
+    .delete-account-modal {
+        padding: 1.4rem;
+    }
+
+    .delete-account-modal .confirmation-actions {
+        flex-direction: column-reverse;
+        align-items: stretch;
+    }
+
+    .delete-account-modal .confirmation-actions button {
+        width: 100%;
     }
 
     .danger-button {

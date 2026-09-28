@@ -4,6 +4,11 @@
 @using HeartJourneyWeb.Services.MilestoneReset
 @using HeartJourneyWeb.Services.Profiles
 @using HeartJourneyWeb.Services.MilestoneProgress
+@using HeartJourneyWeb.Services.Account
+@using HeartJourneyWeb.Services.Auth
+@inject IAccountService AccountService
+@inject IAuthService AuthService
+@inject NavigationManager Navigation
 @inject IMilestoneProgressService MilestoneProgressService
 @inject IProfileService ProfileService
 @inject IMilestoneResetService MilestoneResetService
@@ -159,7 +164,110 @@
             }
         </section>
 
+        <section class="settings-section">
+            <h2>Support</h2>
+
+            <div class="support-card">
+                <h3>Need help?</h3>
+
+                <p>
+                    If you have a question or need assistance with Journey Recreated,
+                    feel free to contact support by email.
+                </p>
+
+                <a class="support-email-link" href="mailto:mrrecreated77@gmail.com">
+                    Email Support
+                </a>
+            </div>
+        </section>
+
+        <section class="settings-section danger-zone">
+            <h2>Delete Account</h2>
+
+            <div class="danger-card">
+
+                <h3>Permanently delete your account</h3>
+
+                <p>
+                    This will permanently delete your Journey Recreated
+                    account and all of your saved journey information,
+                    including reflections, progress, insights, and profile
+                    information.
+                </p>
+
+                <p>
+                    This action cannot be undone.
+                </p>
+
+                <button type="button"
+                        class="danger-button"
+                        @onclick="OpenDeleteAccountModal">
+                    Delete My Account
+                </button>
+
+            </div>
+        </section>
+
     </div>
+
+    @if (_showDeleteAccountModal)
+    {
+        <div class="modal-backdrop"
+            @onclick="CloseDeleteAccountModal">
+
+            <div class="confirmation-modal delete-account-modal"
+                role="dialog"
+                aria-modal="true"
+                @onclick:stopPropagation="true">
+
+                <p class="danger-eyebrow">
+                    Permanent Action
+                </p>
+
+                <h2>Delete your account?</h2>
+
+                <p>
+                    Your profile, reflection answers, journey progress,
+                    dimension progress, growth steps, and account will
+                    be permanently deleted.
+                </p>
+
+                <p>
+                    You will not be able to recover this information.
+                </p>
+
+                @if (!string.IsNullOrWhiteSpace(_deleteAccountError))
+                {
+                    <div class="message error">
+                        @_deleteAccountError
+                    </div>
+                }
+
+                <div class="confirmation-actions">
+
+                    <button type="button"
+                            class="secondary-button"
+                            disabled="@_isDeletingAccount"
+                            @onclick="CloseDeleteAccountModal">
+                        Cancel
+                    </button>
+
+                    <button type="button"
+                            class="danger-button"
+                            disabled="@_isDeletingAccount"
+                            @onclick="DeleteAccountAsync">
+
+                        @(_isDeletingAccount
+                            ? "Deleting..."
+                            : "Permanently Delete Account")
+
+                    </button>
+
+                </div>
+
+            </div>
+        </div>
+    }
 
     @if (_showResetConfirmation)
     {
@@ -229,6 +337,10 @@
 
     private bool _isLoading = true;
     private bool _showResetConfirmation;
+
+    private bool _showDeleteAccountModal;
+    private bool _isDeletingAccount;
+    private string? _deleteAccountError;
     private string CurrentMilestoneDisplayName =>
         string.IsNullOrWhiteSpace(_currentMilestoneSlug)
             ? "Current"
@@ -389,6 +501,55 @@
         finally
         {
             _isSavingProfile = false;
+        }
+    }
+
+    private void OpenDeleteAccountModal()
+    {
+        _deleteAccountError = null;
+        _showDeleteAccountModal = true;
+    }
+
+    private void CloseDeleteAccountModal()
+    {
+        if (_isDeletingAccount)
+        {
+            return;
+        }
+
+        _showDeleteAccountModal = false;
+    }
+
+    private async Task DeleteAccountAsync()
+    {
+        if (_isDeletingAccount)
+        {
+            return;
+        }
+
+        _isDeletingAccount = true;
+        _deleteAccountError = null;
+
+        try
+        {
+            await AccountService.DeleteAccountAsync();
+
+            // The Auth user has already been permanently deleted.
+            // Only clear Journey Recreated's locally stored session.
+            await AuthService.ClearLocalSessionAsync();
+
+            Navigation.NavigateTo(
+                "/",
+                forceLoad: true);
+        }
+        catch (Exception ex)
+        {
+            _deleteAccountError =
+                $"Unable to delete your account. {ex.Message}";
+        }
+        finally
+        {
+            _isDeletingAccount = false;
         }
     }
 }

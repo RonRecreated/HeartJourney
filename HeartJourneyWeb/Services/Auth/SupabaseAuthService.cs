@@ -273,4 +273,94 @@ public class SupabaseAuthService : IAuthService
             return true;
         }
     }
+
+    public async Task<bool> SendPasswordResetEmailAsync(
+        string email,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(email))
+        {
+            return false;
+        }
+
+        var options =
+            new global::Supabase.Gotrue.ResetPasswordForEmailOptions(email)
+            {
+                RedirectTo = _navigationManager
+                    .ToAbsoluteUri("/update-password")
+                    .ToString()
+            };
+
+        await _supabaseClient.Auth.ResetPasswordForEmail(options);
+
+        return true;
+    }
+
+    public async Task<bool> UpdatePasswordAsync(
+        string newPassword,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(newPassword))
+        {
+            return false;
+        }
+
+        var attributes = new global::Supabase.Gotrue.UserAttributes
+        {
+            Password = newPassword
+        };
+
+        var user = await _supabaseClient.Auth.Update(attributes);
+
+        return user is not null;
+    }
+
+    public async Task<bool> EstablishRecoverySessionAsync(
+        string callbackUrl,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(callbackUrl))
+        {
+            return false;
+        }
+
+        try
+        {
+            var callbackUri = new Uri(callbackUrl);
+
+            var session = await _supabaseClient.Auth.GetSessionFromUrl(
+                callbackUri,
+                storeSession: true);
+
+            if (session is null ||
+                string.IsNullOrWhiteSpace(session.AccessToken) ||
+                string.IsNullOrWhiteSpace(session.RefreshToken))
+            {
+                return false;
+            }
+
+            await _browserStorage.SetAsync(
+                AuthSessionKey,
+                new PersistedAuthSession
+                {
+                    AccessToken = session.AccessToken ?? string.Empty,
+                    RefreshToken = session.RefreshToken ?? string.Empty
+                });
+
+            NotifyAuthStateChanged();
+
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    public async Task ClearLocalSessionAsync()
+    {
+        await _browserStorage.RemoveAsync(AuthSessionKey);
+
+        NotifyAuthStateChanged();
+    }
 }
