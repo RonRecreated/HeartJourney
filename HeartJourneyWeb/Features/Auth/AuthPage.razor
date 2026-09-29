@@ -147,7 +147,7 @@
         if (AuthService.IsSignedIn)
         {
             NavigationManager.NavigateTo(
-                string.IsNullOrWhiteSpace(ReturnUrl) ? "/" : ReturnUrl);
+                string.IsNullOrWhiteSpace(ReturnUrl) ? "/journeys" : ReturnUrl);
         }
     }
 
@@ -195,7 +195,7 @@
                 }
                 
                 NavigationManager.NavigateTo(
-                    string.IsNullOrWhiteSpace(ReturnUrl) ? "/" : ReturnUrl);
+                    string.IsNullOrWhiteSpace(ReturnUrl) ? "/journeys" : ReturnUrl);
             }
         }
         finally

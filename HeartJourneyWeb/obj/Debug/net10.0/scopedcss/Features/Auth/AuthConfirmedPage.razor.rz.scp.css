@@ -35,11 +35,21 @@
 }
 
 .primary-button[b-beu6d5v0a1] {
+    width: 100%;
+
     border: none;
-    border-radius: 999px;
-    padding: 0.95rem 1.5rem;
+    border-radius: var(--radius-md);
+
+    padding: 0.95rem 1.4rem;
+
+    background: var(--color-brand);
+    color: white;
+
     font-weight: 800;
     cursor: pointer;
-    background: #1f2a24;
-    color: white;
+
+    transition:
+        background var(--transition-fast),
+        transform var(--transition-fast),
+        box-shadow var(--transition-fast);
 }

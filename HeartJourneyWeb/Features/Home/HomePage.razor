@@ -1,7 +1,8 @@
-﻿@page "/"
+﻿@page "/journeys"
 @using HeartJourney.Core.Features.Home
 @using HeartJourney.Core.Services.Interfaces
 @using HeartJourneyWeb.Helpers
+@using HeartJourneyWeb.Components
 @inject IContentRepository ContentRepository
 
 <PageTitle>Journey Recreated</PageTitle>
@@ -11,13 +12,13 @@
         <p class="eyebrow">Journey Recreated</p>
         <h1>Helping you grow and have a Christ-centered journey.</h1>
         <p class="hero-text">
-            Choose the journey that best describes where you are today.
+            Choose a journey that you would like to begin recreating.
         </p>
     </div>
 
     @if (_isLoading)
     {
-        <p>Loading journeys...</p>
+        <JourneyLoader Message="Loading journeys..." />
     }
     else if (!string.IsNullOrWhiteSpace(_errorMessage))
     {
@@ -45,7 +46,7 @@
                     <p>@journey.Summary</p>
 
                     <a href="@($"/journeys/{journey.Slug}")">
-                        Begin Journey
+                        Journey Here
                     </a>
                 </article>
             }

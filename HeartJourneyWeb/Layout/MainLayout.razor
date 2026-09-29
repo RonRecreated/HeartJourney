@@ -1,20 +1,40 @@
 ﻿@inherits LayoutComponentBase
 @using HeartJourneyWeb.Components.Auth
 @using HeartJourneyWeb.Components
+@inject NavigationManager NavigationManager
+@implements IDisposable
 
 <div class="app-shell">
-    <header class="app-header">
-        <a href="/" class="brand">Journey Recreated</a>
+    <header class="app-header" @onkeydown="HandleHeaderKeyDown">
+        <a href="/" class="brand" @onclick="CloseMenu">Journey Recreated</a>
 
-        <div class="header-actions">
+        <button type="button"
+                class="nav-toggle"
+                aria-label="@(_menuOpen ? "Close navigation" : "Open navigation")"
+                aria-expanded="@(_menuOpen ? "true" : "false")"
+                aria-controls="main-navigation"
+                @ref="_menuToggle"
+                @onclick="ToggleMenu">
+            <span aria-hidden="true">@(_menuOpen ? "✕" : "☰")</span>
+        </button>
+
+        <nav id="main-navigation"
+             class="header-actions @(_menuOpen ? "is-open" : "")"
+             aria-label="Main navigation">
+
+            <a href="/journeys"
+                class="header-link" @onclick="CloseMenu">
+                My Journeys
+            </a>
+            
             <a href="/settings"
-               class="settings-link"
-               aria-label="Open settings">
+               class="header-link"
+               aria-label="Open settings" @onclick="CloseMenu">
                 Settings
             </a>
 
             <AuthStatus />
-        </div>
+        </nav>
     </header>
 
     <main>
@@ -23,3 +43,40 @@
 </div>
 
 <PwaUpdatePrompt />
+
+@code {
+    private bool _menuOpen;
+    private ElementReference _menuToggle;
+
+    protected override void OnInitialized()
+    {
+        NavigationManager.LocationChanged += HandleLocationChanged;
+    }
+
+    private void ToggleMenu() => _menuOpen = !_menuOpen;
+
+    private void CloseMenu() => _menuOpen = false;
+
+    private async Task HandleHeaderKeyDown(KeyboardEventArgs args)
+    {
+        if (args.Key == "Escape" && _menuOpen)
+        {
+            CloseMenu();
+            await _menuToggle.FocusAsync();
+        }
+    }
+
+    private void HandleLocationChanged(object? sender, LocationChangedEventArgs args)
+    {
+        _ = InvokeAsync(() =>
+        {
+            CloseMenu();
+            StateHasChanged();
+        });
+    }
+
+    public void Dispose()
+    {
+        NavigationManager.LocationChanged -= HandleLocationChanged;
+    }
+}

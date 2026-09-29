@@ -53,6 +53,10 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xBdXRoXEF1dGhTdGF0dXMucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = b-43lepmab37
 
+[D:/heart-journey/HeartJourneyWeb/Components/JourneyLoader.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xKb3VybmV5TG9hZGVyLnJhem9y
+build_metadata.AdditionalFiles.CssScope = b-v9xfd7lr8h
+
 [D:/heart-journey/HeartJourneyWeb/Components/PwaUpdatePrompt.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQd2FVcGRhdGVQcm9tcHQucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = b-k5yw3lbp1g
@@ -104,6 +108,10 @@ build_metadata.AdditionalFiles.CssScope = b-kvf0qeugzq
 [D:/heart-journey/HeartJourneyWeb/Features/Settings/SettingsPage.razor]
 build_metadata.AdditionalFiles.TargetPath = RmVhdHVyZXNcU2V0dGluZ3NcU2V0dGluZ3NQYWdlLnJhem9y
 build_metadata.AdditionalFiles.CssScope = b-tyc0cr1le3
+
+[D:/heart-journey/HeartJourneyWeb/Landing/LandingPage.razor]
+build_metadata.AdditionalFiles.TargetPath = TGFuZGluZ1xMYW5kaW5nUGFnZS5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = b-mhmpptcbfo
 
 [D:/heart-journey/HeartJourneyWeb/Layout/MainLayout.razor]
 build_metadata.AdditionalFiles.TargetPath = TGF5b3V0XE1haW5MYXlvdXQucmF6b3I=

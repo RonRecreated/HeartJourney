@@ -1,0 +1,586 @@
+@page "/"
+@inject IJSRuntime JS
+
+<PageTitle>Journey Recreated</PageTitle>
+
+<div class="landing-page">
+
+    <!-- =========================
+         HERO
+         ========================= -->
+
+    <section class="landing-hero">
+
+        <div class="hero-glow hero-glow-one"></div>
+        <div class="hero-glow hero-glow-two"></div>
+
+        <div class="landing-container hero-content"
+             data-reveal>
+
+            <p class="landing-eyebrow">
+                Journey Recreated
+            </p>
+
+            <h1>
+                Life moves quickly.
+                <span>Walk yours with intention.</span>
+            </h1>
+
+            <p class="hero-copy">
+                Journey Recreated is a guided space for reflection,
+                biblical wisdom, and practical next steps through
+                the important seasons of life.
+            </p>
+
+            <div class="hero-actions">
+
+                <a href="/auth?returnUrl=%2Fjourneys"
+                   class="landing-primary-button">
+                    Recreate Your Journey
+                </a>
+
+                <a href="#how-it-works"
+                   class="landing-secondary-button">
+                    See How It Works
+                </a>
+
+            </div>
+
+        </div>
+
+
+        <div class="hero-path-scene"
+             aria-hidden="true">
+
+            <svg viewBox="0 0 1000 340"
+                 preserveAspectRatio="none"
+                 class="hero-path-svg">
+
+                <path class="hero-path-shadow"
+                      d="M40 255
+                         C180 120 290 300 430 190
+                         C560 90 660 230 790 120
+                         C860 65 910 85 970 45" />
+
+                <path class="hero-path-line"
+                      d="M40 255
+                         C180 120 290 300 430 190
+                         C560 90 660 230 790 120
+                         C860 65 910 85 970 45" />
+
+            </svg>
+
+            <div class="hero-walker">
+                <i class="fa-solid fa-person-walking"
+                   aria-hidden="true"></i>
+            </div>
+
+        </div>
+
+    </section>
+
+    <div class="journey-story"
+        id="journeyStory">
+
+        <svg class="story-route-svg"
+            id="storyRouteSvg"
+            viewBox="0 0 1000 4000"
+            preserveAspectRatio="none"
+            aria-hidden="true">
+
+            <path class="story-route-background"
+                d="M180 80
+                    C720 420 250 750 760 1050
+                    C930 1250 760 1570 320 1800
+                    C80 1950 150 2350 720 2520
+                    C930 2660 840 3050 420 3260
+                    C180 3380 250 3700 780 3920" />
+
+            <path class="story-route-progress"
+                id="storyRouteProgress"
+                d="M180 80
+                    C720 420 250 750 760 1050
+                    C930 1250 760 1570 320 1800
+                    C80 1950 150 2350 720 2520
+                    C930 2660 840 3050 420 3260
+                    C180 3380 250 3700 780 3920" />
+
+        </svg>
+
+        <div class="story-route-walker"
+            id="storyRouteWalker"
+            aria-hidden="true">
+
+            <i class="fa-solid fa-person-walking"></i>
+
+        </div>
+
+
+        <!-- =========================
+            SLOW DOWN
+            ========================= -->
+
+        <section id="how-it-works"
+                class="story-section slow-section"
+                data-story-stage="slow">
+
+            <div class="story-path left-path"
+                aria-hidden="true"></div>
+
+            <div class="landing-container story-grid">
+
+                <div class="story-visual slowdown-visual"
+                    data-reveal>
+
+                    <div class="motion-person runner">
+                        <i class="fa-solid fa-person-running"></i>
+                    </div>
+
+                    <div class="motion-person walker">
+                        <i class="fa-solid fa-person-walking"></i>
+                    </div>
+
+                    <div class="slowdown-path"></div>
+
+                </div>
+
+                <div class="story-copy"
+                    data-reveal>
+
+                    <p class="landing-eyebrow">
+                        Pause
+                    </p>
+
+                    <h2>
+                    Growth often begins when we slow down.
+                    </h2>
+
+                    <p>
+                        Journey Recreated helps you pause long enough
+                        to notice where you are, reflect honestly,
+                        and move forward with greater wisdom and intention.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =========================
+            REFLECT
+            ========================= -->
+
+        <section class="story-section reflect-section"
+                data-story-stage="reflect">
+
+            <div class="landing-container story-grid reverse">
+
+                <div class="story-copy"
+                    data-reveal>
+
+                    <p class="landing-eyebrow">
+                        Reflect
+                    </p>
+
+                    <h2>
+                        Notice what is happening within you.
+                    </h2>
+
+                    <p>
+                        Thoughtful reflection prompts help you examine
+                        your current season with honesty, clarity, and care.
+                    </p>
+
+                    <div class="reflection-topics">
+
+                        <span>Communication</span>
+                        <span>Boundaries</span>
+                        <span>Wisdom</span>
+                        <span>Spiritual Growth</span>
+
+                    </div>
+
+                </div>
+
+
+                <div class="sample-reflection-card"
+                    data-reveal>
+
+                    <p class="sample-label">
+                        Reflection
+                    </p>
+
+                    <h3>
+                        Do your current habits reflect the kind of
+                        person you are becoming?
+                    </h3>
+
+                    <div class="sample-answer">
+                        Often
+                    </div>
+
+                    <div class="sample-answer selected">
+                        Sometimes
+                    </div>
+
+                    <div class="sample-answer">
+                        Not yet
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =========================
+            UNDERSTAND
+            ========================= -->
+
+        <section class="story-section understand-section"
+                data-story-stage="understand">
+
+            <div class="landing-container story-grid">
+
+                <div class="insight-preview"
+                    data-reveal>
+
+                    <div class="insight-preview-card">
+
+                        <p class="sample-label">
+                            Your Journey
+                        </p>
+
+                        <h3>What your reflections are revealing</h3>
+
+                        <div class="mini-insight">
+                            <i class="fa-solid fa-seedling"></i>
+
+                            <div>
+                                <strong>Something is growing.</strong>
+
+                                <span>
+                                    You are beginning to recognize patterns
+                                    worth continuing.
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="mini-insight">
+                            <i class="fa-solid fa-compass"></i>
+
+                            <div>
+                                <strong>A place to explore.</strong>
+
+                                <span>
+                                    One area may deserve greater attention
+                                    and intentionality.
+                                </span>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="story-copy"
+                    data-reveal>
+
+                    <p class="landing-eyebrow">
+                        Understand
+                    </p>
+
+                    <h2>
+                        This isn't about earning a score.
+                    </h2>
+
+                    <p>
+                        Journey Recreated helps you recognize patterns,
+                        notice what is steady, identify what may need
+                        attention, and consider practical next steps.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =========================
+            RECREATE
+            ========================= -->
+
+        <section class="story-section recreate-section"
+                data-story-stage="recreate">
+
+            <div class="recreate-glow"></div>
+
+            <div class="landing-container recreate-content"
+                data-reveal>
+
+                <p class="landing-eyebrow">
+                    Recreate
+                </p>
+
+                <h2>
+                    Your story is still being written.
+                </h2>
+
+                <p>
+                    Where you are today does not have to be where
+                    you remain. Reflection can become understanding.
+                    Understanding can become action. And action can
+                    reshape the journey ahead.
+                </p>
+
+
+                <div class="rebuilding-path"
+                    aria-hidden="true">
+
+                    <span class="path-piece piece-one"></span>
+                    <span class="path-piece piece-two"></span>
+                    <span class="path-piece piece-three"></span>
+                    <span class="path-piece piece-four"></span>
+                    <span class="path-piece piece-five"></span>
+
+                    <div class="rebuild-walker">
+                        <i class="fa-solid fa-person-walking"></i>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+    </div>
+
+
+    <!-- =========================
+         RELATIONSHIP JOURNEY
+         ========================= -->
+
+    <section class="journeys-section">
+
+        <div class="landing-container">
+
+            <div class="section-heading"
+                 data-reveal>
+
+                <p class="landing-eyebrow">
+                    Available Now
+                </p>
+
+                <h2>
+                    Relationship Journey
+                </h2>
+
+                <p>
+                    Reflect through the seasons of relationships
+                    with guided questions, biblical wisdom,
+                    insights, and practical growth steps.
+                </p>
+
+            </div>
+
+
+            <div class="relationship-showcase"
+                 data-reveal>
+
+                <div class="relationship-path">
+
+                    <div class="relationship-stop milestone-single">
+                        <span></span>
+                        <strong>Single</strong>
+                    </div>
+
+                    <div class="relationship-line"></div>
+
+                    <div class="relationship-stop milestone-talking">
+                        <span></span>
+                        <strong>Talking</strong>
+                    </div>
+
+                    <div class="relationship-line"></div>
+
+                    <div class="relationship-stop milestone-courting">
+                        <span></span>
+                        <strong>Courting</strong>
+                    </div>
+
+                    <div class="relationship-line"></div>
+
+                    <div class="relationship-stop milestone-engaged">
+                        <span></span>
+                        <strong>Engaged</strong>
+                    </div>
+
+                    <div class="relationship-line"></div>
+
+                    <div class="relationship-stop milestone-married">
+                        <span></span>
+                        <strong>Married</strong>
+                    </div>
+
+                    <div class="relationship-line"></div>
+
+                    <div class="relationship-stop milestone-divorced">
+                        <span></span>
+                        <strong>Divorced</strong>
+                    </div>
+
+                </div>
+
+                <a href="/journeys/relationship"
+                   class="landing-primary-button">
+                    Explore Relationship Journey
+                </a>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =========================
+         FUTURE JOURNEYS
+         ========================= -->
+
+    <section class="future-section">
+
+        <div class="landing-container">
+
+            <div class="section-heading"
+                 data-reveal>
+
+                <p class="landing-eyebrow">
+                    What's Ahead
+                </p>
+
+                <h2>
+                    More journeys are ahead.
+                </h2>
+
+                <p>
+                    Journey Recreated is growing beyond one path.
+                    New guided journeys will help you reflect and
+                    grow in other important areas of life.
+                </p>
+
+            </div>
+
+
+            <div class="future-journey-grid">
+
+                <article class="future-card featured-future"
+                         data-reveal>
+
+                    <div class="future-icon">
+                        <i class="fa-solid fa-wallet"></i>
+                    </div>
+
+                    <div>
+
+                        <span class="coming-badge">
+                            Coming Soon
+                        </span>
+
+                        <h3>Financial Journey</h3>
+
+                        <p>
+                            A future guided journey for developing
+                            greater intentionality, wisdom, and
+                            stewardship around finances.
+                        </p>
+
+                    </div>
+
+                </article>
+
+
+                <article class="future-card silhouette"
+                         data-reveal>
+                    <div class="silhouette-icon"></div>
+                    <div class="silhouette-line large"></div>
+                    <div class="silhouette-line"></div>
+                </article>
+
+
+                <article class="future-card silhouette"
+                         data-reveal>
+                    <div class="silhouette-icon"></div>
+                    <div class="silhouette-line large"></div>
+                    <div class="silhouette-line"></div>
+                </article>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =========================
+         FINAL CTA
+         ========================= -->
+
+    <section class="final-cta">
+
+        <div class="final-glow"></div>
+
+        <div class="landing-container final-content"
+             data-reveal>
+
+            <p class="landing-eyebrow">
+                Your Next Step
+            </p>
+
+            <h2>
+                Wherever you are, begin there.
+            </h2>
+
+            <p>
+                You do not have to have everything figured out
+                to begin. Start with where you are and take your
+                next step with intention.
+            </p>
+
+            <div class="hero-actions">
+
+                <a href="/auth?returnUrl=%2Fjourneys"
+                   class="landing-primary-button">
+                    Begin My Journey
+                </a>
+
+                <a href="/auth"
+                   class="landing-secondary-button">
+                    Sign In
+                </a>
+
+            </div>
+
+        </div>
+
+    </section>
+
+</div>
+
+
+@code
+{
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+        {
+            return;
+        }
+
+        await JS.InvokeVoidAsync(
+            "journeyLanding.initialize");
+    }
+}

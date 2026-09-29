@@ -1,0 +1,24 @@
+<div class="journey-loader"
+     role="status"
+     aria-live="polite">
+
+    <div class="loader-path"
+         aria-hidden="true">
+
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+
+    </div>
+
+    <p>@Message</p>
+
+</div>
+
+@code
+{
+    [Parameter]
+    public string Message { get; set; }
+        = "Preparing your journey...";
+}

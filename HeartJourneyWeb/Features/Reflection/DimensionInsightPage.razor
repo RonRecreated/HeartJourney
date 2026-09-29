@@ -348,12 +348,12 @@
     {
         _strengthAnswers = _answers
             .Where(answer => IsStrength(answer))
-            .Where(answer => !string.IsNullOrWhiteSpace(answer.InsightMessage))
+            .Where(answer => !string.IsNullOrWhiteSpace(GetInsightMessage(answer)))
             .ToList();
 
         _attentionAnswers = _answers
             .Where(answer => NeedsAttention(answer))
-            .Where(answer => !string.IsNullOrWhiteSpace(answer.InsightMessage))
+            .Where(answer => !string.IsNullOrWhiteSpace(GetInsightMessage(answer)))
             .OrderByDescending(answer => GetConcernPriority(answer.SelectedConcernLevel))
             .ToList();
 
@@ -380,34 +380,46 @@
             || concernLevel is "moderate" or "high" or "critical";
     }
 
-    private static string GetStrengthText(ReflectionAnswerRecord answer)
+    private string? GetInsightMessage(ReflectionAnswerRecord answer)
     {
-        if (!string.IsNullOrWhiteSpace(answer.InsightMessage))
+        var prompt = _view?.ReflectionPrompts?.FirstOrDefault(prompt =>
+            string.Equals(
+                prompt.Id,
+                answer.ReflectionPromptId,
+                StringComparison.OrdinalIgnoreCase));
+
+        var selectedOption = prompt?.AnswerOptions?.FirstOrDefault(option =>
+            string.Equals(
+                option.Label,
+                answer.SelectedAnswerLabel,
+                StringComparison.OrdinalIgnoreCase));
+
+        // Preserve historical feedback if the prompt or option no longer exists.
+        if (selectedOption is null)
         {
             return answer.InsightMessage;
         }
 
-        if (!string.IsNullOrWhiteSpace(answer.ReflectionPromptTitle))
-        {
-            return $"Your response to “{answer.ReflectionPromptTitle}” suggests a growing area of steadiness.";
-        }
-
-        return "One of your answers suggests an area of steadiness.";
+        // Sanity controls the current message, including an intentionally blank one.
+        return selectedOption.InsightMessage;
     }
 
-    private static string GetAttentionText(ReflectionAnswerRecord answer)
+    private string GetStrengthText(ReflectionAnswerRecord answer)
     {
-        if (!string.IsNullOrWhiteSpace(answer.InsightMessage))
-        {
-            return answer.InsightMessage;
-        }
+        var message = GetInsightMessage(answer);
 
-        if (!string.IsNullOrWhiteSpace(answer.ReflectionPromptTitle))
-        {
-            return $"Your response to “{answer.ReflectionPromptTitle}” may be worth reflecting on further.";
-        }
+        return !string.IsNullOrWhiteSpace(message)
+            ? message
+            : "One of your answers suggests an area of steadiness.";
+    }
 
-        return "One of your answers may be worth reflecting on further.";
+    private string GetAttentionText(ReflectionAnswerRecord answer)
+    {
+        var message = GetInsightMessage(answer);
+
+        return !string.IsNullOrWhiteSpace(message)
+            ? message
+            : "One of your answers may be worth reflecting on further.";
     }
 
     private string BuildNextStepMessage()
