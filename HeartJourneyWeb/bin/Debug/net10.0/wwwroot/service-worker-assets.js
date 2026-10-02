@@ -1,25 +1,25 @@
 self.assetsManifest = {
-  "version": "7GcvN2hb",
+  "version": "I7aFCapJ",
   "assets": [
     {
       "hash": "sha256-QbzcjDcIuZrWI6a/eDYLgoozhJTHOLeBxcdoyK3Yu0A=",
       "url": "HeartJourneyWeb.styles.css"
     },
     {
-      "hash": "sha256-tGX8hQVjTwymGjvJC3dH3LD3VZHd+MMtLPzf9A8pv+8=",
-      "url": "_framework/HeartJourney.Core.0jq86f0ggg.wasm"
+      "hash": "sha256-e3DOhCa6sMezW4cnEgHoinYPiAyOD83A+hkryrGSFE8=",
+      "url": "_framework/HeartJourney.Core.9b7ia4kmbe.pdb"
     },
     {
-      "hash": "sha256-DlghIOYtT+7StFZxSV1or+Mx6ilCfC8OfbZqdSCIa1Y=",
-      "url": "_framework/HeartJourney.Core.ai2x9tqdz6.pdb"
+      "hash": "sha256-01DMSxB7UANrIjpQk5c9acJrr5dk3IB+It4J/WvXa/s=",
+      "url": "_framework/HeartJourney.Core.bmv32fnxm0.wasm"
     },
     {
-      "hash": "sha256-ZfJaLK1tPu2pSmFDcIXRI9mvOCI3F+YbHKB9xL6iwvw=",
-      "url": "_framework/HeartJourneyWeb.jetroun636.pdb"
+      "hash": "sha256-CnLp4VLuIzqNcSGjtvRdK5abzn4fjeHFC0KiomI0jY4=",
+      "url": "_framework/HeartJourneyWeb.2prf09hu8y.wasm"
     },
     {
-      "hash": "sha256-7jez4UAF4zGjLCvtkR6yReG9wrNqX5URGYEV1ZTJgCQ=",
-      "url": "_framework/HeartJourneyWeb.q624kg1wk1.wasm"
+      "hash": "sha256-665jrQksvY+iJkkKguwT5cn9EHggx4xBefROC1DMquw=",
+      "url": "_framework/HeartJourneyWeb.xlg0xj5frq.pdb"
     },
     {
       "hash": "sha256-TKbWsc5gCE+04slSkrqeNGTb7K8LiRW72Tm+1gzKxqU=",
@@ -886,12 +886,12 @@ self.assetsManifest = {
       "url": "_framework/blazor.webassembly.958z1vx7fr.js"
     },
     {
-      "hash": "sha256-/wov6GJB53cb4PFnDxKr3Qf/UK/SPahwLUmqvPPcvTI=",
-      "url": "_framework/dotnet.7e8q6qb55n.js"
-    },
-    {
       "hash": "sha256-gkQ8GxkWyh0BLme64OuSZ0ABha5f8RfJ8n5+z0SaOJI=",
       "url": "_framework/dotnet.js.map"
+    },
+    {
+      "hash": "sha256-AhWryzj57H6IM3hL5yLy2euFso0GGhmti2SmwSLLZEk=",
+      "url": "_framework/dotnet.m2iizbvnn8.js"
     },
     {
       "hash": "sha256-hYigRhIZKHyCXxXWqL/yR3ZWzZhV2oSi+2N3/UPeoxk=",
@@ -942,7 +942,7 @@ self.assetsManifest = {
       "url": "css/legal.css"
     },
     {
-      "hash": "sha256-4mWsDy3aHl36ZbGt8zByK7Pvd4kRUoNgTYzRnwmPHwg=",
+      "hash": "sha256-pSKYNtePuKah3Q2av9KBiLrBmzL+8t+Hy948Y4xpXoo=",
       "url": "favicon.png"
     },
     {
@@ -958,11 +958,11 @@ self.assetsManifest = {
       "url": "fontawesome/webfonts/fa-solid-900.woff2"
     },
     {
-      "hash": "sha256-DbpQaq68ZSb5IoPosBErM1QWBfsbTxpJqhU0REi6wP4=",
+      "hash": "sha256-1PhtwJRynnvCGGjydHyr+3qZuNgcbNgDZYeUtVaVNFg=",
       "url": "icon-192.png"
     },
     {
-      "hash": "sha256-oEo6d+KqX5fjxTiZk/w9NB3Mi0+ycS5yLwCKwr4IkbA=",
+      "hash": "sha256-zVLqREUaPLBu6kF6o0R7q+HR0UIefMFX0xIRdlCBft8=",
       "url": "icon-512.png"
     },
     {
@@ -970,7 +970,7 @@ self.assetsManifest = {
       "url": "images/journey-recreated-logo.png"
     },
     {
-      "hash": "sha256-n9crwc8OMyKIwqrTk3ojjtE01SWDsIV/LmhINeUIy0w=",
+      "hash": "sha256-tbkXgWBGIZC48DPAlU9Of/ZBBeYsmzmi6tbj/N0wvu0=",
       "url": "index.html"
     },
     {
@@ -1162,7 +1162,7 @@ self.assetsManifest = {
       "url": "lib/bootstrap/dist/js/bootstrap.min.js.map"
     },
     {
-      "hash": "sha256-OHPgKbCjGKC5lAfeKyifAppu3rq61R0zqy6/kMfrnqw=",
+      "hash": "sha256-QHaHbQ+ai3Zo+gjhD8KK467R2FBqe/uhm127GTO/1b0=",
       "url": "manifest.webmanifest"
     },
     {

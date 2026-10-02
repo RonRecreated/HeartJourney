@@ -1,11 +1,11 @@
 {
-  "name": "HeartJourneyWeb",
-  "short_name": "HeartJourneyWeb",
-  "id": "./",
-  "start_url": "./",
+  "name": "Journey Recreated",
+  "short_name": "Journey Recreated",
+  "id": "/",
+  "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#03173d",
+  "background_color": "##FFF7ED",
+  "theme_color": "#FF5A8A",
   "prefer_related_applications": false,
   "icons": [
     {
