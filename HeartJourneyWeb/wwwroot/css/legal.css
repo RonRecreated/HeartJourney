@@ -1,0 +1,177 @@
+.legal-page {
+    width: min(100% - 2rem, 900px);
+    margin: 0 auto;
+    padding: var(--space-2xl) 0;
+    color: var(--color-text);
+}
+
+.legal-header {
+    margin-bottom: var(--space-xl);
+    text-align: center;
+}
+
+.legal-eyebrow {
+    margin: 0 0 0.4rem;
+    color: var(--color-brand);
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.legal-header h1 {
+    margin: 0;
+    font-size: clamp(2rem, 5vw, 3rem);
+    line-height: 1.1;
+}
+
+.legal-effective-date {
+    margin-top: 0.75rem;
+    color: var(--color-text-muted);
+    font-size: 0.95rem;
+}
+
+.legal-section {
+    margin-bottom: 1.25rem;
+    padding: 1.5rem;
+
+    background: var(--color-surface);
+
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+
+    box-shadow: var(--shadow-sm);
+}
+
+.legal-section h2 {
+    margin: 0 0 1rem;
+
+    color: var(--color-text);
+
+    font-size: 1.35rem;
+    line-height: 1.25;
+}
+
+.legal-section h3 {
+    margin: 1.25rem 0 0.6rem;
+
+    color: var(--color-text);
+
+    font-size: 1.05rem;
+}
+
+.legal-section p {
+    margin: 0 0 0.9rem;
+
+    color: var(--color-text-muted);
+
+    line-height: 1.7;
+}
+
+.legal-section p:last-child {
+    margin-bottom: 0;
+}
+
+.legal-section ul {
+    margin: 0.75rem 0 1rem;
+    padding-left: 1.4rem;
+}
+
+.legal-section li {
+    margin-bottom: 0.45rem;
+
+    color: var(--color-text-muted);
+
+    line-height: 1.6;
+}
+
+.legal-section strong {
+    color: var(--color-text);
+}
+
+.legal-section a {
+    color: var(--color-brand);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.legal-section a:hover {
+    color: var(--color-brand-hover);
+    text-decoration: underline;
+}
+
+.legal-contact-card {
+    display: grid;
+    gap: 0.35rem;
+
+    margin-top: 1rem;
+    padding: 1rem 1.1rem;
+
+    background: var(--color-surface-soft);
+
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+}
+
+.legal-contact-card strong {
+    color: var(--color-text);
+}
+
+.legal-contact-card span {
+    color: var(--color-text-muted);
+}
+
+.legal-contact-card a {
+    width: fit-content;
+    color: var(--color-brand);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.legal-contact-card a:hover {
+    color: var(--color-brand-hover);
+    text-decoration: underline;
+}
+
+.legal-footer-links {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+
+    margin-top: var(--space-xl);
+    padding-top: var(--space-lg);
+
+    border-top: 1px solid var(--color-border);
+}
+
+.legal-footer-links a {
+    color: var(--color-text-muted);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.legal-footer-links a:hover {
+    color: var(--color-brand);
+}
+
+.legal-footer-links span {
+    color: var(--color-text-soft);
+}
+
+@media (max-width: 700px) {
+    .legal-page {
+        width: min(100% - 1rem, 900px);
+        padding: var(--space-xl) 0;
+    }
+
+    .legal-section {
+        padding: 1.15rem;
+        border-radius: var(--radius-md);
+    }
+
+    .legal-section h2 {
+        font-size: 1.2rem;
+    }
+}
