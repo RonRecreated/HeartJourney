@@ -1,6 +1,24 @@
-﻿<Router AppAssembly="@typeof(App).Assembly" NotFoundPage="typeof(Features.NotFound)">
+﻿<Router AppAssembly="@typeof(App).Assembly"
+        NotFoundPage="typeof(Features.NotFound)">
     <Found Context="routeData">
-        <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)"/>
-        <FocusOnNavigate RouteData="@routeData" Selector="h1" />
+        @if (routeData.RouteValues.TryGetValue(
+            "JourneySlug", out var journeySlug))
+        {
+            <RequireJourneyAccess
+                JourneySlug="@(journeySlug?.ToString() ?? string.Empty)"
+                @key="routeData">
+                <RouteView RouteData="@routeData"
+                           DefaultLayout="@typeof(MainLayout)" />
+                <FocusOnNavigate RouteData="@routeData"
+                                 Selector="h1" />
+            </RequireJourneyAccess>
+        }
+        else
+        {
+            <RouteView RouteData="@routeData"
+                       DefaultLayout="@typeof(MainLayout)" />
+            <FocusOnNavigate RouteData="@routeData"
+                             Selector="h1" />
+        }
     </Found>
 </Router>

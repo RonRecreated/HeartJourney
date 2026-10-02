@@ -1,25 +1,25 @@
 self.assetsManifest = {
-  "version": "QYv8Gixv",
+  "version": "GU6hoGzv",
   "assets": [
     {
       "hash": "sha256-p/0FfLMdfznWdK6e48k2MFZ/O80V/ANYyvThF/w0qm8=",
       "url": "HeartJourneyWeb.styles.css"
     },
     {
-      "hash": "sha256-9ME2HGGeDMn9VAl5BVxwH0h/ZQH2pNvrr/FMB3BCAsA=",
-      "url": "_framework/HeartJourney.Core.ohl1fv5q0s.wasm"
+      "hash": "sha256-IHY2OMe0dIWoFL70WmLNLuK4V+m0qfUnFHaNG89SNSg=",
+      "url": "_framework/HeartJourney.Core.gozppofci2.wasm"
     },
     {
-      "hash": "sha256-BSOdxbE3rjA9dCcILObAeiQv8BruFrG/7dqWqPFndP4=",
-      "url": "_framework/HeartJourney.Core.xpa3mtuyy6.pdb"
+      "hash": "sha256-fpZbCOlmECv37GFjAoX77mZK1FMVi2NC25v5gq2cvkw=",
+      "url": "_framework/HeartJourney.Core.qime8yvhyr.pdb"
     },
     {
-      "hash": "sha256-2t5W8gmNDT6vtxJV9J8PjOFPU3s6JVk3zVWUJVXvgJ0=",
-      "url": "_framework/HeartJourneyWeb.6kpbz2sn9l.pdb"
+      "hash": "sha256-lmRMtazXw20J8ZpCJ++/9G8/dOS+RyAtd0JwSSJ+dKc=",
+      "url": "_framework/HeartJourneyWeb.ajifxydget.pdb"
     },
     {
-      "hash": "sha256-gWE1niQNxnbEfxQMFbDzXVLQ9/DkelsgmljKjX3E+G8=",
-      "url": "_framework/HeartJourneyWeb.zzrj2edmvi.wasm"
+      "hash": "sha256-jRUtliIAVN6wgSgSZ8KMO/Z124Hx5bXBZmq9rGLPkb0=",
+      "url": "_framework/HeartJourneyWeb.v5asklswpe.wasm"
     },
     {
       "hash": "sha256-TKbWsc5gCE+04slSkrqeNGTb7K8LiRW72Tm+1gzKxqU=",
@@ -906,8 +906,8 @@ self.assetsManifest = {
       "url": "_framework/dotnet.runtime.zbexyp8zrs.js"
     },
     {
-      "hash": "sha256-2SSvREkFC7ziu0hBO3N6PIjckxokLURzYXlgfXgAOlE=",
-      "url": "_framework/dotnet.vqual77otm.js"
+      "hash": "sha256-/ygZFG/O3qbwy4ccuK5DXWMNJIgYshv4qbGMr3gITNQ=",
+      "url": "_framework/dotnet.xwuer6jpmg.js"
     },
     {
       "hash": "sha256-SZLtQnRc0JkwqHab0VUVP7T3uBPSeYzxzDnpxPpUnHk=",
@@ -966,7 +966,7 @@ self.assetsManifest = {
       "url": "images/journey-recreated-logo.png"
     },
     {
-      "hash": "sha256-DRH/sk+AQAyhi+I06AmL+RKlWLHFZeS4pFBwUjEFwMY=",
+      "hash": "sha256-0Ix3U5a7HAJBM9oiZUDB0MoInP+ZqN0KpQg1EQS00DA=",
       "url": "index.html"
     },
     {
