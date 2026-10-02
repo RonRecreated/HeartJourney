@@ -53,6 +53,18 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = RmVhdHVyZXNcTm90Rm91bmQucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
+[D:/heart-journey/HeartJourneyWeb/Pages/Legal/PrivacyPolicyPage.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcTGVnYWxcUHJpdmFjeVBvbGljeVBhZ2UucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/heart-journey/HeartJourneyWeb/Pages/Legal/RefundPolicyPage.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcTGVnYWxcUmVmdW5kUG9saWN5UGFnZS5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/heart-journey/HeartJourneyWeb/Pages/Legal/TermsPage.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcTGVnYWxcVGVybXNQYWdlLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
 [D:/heart-journey/HeartJourneyWeb/_Imports.razor]
 build_metadata.AdditionalFiles.TargetPath = X0ltcG9ydHMucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
