@@ -206,3 +206,223 @@
     color: var(--color-brand-hover);
     text-decoration: underline;
 }
+
+.journey-access-required[b-asncq3036u] {
+    display: flex;
+    justify-content: center;
+
+    padding: var(--space-2xl) var(--space-md);
+}
+
+.access-required-card[b-asncq3036u] {
+    width: 100%;
+    max-width: 560px;
+
+    padding: 2.25rem;
+
+    background: var(--color-surface);
+
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+
+    box-shadow: var(--shadow-md);
+
+    text-align: center;
+}
+
+.access-icon[b-asncq3036u] {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 64px;
+    height: 64px;
+
+    margin-bottom: 1.25rem;
+
+    border-radius: 50%;
+
+    background:
+        color-mix(
+            in srgb,
+            var(--color-brand) 12%,
+            white
+        );
+
+    color: var(--color-brand);
+
+    font-size: 1.6rem;
+
+    border: 1px solid
+        color-mix(
+            in srgb,
+            var(--color-brand) 20%,
+            white
+        );
+
+    box-shadow: var(--shadow-sm);
+}
+
+.access-eyebrow[b-asncq3036u] {
+    margin: 0 0 0.45rem;
+
+    color: var(--color-brand);
+
+    font-size: 0.85rem;
+    font-weight: 700;
+
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.access-required-card h1[b-asncq3036u] {
+    margin: 0 0 0.9rem;
+
+    color: var(--color-text);
+
+    font-size: clamp(
+        1.7rem,
+        4vw,
+        2.2rem
+    );
+
+    line-height: 1.15;
+}
+
+.access-description[b-asncq3036u] {
+    max-width: 460px;
+
+    margin: 0 auto 1.6rem;
+
+    color: var(--color-text-muted);
+
+    line-height: 1.65;
+}
+
+
+/* =========================
+   Unlock Journey Button
+   ========================= */
+
+.journey-action[b-asncq3036u] {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+
+    width: 100%;
+    min-height: 48px;
+
+    padding: 0.8rem 1.2rem;
+
+    border: none;
+    border-radius: var(--radius-md);
+
+    background: var(--color-brand);
+    color: #ffffff;
+
+    font: inherit;
+    font-weight: 700;
+
+    cursor: pointer;
+
+    box-shadow:
+        0 6px 18px rgba(255, 90, 138, 0.22);
+
+    transition:
+        background-color var(--transition-fast),
+        transform var(--transition-fast),
+        box-shadow var(--transition-fast);
+}
+
+.journey-action:hover:not(:disabled)[b-asncq3036u] {
+    background: var(--color-brand-hover);
+
+    transform: translateY(-1px);
+
+    box-shadow:
+        0 8px 22px rgba(255, 90, 138, 0.28);
+}
+
+.journey-action:active:not(:disabled)[b-asncq3036u] {
+    transform:
+        translateY(0)
+        scale(0.98);
+
+    box-shadow:
+        0 4px 12px rgba(255, 90, 138, 0.2);
+}
+
+.journey-action:focus-visible[b-asncq3036u] {
+    outline: 3px solid
+        color-mix(
+            in srgb,
+            var(--color-brand) 30%,
+            transparent
+        );
+
+    outline-offset: 3px;
+}
+
+.journey-action:disabled[b-asncq3036u] {
+    opacity: 0.6;
+    cursor: wait;
+
+    transform: none;
+    box-shadow: none;
+}
+
+
+/* =========================
+   Back Link
+   ========================= */
+
+.back-to-journeys[b-asncq3036u] {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+
+    margin-top: 1rem;
+
+    color: var(--color-text-muted);
+
+    font-weight: 600;
+    text-decoration: none;
+
+    transition:
+        color var(--transition-fast),
+        transform var(--transition-fast);
+}
+
+.back-to-journeys:hover[b-asncq3036u] {
+    color: var(--color-brand);
+
+    transform: translateX(-2px);
+}
+
+
+/* =========================
+   Mobile
+   ========================= */
+
+@media (max-width: 600px) {
+    .journey-access-required[b-asncq3036u] {
+        padding:
+            var(--space-xl)
+            var(--space-md);
+    }
+
+    .access-required-card[b-asncq3036u] {
+        padding:
+            1.75rem
+            1.25rem;
+    }
+
+    .access-icon[b-asncq3036u] {
+        width: 58px;
+        height: 58px;
+
+        font-size: 1.45rem;
+    }
+}

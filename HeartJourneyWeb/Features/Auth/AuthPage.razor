@@ -1,6 +1,8 @@
 @page "/auth"
 @using HeartJourneyWeb.Services.Auth
 @using HeartJourneyWeb.Services.Profiles
+@using HeartJourneyWeb.Components
+@inject IConfiguration Configuration
 @inject IProfileService ProfileService
 @inject IAuthService AuthService
 @inject NavigationManager NavigationManager
@@ -52,6 +54,11 @@
                 </button>
             }
 
+            <TurnstileWidget
+                @ref="_turnstile"
+                SiteKey="@TurnstileSiteKey"
+                TokenChanged="OnCaptchaTokenChanged" />
+
             <button type="submit" class="primary-button" disabled="@_isBusy">
                 @if (_isBusy)
                 {
@@ -90,6 +97,11 @@
                         <p>@_resetMessage</p>
                     }
 
+                    <TurnstileWidget
+                        @ref="_resetTurnstile"
+                        SiteKey="@TurnstileSiteKey"
+                        TokenChanged="OnResetCaptchaTokenChanged" />
+
                     <div class="confirmation-actions">
                         <button type="button"
                                 class="secondary-button"
@@ -108,7 +120,7 @@
                 </div>
             </div>
         }
-
+        
         <button type="button"
                 class="mode-button"
                 @onclick="ToggleMode"
@@ -136,6 +148,20 @@
     private string _resetEmail = string.Empty;
     private bool _isSendingReset;
     private string? _resetMessage;
+    private string? _captchaToken;
+    private TurnstileWidget? _turnstile;
+
+    private string TurnstileSiteKey =>
+    Configuration["Turnstile:SiteKey"]
+    ?? string.Empty;
+
+    private string? _resetCaptchaToken;
+    private TurnstileWidget? _resetTurnstile;
+
+    private void OnResetCaptchaTokenChanged(string? token)
+    {
+        _resetCaptchaToken = token;
+    }
 
     [SupplyParameterFromQuery]
     public string? ReturnUrl { get; set; }
@@ -153,9 +179,26 @@
 
     private async Task HandleSubmitAsync()
     {
-        _isBusy = true;
+        if (_isBusy)
+        {
+            return;
+        }
+
         _message = null;
         _isError = false;
+
+        // ---------------------------------
+        // Require Turnstile before auth
+        // ---------------------------------
+        if (string.IsNullOrWhiteSpace(_captchaToken))
+        {
+            _message = "Please complete the security check.";
+
+            _isError = true;
+            return;
+        }
+
+        _isBusy = true;
 
         try
         {
@@ -165,13 +208,15 @@
             {
                 result = await AuthService.SignUpAsync(
                     _form.Email,
-                    _form.Password);
+                    _form.Password,
+                    _captchaToken);
             }
             else
             {
                 result = await AuthService.SignInAsync(
                     _form.Email,
-                    _form.Password);
+                    _form.Password,
+                    _captchaToken);
             }
 
             _message = result.Message;
@@ -201,6 +246,12 @@
         finally
         {
             _isBusy = false;
+            _captchaToken = null;
+
+            if (_turnstile is not null)
+            {
+                await _turnstile.ResetAsync();
+            }
         }
     }
 
@@ -215,6 +266,7 @@
     {
         _resetEmail = _form.Email;
         _resetMessage = null;
+        _resetCaptchaToken = null;
         _showForgotPassword = true;
     }
 
@@ -226,15 +278,26 @@
             return;
         }
 
+        var token = _resetCaptchaToken;
+
+        if (string.IsNullOrWhiteSpace(token))
+        {
+            _resetMessage = "Please complete the security check.";
+            return;
+        }
+
         _isSendingReset = true;
         _resetMessage = null;
 
         try
         {
-            await AuthService.SendPasswordResetEmailAsync(_resetEmail);
+            var sent = await AuthService.SendPasswordResetEmailAsync(
+                _resetEmail,
+                token);
 
-            _resetMessage =
-                "If an account exists for that email address, a reset link has been sent.";
+            _resetMessage = sent
+                ? "If an account exists for that email address, a reset link has been sent."
+                : "Please enter a valid email address.";
         }
         catch
         {
@@ -244,6 +307,18 @@
         finally
         {
             _isSendingReset = false;
+
+            _resetCaptchaToken = null;
+
+            if (_showForgotPassword && _resetTurnstile is not null)
+            {
+                await _resetTurnstile.ResetAsync();
+            }
         }
+    }
+
+    private void OnCaptchaTokenChanged(string? token)
+    {
+        _captchaToken = token;
     }
 }

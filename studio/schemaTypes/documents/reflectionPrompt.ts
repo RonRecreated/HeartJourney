@@ -388,6 +388,16 @@ export const reflectionPromptType = defineType({
                       title: 'Resource URL',
                       type: 'url',
                     },
+                    {
+                      name: 'resourceLabel2',
+                      title: 'Resource Label 2',
+                      type: 'string',
+                    },
+                    {
+                      name: 'resourceUrl2',
+                      title: 'Resource URL 2',
+                      type: 'url',
+                    },
                   ],
                   preview: {
                     select: {

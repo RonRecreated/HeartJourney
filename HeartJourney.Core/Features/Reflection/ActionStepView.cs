@@ -24,4 +24,10 @@ public class ActionStepView
 
     [JsonPropertyName("resourceUrl")]
     public string ResourceUrl { get; set; } = string.Empty;
+
+    [JsonPropertyName("resourceLabel2")]
+    public string ResourceLabel2 { get; set; } = string.Empty;
+
+    [JsonPropertyName("resourceUrl2")]
+    public string ResourceUrl2 { get; set; } = string.Empty;
 }

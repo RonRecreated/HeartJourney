@@ -16,6 +16,10 @@ public class InsightActionStepItem
 
     public string ResourceUrl { get; set; } = string.Empty;
 
+    public string ResourceLabel2 { get; set; } = string.Empty;
+
+    public string ResourceUrl2 { get; set; } = string.Empty;
+
     public string PromptId { get; set; } = string.Empty;
 
     public string AnswerLabel { get; set; } = string.Empty;

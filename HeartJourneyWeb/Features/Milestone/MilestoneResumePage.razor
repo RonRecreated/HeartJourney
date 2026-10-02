@@ -2,13 +2,13 @@
 
 @using HeartJourneyWeb.Components.Auth
 @using HeartJourneyWeb.Services.MilestoneProgress
-
+@using HeartJourneyWeb.Components
 @inject IMilestoneProgressService MilestoneProgressService
 @inject NavigationManager NavigationManager
 
 <RequireAuth>
     <section class="resume-shell">
-        <p>Preparing your milestone...</p>
+        <JourneyLoader Message="Preparing your Milestone..." />
     </section>
 </RequireAuth>
 

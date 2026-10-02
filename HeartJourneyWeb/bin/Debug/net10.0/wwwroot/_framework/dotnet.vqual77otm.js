@@ -5,7 +5,7 @@ var e=!1;const t=async()=>WebAssembly.validate(new Uint8Array([0,97,115,109,1,0,
   "mainAssemblyName": "HeartJourneyWeb",
   "applicationEnvironment": "Development",
   "resources": {
-    "hash": "sha256-wEQNMHXlNeQXAI+Spctzh0Hb3OdH1QoJnAWwojJdUoc=",
+    "hash": "sha256-55Y9MPgknIx9gHB/F/11UW3IC+ck36tjkNwlqwjlbME=",
     "jsModuleNative": [
       {
         "name": "dotnet.native.vzj2a6aakt.js"
@@ -1338,8 +1338,8 @@ var e=!1;const t=async()=>WebAssembly.validate(new Uint8Array([0,97,115,109,1,0,
       },
       {
         "virtualPath": "HeartJourney.Core.wasm",
-        "name": "HeartJourney.Core.g9drtssml3.wasm",
-        "hash": "sha256-5OgkwLIoWl00H4Omk1LMamuPYgVen6gplbIcFBwMuUQ=",
+        "name": "HeartJourney.Core.ohl1fv5q0s.wasm",
+        "hash": "sha256-9ME2HGGeDMn9VAl5BVxwH0h/ZQH2pNvrr/FMB3BCAsA=",
         "cache": "force-cache"
       },
       {
@@ -1350,22 +1350,22 @@ var e=!1;const t=async()=>WebAssembly.validate(new Uint8Array([0,97,115,109,1,0,
       },
       {
         "virtualPath": "HeartJourneyWeb.wasm",
-        "name": "HeartJourneyWeb.ftun2x3aah.wasm",
-        "hash": "sha256-Pe7SRnnFKsWbCnEMsYo5VR6sdlv3RTjcQPTI1r3aD14=",
+        "name": "HeartJourneyWeb.zzrj2edmvi.wasm",
+        "hash": "sha256-gWE1niQNxnbEfxQMFbDzXVLQ9/DkelsgmljKjX3E+G8=",
         "cache": "force-cache"
       }
     ],
     "pdb": [
       {
         "virtualPath": "HeartJourney.Core.pdb",
-        "name": "HeartJourney.Core.1k28gal379.pdb",
-        "hash": "sha256-8UZMk+vsQHpzVZnLe6i8NWrAkh4dP9CVXSeVI8Abcsc=",
+        "name": "HeartJourney.Core.xpa3mtuyy6.pdb",
+        "hash": "sha256-BSOdxbE3rjA9dCcILObAeiQv8BruFrG/7dqWqPFndP4=",
         "cache": "force-cache"
       },
       {
         "virtualPath": "HeartJourneyWeb.pdb",
-        "name": "HeartJourneyWeb.sfz5k34164.pdb",
-        "hash": "sha256-qEIFzfmvx5tpTU6OI56JEfcyC0oILtdgWCEy7obSsTA=",
+        "name": "HeartJourneyWeb.6kpbz2sn9l.pdb",
+        "hash": "sha256-2t5W8gmNDT6vtxJV9J8PjOFPU3s6JVk3zVWUJVXvgJ0=",
         "cache": "force-cache"
       }
     ],

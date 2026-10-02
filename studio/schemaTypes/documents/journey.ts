@@ -121,6 +121,20 @@ export const journeyType = defineType({
       type: 'boolean',
       initialValue: false,
       fieldset: 'publishing'
+    }),
+
+    defineField({
+      name: 'isAvailable',
+      title: 'Available',
+      type: 'boolean',
+      initialValue: true,
+      fieldset: 'publishing'
+    }),
+    defineField({
+      name: 'comingSoonText',
+      title: 'Coming Soon Text',
+      type: 'string',
+      fieldset: 'publishing'
     })
   ],
 

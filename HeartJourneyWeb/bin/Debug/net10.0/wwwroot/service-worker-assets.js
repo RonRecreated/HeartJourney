@@ -1,25 +1,25 @@
 self.assetsManifest = {
-  "version": "fMM0XHjo",
+  "version": "QYv8Gixv",
   "assets": [
     {
-      "hash": "sha256-nVg8GVxg8LKvOAaAqkyNhU02EnZgWjMkG3uBDymKa70=",
+      "hash": "sha256-p/0FfLMdfznWdK6e48k2MFZ/O80V/ANYyvThF/w0qm8=",
       "url": "HeartJourneyWeb.styles.css"
     },
     {
-      "hash": "sha256-8UZMk+vsQHpzVZnLe6i8NWrAkh4dP9CVXSeVI8Abcsc=",
-      "url": "_framework/HeartJourney.Core.1k28gal379.pdb"
+      "hash": "sha256-9ME2HGGeDMn9VAl5BVxwH0h/ZQH2pNvrr/FMB3BCAsA=",
+      "url": "_framework/HeartJourney.Core.ohl1fv5q0s.wasm"
     },
     {
-      "hash": "sha256-5OgkwLIoWl00H4Omk1LMamuPYgVen6gplbIcFBwMuUQ=",
-      "url": "_framework/HeartJourney.Core.g9drtssml3.wasm"
+      "hash": "sha256-BSOdxbE3rjA9dCcILObAeiQv8BruFrG/7dqWqPFndP4=",
+      "url": "_framework/HeartJourney.Core.xpa3mtuyy6.pdb"
     },
     {
-      "hash": "sha256-Pe7SRnnFKsWbCnEMsYo5VR6sdlv3RTjcQPTI1r3aD14=",
-      "url": "_framework/HeartJourneyWeb.ftun2x3aah.wasm"
+      "hash": "sha256-2t5W8gmNDT6vtxJV9J8PjOFPU3s6JVk3zVWUJVXvgJ0=",
+      "url": "_framework/HeartJourneyWeb.6kpbz2sn9l.pdb"
     },
     {
-      "hash": "sha256-qEIFzfmvx5tpTU6OI56JEfcyC0oILtdgWCEy7obSsTA=",
-      "url": "_framework/HeartJourneyWeb.sfz5k34164.pdb"
+      "hash": "sha256-gWE1niQNxnbEfxQMFbDzXVLQ9/DkelsgmljKjX3E+G8=",
+      "url": "_framework/HeartJourneyWeb.zzrj2edmvi.wasm"
     },
     {
       "hash": "sha256-TKbWsc5gCE+04slSkrqeNGTb7K8LiRW72Tm+1gzKxqU=",
@@ -898,16 +898,16 @@ self.assetsManifest = {
       "url": "_framework/dotnet.native.vzj2a6aakt.js"
     },
     {
-      "hash": "sha256-4HuHGiO+YfVZet7Ny9DO6nnyC8RVdyUGBsuSq1SSiW0=",
-      "url": "_framework/dotnet.oamkivyqvs.js"
-    },
-    {
       "hash": "sha256-R+0xdNwpy+5IpVl6ddVip5KCAP2fqy/QdeDY3/sEvoc=",
       "url": "_framework/dotnet.runtime.js.map"
     },
     {
       "hash": "sha256-MZMguyke9CroSQl+L/SHIGFkPTD+LtYGXkXjAvwWx40=",
       "url": "_framework/dotnet.runtime.zbexyp8zrs.js"
+    },
+    {
+      "hash": "sha256-2SSvREkFC7ziu0hBO3N6PIjckxokLURzYXlgfXgAOlE=",
+      "url": "_framework/dotnet.vqual77otm.js"
     },
     {
       "hash": "sha256-SZLtQnRc0JkwqHab0VUVP7T3uBPSeYzxzDnpxPpUnHk=",
@@ -930,7 +930,7 @@ self.assetsManifest = {
       "url": "_framework/netstandard.8ql06rx5ae.wasm"
     },
     {
-      "hash": "sha256-6uFRtoYV9EjBRMcqymBYKUC0sIxrtSRtb9Lcgm+qkAA=",
+      "hash": "sha256-1b3wDP49pWzGA9280qoMthFemstZhEu1MRuFIkWGfDc=",
       "url": "appsettings.json"
     },
     {
@@ -962,7 +962,11 @@ self.assetsManifest = {
       "url": "icon-512.png"
     },
     {
-      "hash": "sha256-ESfmrUa9vXo5fLskQbXMPWph1JglAX946MW/Go3QbJE=",
+      "hash": "sha256-5yQAOJ6Ejs7//PkdtzsgFzDrwzqcy7vSx42smPrv4Co=",
+      "url": "images/journey-recreated-logo.png"
+    },
+    {
+      "hash": "sha256-DRH/sk+AQAyhi+I06AmL+RKlWLHFZeS4pFBwUjEFwMY=",
       "url": "index.html"
     },
     {
@@ -972,6 +976,10 @@ self.assetsManifest = {
     {
       "hash": "sha256-RNOla4EMFQftsD+DI9giP2Gg6CsDKuQIwFxygonJ9Ro=",
       "url": "js/pwa-update.js"
+    },
+    {
+      "hash": "sha256-nddOTZQitWUFIBnKxNulUrxA17Qhx1rYiRojhZRXvrI=",
+      "url": "js/turnstile.js"
     },
     {
       "hash": "sha256-Yy5/hBqRmmU2MJ1TKwP2aXoTO6+OjzrLmJIsC2Wy4H8=",

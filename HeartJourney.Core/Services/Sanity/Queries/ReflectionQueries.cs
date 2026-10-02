@@ -115,7 +115,9 @@ public static class ReflectionQueries
                                         category,
                                         sortOrder,
                                         resourceLabel,
-                                        resourceUrl
+                                        resourceUrl,
+                                        resourceLabel2,
+                                        resourceUrl2
                                     }
                         },
                     allowNotes,

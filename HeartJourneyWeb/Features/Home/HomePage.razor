@@ -3,7 +3,14 @@
 @using HeartJourney.Core.Services.Interfaces
 @using HeartJourneyWeb.Helpers
 @using HeartJourneyWeb.Components
+@using HeartJourneyWeb.Services.JourneyAccess
+@using HeartJourneyWeb.Services.Checkout
+@using HeartJourneyWeb.Services.Auth
+@inject IAuthService AuthService
 @inject IContentRepository ContentRepository
+@inject IJourneyAccessService JourneyAccessService
+@inject ICheckoutService CheckoutService
+@inject NavigationManager Navigation
 
 <PageTitle>Journey Recreated</PageTitle>
 
@@ -36,7 +43,7 @@
         <div class="journey-grid">
             @foreach (var journey in _journeys)
             {
-                <article class="journey-card">
+                <article class="journey-card @(journey.IsAvailable ? null : "coming-soon-card")">
                     <div class="journey-icon">
                         <i class="@IconHelper.GetIconClass(journey.Icon)" aria-hidden="true"></i>
                     </div>
@@ -45,9 +52,51 @@
 
                     <p>@journey.Summary</p>
 
-                    <a href="@($"/journeys/{journey.Slug}")">
-                        Journey Here
-                    </a>
+                    @if (journey.IsAvailable)
+                    {
+                        if (HasJourneyAccess(journey.Slug))
+                        {
+                            <a href="@($"/journeys/{journey.Slug}")" class="journey-action">
+                                Continue Journey
+                            </a>
+                        }
+                        else
+                        {
+                            <button type="button"
+                                    class="journey-action"
+                                    disabled="@(_checkoutJourneySlug is not null)"
+                                    @onclick="() => UnlockJourneyAsync(journey.Slug)">
+                                
+                                @if (IsCheckoutStarting(journey.Slug))
+                                {
+                                    <i class="fa-solid fa-spinner fa-spin"
+                                        aria-hidden="true"></i>
+
+                                    <span>Opening Checkout...</span>
+                                }
+                                else
+                                {
+                                    <i class="fa-solid fa-lock-open"
+                                        aria-hidden="true"></i>
+
+                                    <span>Unlock Journey</span>
+                                }
+
+                            </button>
+                        }
+                    }
+                    else
+                    {
+                        <div class="coming-soon-action">
+                            <span class="coming-soon-badge">
+                                <i class="fa-solid fa-clock"></i> <!-- Optional clock icon -->
+
+                                @(string.IsNullOrWhiteSpace(journey.ComingSoonText)
+                                    ? "Coming Soon"
+                                    : journey.ComingSoonText)
+                            </span>
+                        </div>
+                    }
                 </article>
             }
         </div>
@@ -58,13 +107,29 @@
     private List<JourneyCard> _journeys = new();
     private bool _isLoading = true;
     private string? _errorMessage;
+    private HashSet<string> _ownedJourneySlugs =
+        new(StringComparer.OrdinalIgnoreCase);
+
+    private string? _checkoutJourneySlug;
+    private string? _checkoutError;
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
             var journeys = await ContentRepository.GetJourneyCardsAsync();
+            
             _journeys = journeys.ToList();
+
+            var accessRecords =
+                await JourneyAccessService
+                    .GetUserAccessAsync();
+
+            _ownedJourneySlugs =
+                accessRecords
+                    .Where(x => !string.IsNullOrWhiteSpace(x.JourneySlug))
+                    .Select(x => x.JourneySlug!)
+                    .ToHashSet(StringComparer.OrdinalIgnoreCase);
         }
         catch (Exception ex)
         {
@@ -74,5 +139,68 @@
         {
             _isLoading = false;
         }
+    }
+
+    private bool HasJourneyAccess(string? journeySlug)
+    {
+        return !string.IsNullOrWhiteSpace(journeySlug) && _ownedJourneySlugs.Contains(journeySlug);
+    }
+
+    private async Task UnlockJourneyAsync(string journeySlug)
+    {
+        // Make sure authentication state has been restored.
+        await AuthService.InitializeAsync();
+
+        // Not signed in?
+        // Send them to the login page instead of Stripe.
+        if (!AuthService.IsSignedIn)
+        {
+            var returnUrl =
+                Uri.EscapeDataString("/journeys");
+
+            Navigation.NavigateTo(
+                $"/auth?returnUrl={returnUrl}");
+
+            return;
+        }
+        
+        // Prevent multiple checkout sessions from being
+        // started at the same time.
+        if (_checkoutJourneySlug is not null)
+        {
+            return;
+        }
+
+        _checkoutJourneySlug = journeySlug;
+        _checkoutError = null;
+
+        try
+        {
+            var checkoutUrl =
+                await CheckoutService
+                    .CreateCheckoutAsync(
+                        journeySlug);
+
+            Navigation.NavigateTo(checkoutUrl, forceLoad: true);
+        }
+        catch (Exception ex)
+        {
+            _checkoutError = ex.Message;
+        }
+        finally
+        {
+            _checkoutJourneySlug = null;
+        }
+    }
+
+    private bool IsCheckoutStarting(string? journeySlug)
+    {
+        return
+            !string.IsNullOrWhiteSpace(journeySlug)
+            &&
+            string.Equals(
+                _checkoutJourneySlug,
+                journeySlug,
+                StringComparison.OrdinalIgnoreCase);
     }
 }

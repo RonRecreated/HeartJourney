@@ -3,6 +3,7 @@
 @using HeartJourney.Core.Services.Interfaces
 @using HeartJourneyWeb.Services.Auth
 @using HeartJourneyWeb.Services.MilestoneProgress
+@using HeartJourneyWeb.Components
 @inject IMilestoneProgressService MilestoneProgressService
 @inject NavigationManager NavigationManager
 @inject IContentRepository ContentRepository
@@ -14,7 +15,7 @@
 <section class="milestone-intro-shell @GetMilestoneCssClass(MilestoneSlug)">
     @if (_isLoading)
     {
-        <p>Loading milestone introduction...</p>
+        <JourneyLoader Message="Preparing your Milestone..." />
     }
     else if (!string.IsNullOrWhiteSpace(_errorMessage))
     {

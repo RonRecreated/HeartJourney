@@ -3,11 +3,14 @@ using System.Text;
 using System.Text.Json;
 using HeartJourneyWeb.Services.BrowserStorage;
 using Microsoft.AspNetCore.Components;
+using System.Net.Http.Json;
 
 namespace HeartJourneyWeb.Services.Auth;
 
 public class SupabaseAuthService : IAuthService
 {
+    private readonly HttpClient _http;
+    private readonly IConfiguration _configuration;
     private readonly Client _supabaseClient;
     private bool _isInitialized;
 
@@ -16,11 +19,18 @@ public class SupabaseAuthService : IAuthService
     private readonly BrowserStorageService _browserStorage;
     private readonly NavigationManager _navigationManager;
 
-    public SupabaseAuthService(Client supabaseClient, BrowserStorageService browserStorage, NavigationManager navigationManager)
+    public SupabaseAuthService(
+        Client supabaseClient, 
+        BrowserStorageService browserStorage, 
+        NavigationManager navigationManager,
+        HttpClient http,
+        IConfiguration configuration)
     {
         _supabaseClient = supabaseClient;
         _browserStorage = browserStorage;
         _navigationManager = navigationManager;
+        _http = http;
+        _configuration = configuration;
     }
 
     public event Action? AuthStateChanged;
@@ -69,17 +79,22 @@ public class SupabaseAuthService : IAuthService
     public async Task<AuthResult> SignUpAsync(
         string email,
         string password,
+        string captchaToken,
         CancellationToken cancellationToken = default)
     {
         try
         {
-            await _supabaseClient.Auth.SignUp(
+            var redirectTo = Uri.EscapeDataString(
+                _navigationManager
+                    .ToAbsoluteUri("/auth/confirmed")
+                    .ToString());
+
+            using var response = await PostAuthAsync(
+                $"signup?redirect_to={redirectTo}",
                 email,
                 password,
-                new global::Supabase.Gotrue.SignUpOptions
-                {
-                    RedirectTo = _navigationManager.ToAbsoluteUri("/auth/confirmed").ToString()
-                });
+                captchaToken,
+                cancellationToken);
 
             NotifyAuthStateChanged();
 
@@ -95,11 +110,33 @@ public class SupabaseAuthService : IAuthService
     public async Task<AuthResult> SignInAsync(
         string email,
         string password,
+        string captchaToken,
         CancellationToken cancellationToken = default)
     {
         try
         {
-            var session = await _supabaseClient.Auth.SignIn(email, password);
+            using var response = await PostAuthAsync(
+                "token?grant_type=password",
+                email,
+                password,
+                captchaToken,
+                cancellationToken);
+
+            var accessToken = response.RootElement
+                .GetProperty("access_token")
+                .GetString();
+
+            var refreshToken = response.RootElement
+                .GetProperty("refresh_token")
+                .GetString();
+
+            if (string.IsNullOrWhiteSpace(accessToken) || string.IsNullOrWhiteSpace(refreshToken))
+            {
+                return AuthResult.Failure(
+                    "Sign in did not return a valid session.");
+            }
+
+            var session = await _supabaseClient.Auth.SetSession(accessToken, refreshToken);
 
             if (session is null)
             {
@@ -276,6 +313,7 @@ public class SupabaseAuthService : IAuthService
 
     public async Task<bool> SendPasswordResetEmailAsync(
         string email,
+        string captchaToken,
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(email))
@@ -286,9 +324,11 @@ public class SupabaseAuthService : IAuthService
         var options =
             new global::Supabase.Gotrue.ResetPasswordForEmailOptions(email)
             {
+                CaptchaToken = captchaToken,
+                
                 RedirectTo = _navigationManager
                     .ToAbsoluteUri("/update-password")
-                    .ToString()
+                    .ToString(),
             };
 
         await _supabaseClient.Auth.ResetPasswordForEmail(options);
@@ -362,5 +402,62 @@ public class SupabaseAuthService : IAuthService
         await _browserStorage.RemoveAsync(AuthSessionKey);
 
         NotifyAuthStateChanged();
+    }
+
+    private async Task<JsonDocument> PostAuthAsync(
+        string endpoint,
+        string email,
+        string password,
+        string captchaToken,
+        CancellationToken cancellationToken)
+    {
+        var url = _configuration["Supabase:Url"]?.TrimEnd('/');
+        var key = _configuration["Supabase:Key"];
+
+        if (string.IsNullOrWhiteSpace(url) || string.IsNullOrWhiteSpace(key))
+        {
+            throw new InvalidOperationException(
+                "Supabase configuration is missing.");
+        }
+
+        using var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            $"{url}/auth/v1/{endpoint}");
+
+        request.Headers.Add("apikey", key);
+
+        request.Content = JsonContent.Create(new
+        {
+            email,
+            password,
+            gotrue_meta_security = new
+            {
+                captcha_token = captchaToken
+            }
+        });
+
+        using var response = await _http.SendAsync(
+            request, cancellationToken);
+
+        var json = await response.Content.ReadAsStringAsync(
+            cancellationToken);
+
+        var document = JsonDocument.Parse(json);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            var message = document.RootElement.TryGetProperty("msg", out var msg)
+                ? msg.GetString()
+                : document.RootElement.TryGetProperty(
+                    "message", out var error)
+                    ? error.GetString()
+                    : "Authentication failed.";
+
+            document.Dispose();
+
+            throw new InvalidOperationException(message);
+        }
+
+        return document;
     }
 }

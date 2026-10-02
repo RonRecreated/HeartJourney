@@ -87,12 +87,22 @@ main[b-z9cfhjdkjw] {
     width: 100%;
 }
 
+.brand-logo[b-z9cfhjdkjw] {
+    display: block;
+    width: auto;
+    height: 44px;
+}
+
 @media (max-width: 900px) {
     .app-header[b-z9cfhjdkjw] {
         flex-wrap: wrap;
         padding: .85rem 1rem;
         max-height: 100dvh;
         overflow-y: auto;
+    }
+
+    .brand-logo[b-z9cfhjdkjw] {
+        height: 38px;
     }
 
     .brand[b-z9cfhjdkjw] {

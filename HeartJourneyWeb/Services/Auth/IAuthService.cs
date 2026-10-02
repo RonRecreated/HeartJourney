@@ -15,11 +15,13 @@ public interface IAuthService
     Task<AuthResult> SignUpAsync(
         string email,
         string password,
+        string captchaToken,
         CancellationToken cancellationToken = default);
 
     Task<AuthResult> SignInAsync(
         string email,
         string password,
+        string captchaToken,
         CancellationToken cancellationToken = default);
 
     Task SignOutAsync();
@@ -28,6 +30,7 @@ public interface IAuthService
 
     Task<bool> SendPasswordResetEmailAsync(
     string email,
+    string captchaToken,
     CancellationToken cancellationToken = default);
 
     Task<bool> UpdatePasswordAsync(

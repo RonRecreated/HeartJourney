@@ -15,4 +15,8 @@ public class Journey
     public int SortOrder { get; set; }
 
     public bool Published { get; set; }
+
+    public bool IsAvailable { get; set; } = true;
+
+    public string? ComingSoonText { get; set; }
 }

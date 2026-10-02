@@ -17,4 +17,8 @@ public class JourneyCard
     public string HeroImageUrl { get; set; } = string.Empty;
 
     public int SortOrder { get; set; }
+
+    public bool IsAvailable { get; set; } = true;
+
+    public string? ComingSoonText { get; set; }
 }

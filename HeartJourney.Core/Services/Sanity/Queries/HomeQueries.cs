@@ -13,7 +13,9 @@ public static class HomeQueries
             theme,
             icon,
             "heroImageUrl": heroImage.asset->url,
-            sortOrder
+            sortOrder,
+            isAvailable,
+            comingSoonText
         }
         """;
 }

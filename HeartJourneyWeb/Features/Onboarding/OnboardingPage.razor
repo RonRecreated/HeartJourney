@@ -2,6 +2,7 @@
 @using HeartJourneyWeb.Features.Onboarding
 @using HeartJourneyWeb.Services.Auth
 @using HeartJourneyWeb.Services.Profiles
+@using HeartJourneyWeb.Components
 @inject IAuthService AuthService
 @inject IProfileService ProfileService
 @inject NavigationManager NavigationManager
@@ -20,7 +21,7 @@
 
         @if (_isLoading)
         {
-            <p>Loading profile...</p>
+            <JourneyLoader Message="Loading Profile..." />
         }
         else if (!string.IsNullOrWhiteSpace(_errorMessage))
         {

@@ -1,0 +1,93 @@
+@using Microsoft.JSInterop
+@implements IAsyncDisposable
+@inject IJSRuntime JS
+
+<div class="turnstile-container">
+    <div id="@_elementId"></div>
+</div>
+
+@code {
+    [Parameter]
+    public string SiteKey { get; set; } = string.Empty;
+
+    [Parameter]
+    public EventCallback<string?> TokenChanged { get; set; }
+
+    private readonly string _elementId =
+        $"turnstile-{Guid.NewGuid():N}";
+
+    private DotNetObjectReference<TurnstileWidget>? _dotNetReference;
+
+
+    protected override async Task OnAfterRenderAsync(
+        bool firstRender)
+    {
+        if (!firstRender)
+        {
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(SiteKey))
+        {
+            return;
+        }
+
+        _dotNetReference =
+            DotNetObjectReference.Create(this);
+
+        await JS.InvokeVoidAsync(
+            "journeyTurnstile.render",
+            _elementId,
+            SiteKey,
+            _dotNetReference);
+    }
+
+
+    [JSInvokable]
+    public async Task OnTurnstileSuccess(
+        string token)
+    {
+        await TokenChanged.InvokeAsync(token);
+    }
+
+
+    [JSInvokable]
+    public async Task OnTurnstileExpired()
+    {
+        await TokenChanged.InvokeAsync(null);
+    }
+
+
+    [JSInvokable]
+    public async Task OnTurnstileError()
+    {
+        await TokenChanged.InvokeAsync(null);
+    }
+
+
+    public async Task ResetAsync()
+    {
+        await JS.InvokeVoidAsync(
+            "journeyTurnstile.reset",
+            _elementId);
+
+        await TokenChanged.InvokeAsync(null);
+    }
+
+
+    public async ValueTask DisposeAsync()
+    {
+        try
+        {
+            await JS.InvokeVoidAsync(
+                "journeyTurnstile.remove",
+                _elementId);
+        }
+        catch
+        {
+            // Component may be disappearing during navigation.
+        }
+
+        _dotNetReference?.Dispose();
+    }
+}

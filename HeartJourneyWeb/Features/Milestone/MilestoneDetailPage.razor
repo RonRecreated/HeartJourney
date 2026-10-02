@@ -6,6 +6,7 @@
 @using Microsoft.JSInterop
 @using HeartJourneyWeb.Services.ReflectionAnswers
 @using HeartJourneyWeb.Services.DimensionProgress
+@using HeartJourneyWeb.Components
 @using HeartJourneyWeb.Services.ActionSteps
 @inject IUserActionStepService UserActionStepService
 @inject IDimensionProgressService DimensionProgressService
@@ -21,7 +22,7 @@
     <!-- Loading, error, and content will be rendered here -->
     @if (_isLoading)
     {
-        <p>Loading milestone...</p>
+        <JourneyLoader Message="Loading Milestone..." />
     }
     else if (!string.IsNullOrWhiteSpace(_errorMessage))
     {
