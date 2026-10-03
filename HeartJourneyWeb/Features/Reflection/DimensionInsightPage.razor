@@ -167,6 +167,17 @@
                                                 </a>
                                             }
 
+                                            @if (!string.IsNullOrWhiteSpace(step.ResourceLabel2)
+                                                && !string.IsNullOrWhiteSpace(step.ResourceUrl2))
+                                            {
+                                                <a class="resource-link"
+                                                    href="@step.ResourceUrl2"
+                                                    target="_blank"
+                                                    rel="noopener noreferrer">
+                                                    @step.ResourceLabel2
+                                                </a>
+                                            }
+
                                             <div class="action-step-status">
                                                 <span class="status-label">
                                                     Current status: @FormatStatus(step.Status)
