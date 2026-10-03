@@ -90,7 +90,8 @@
 }
 
 .resource-link {
-    display: inline-flex;
+    display: block;
+    width: fit-content;
     margin-top: 0.75rem;
     font-weight: 800;
     color: #ff5a8a;
