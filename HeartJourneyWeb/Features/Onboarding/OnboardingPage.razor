@@ -102,6 +102,11 @@
 </section>
 
 @code {
+    // PAYWALL PREVIEW: preserve the destination after the user's profile is saved.
+    [SupplyParameterFromQuery]
+    public string? ReturnUrl { get; set; }
+    private string SafeDestination => HeartJourneyWeb.Helpers.JourneyPreviewNavigation.SafeReturnUrl(ReturnUrl);
+
     private readonly OnboardingFormModel _form = new();
 
     private HeartJourneyProfile? _profile;
@@ -115,7 +120,7 @@
 
         if (!AuthService.IsSignedIn)
         {
-            NavigationManager.NavigateTo("/auth");
+            NavigationManager.NavigateTo($"/auth?returnUrl={Uri.EscapeDataString(SafeDestination)}");
             return;
         }
 
@@ -160,7 +165,7 @@
 
             await ProfileService.UpdateProfileAsync(_profile);
 
-            NavigationManager.NavigateTo("/journeys");
+            NavigationManager.NavigateTo(SafeDestination);
         }
         catch (Exception ex)
         {

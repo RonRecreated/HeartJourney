@@ -1,0 +1,16 @@
+[
+  "HeartJourneyWeb/App.razor",
+  "HeartJourneyWeb/Features/Home/HomePage.razor",
+  "HeartJourneyWeb/Features/Journey/JourneyDetailPage.razor",
+  "HeartJourneyWeb/Components/Auth/RequireJourneyAccess.razor",
+  "HeartJourneyWeb/Features/Milestone/MilestoneIntroPage.razor",
+  "HeartJourneyWeb/Features/Milestone/MilestoneIntroPage.razor.css",
+  "HeartJourneyWeb/Features/Milestone/MilestoneResumePage.razor",
+  "HeartJourneyWeb/Services/Checkout/CheckoutService.cs",
+  "HeartJourneyWeb/Services/Checkout/ICheckoutService.cs",
+  "HeartJourneyWeb/Features/Auth/AuthPage.razor",
+  "HeartJourneyWeb/Features/Auth/AuthConfirmedPage.razor",
+  "HeartJourneyWeb/Services/Auth/SupabaseAuthService.cs",
+  "HeartJourneyWeb/Features/Onboarding/WelcomePage.razor",
+  "HeartJourneyWeb/Features/Onboarding/OnboardingPage.razor"
+]

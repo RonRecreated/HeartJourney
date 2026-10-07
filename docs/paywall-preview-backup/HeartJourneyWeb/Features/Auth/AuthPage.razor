@@ -1,0 +1,318 @@
+@page "/auth"
+@using HeartJourneyWeb.Services.Auth
+@using HeartJourneyWeb.Services.Profiles
+@using HeartJourneyWeb.Components
+@inject IConfiguration Configuration
+@inject IProfileService ProfileService
+@inject IAuthService AuthService
+@inject NavigationManager NavigationManager
+
+<PageTitle>Sign In - Journey Recreated</PageTitle>
+
+<section class="auth-shell">
+    <div class="auth-card">
+        <p class="eyebrow">Journey Recreated</p>
+
+        <h1>@(_isCreateAccountMode ? "Create your account" : "Welcome back")</h1>
+
+        <p class="intro">
+            Sign in to save your journey, reflection answers, notes, and future insights.
+        </p>
+
+        @if (!string.IsNullOrWhiteSpace(_message))
+        {
+            <div class="@(_isError ? "message error" : "message success")">
+                @_message
+            </div>
+        }
+
+        <EditForm Model="_form" OnValidSubmit="HandleSubmitAsync">
+            <DataAnnotationsValidator />
+
+            <div class="form-field">
+                <label for="email">Email</label>
+                <InputText id="email"
+                           type="email"
+                           @bind-Value="_form.Email" />
+                <ValidationMessage For="@(() => _form.Email)" />
+            </div>
+
+            <div class="form-field">
+                <label for="password">Password</label>
+                <InputText id="password"
+                           type="password"
+                           @bind-Value="_form.Password" />
+                <ValidationMessage For="@(() => _form.Password)" />
+            </div>
+
+            @if (!_isCreateAccountMode)
+            {
+                <button type="button"
+                        class="forgot-password-link"
+                        @onclick="OpenForgotPassword">
+                    Forgot password?
+                </button>
+            }
+
+            <TurnstileWidget
+                @ref="_turnstile"
+                SiteKey="@TurnstileSiteKey"
+                TokenChanged="OnCaptchaTokenChanged" />
+
+            <button type="submit" class="primary-button" disabled="@_isBusy">
+                @if (_isBusy)
+                {
+                    <span>Please wait...</span>
+                }
+                else
+                {
+                    <span>@(_isCreateAccountMode ? "Create Account" : "Sign In")</span>
+                }
+            </button>
+        </EditForm>
+
+        @if (_showForgotPassword)
+        {
+            <div class="modal-backdrop"
+                @onclick="() => _showForgotPassword = false">
+
+                <div class="confirmation-modal"
+                    role="dialog"
+                    aria-modal="true"
+                    @onclick:stopPropagation="true">
+
+                    <h2>Reset your password</h2>
+
+                    <p>
+                        Enter your email address and we'll send you
+                        a password reset link.
+                    </p>
+
+                    <input type="email"
+                        class="form-control"
+                        @bind="_resetEmail" />
+
+                    @if (!string.IsNullOrWhiteSpace(_resetMessage))
+                    {
+                        <p>@_resetMessage</p>
+                    }
+
+                    <TurnstileWidget
+                        @ref="_resetTurnstile"
+                        SiteKey="@TurnstileSiteKey"
+                        TokenChanged="OnResetCaptchaTokenChanged" />
+
+                    <div class="confirmation-actions">
+                        <button type="button"
+                                class="secondary-button"
+                                disabled="@_isSendingReset"
+                                @onclick="() => _showForgotPassword = false">
+                            Cancel
+                        </button>
+
+                        <button type="button"
+                                class="primary-button"
+                                disabled="@_isSendingReset"
+                                @onclick="SendPasswordResetAsync">
+                            @(_isSendingReset ? "Sending..." : "Send Reset Link")
+                        </button>
+                    </div>
+                </div>
+            </div>
+        }
+        
+        <button type="button"
+                class="mode-button"
+                @onclick="ToggleMode"
+                disabled="@_isBusy">
+            @if (_isCreateAccountMode)
+            {
+                <span>Already have an account? Sign in</span>
+            }
+            else
+            {
+                <span>Need an account? Create one</span>
+            }
+        </button>
+    </div>
+</section>
+
+@code {
+    private readonly AuthFormModel _form = new();
+
+    private bool _isCreateAccountMode;
+    private bool _isBusy;
+    private bool _isError;
+    private string? _message;
+    private bool _showForgotPassword;
+    private string _resetEmail = string.Empty;
+    private bool _isSendingReset;
+    private string? _resetMessage;
+    private string? _captchaToken;
+    private TurnstileWidget? _turnstile;
+
+    private string TurnstileSiteKey =>
+    Configuration["Turnstile:SiteKey"]
+    ?? string.Empty;
+
+    private string? _resetCaptchaToken;
+    private TurnstileWidget? _resetTurnstile;
+
+    private void OnResetCaptchaTokenChanged(string? token)
+    {
+        _resetCaptchaToken = token;
+    }
+
+    [SupplyParameterFromQuery]
+    public string? ReturnUrl { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await AuthService.InitializeAsync();
+
+        if (AuthService.IsSignedIn)
+        {
+            NavigationManager.NavigateTo(
+                string.IsNullOrWhiteSpace(ReturnUrl) ? "/journeys" : ReturnUrl);
+        }
+    }
+
+    private async Task HandleSubmitAsync()
+    {
+        if (_isBusy)
+        {
+            return;
+        }
+
+        _message = null;
+        _isError = false;
+
+        // ---------------------------------
+        // Require Turnstile before auth
+        // ---------------------------------
+        if (string.IsNullOrWhiteSpace(_captchaToken))
+        {
+            _message = "Please complete the security check.";
+
+            _isError = true;
+            return;
+        }
+
+        _isBusy = true;
+
+        try
+        {
+            AuthResult result;
+
+            if (_isCreateAccountMode)
+            {
+                result = await AuthService.SignUpAsync(
+                    _form.Email,
+                    _form.Password,
+                    _captchaToken);
+            }
+            else
+            {
+                result = await AuthService.SignInAsync(
+                    _form.Email,
+                    _form.Password,
+                    _captchaToken);
+            }
+
+            _message = result.Message;
+            _isError = !result.Succeeded;
+            _form.Password = string.Empty;
+
+            if (result.Succeeded && AuthService.IsSignedIn)
+            {
+                var profile = await ProfileService.EnsureProfileAsync();
+
+                if (!profile.OnboardingCompleted)
+                {
+                    NavigationManager.NavigateTo("/welcome");
+                    return;
+                }
+                
+                NavigationManager.NavigateTo(
+                    string.IsNullOrWhiteSpace(ReturnUrl) ? "/journeys" : ReturnUrl);
+            }
+        }
+        finally
+        {
+            _isBusy = false;
+            _captchaToken = null;
+
+            if (_turnstile is not null)
+            {
+                await _turnstile.ResetAsync();
+            }
+        }
+    }
+
+    private void ToggleMode()
+    {
+        _isCreateAccountMode = !_isCreateAccountMode;
+        _message = null;
+        _isError = false;
+    }
+
+    private void OpenForgotPassword()
+    {
+        _resetEmail = _form.Email;
+        _resetMessage = null;
+        _resetCaptchaToken = null;
+        _showForgotPassword = true;
+    }
+
+    private async Task SendPasswordResetAsync()
+    {
+        if (_isSendingReset ||
+            string.IsNullOrWhiteSpace(_resetEmail))
+        {
+            return;
+        }
+
+        var token = _resetCaptchaToken;
+
+        if (string.IsNullOrWhiteSpace(token))
+        {
+            _resetMessage = "Please complete the security check.";
+            return;
+        }
+
+        _isSendingReset = true;
+        _resetMessage = null;
+
+        try
+        {
+            var sent = await AuthService.SendPasswordResetEmailAsync(
+                _resetEmail,
+                token);
+
+            _resetMessage = sent
+                ? "If an account exists for that email address, a reset link has been sent."
+                : "Please enter a valid email address.";
+        }
+        catch
+        {
+            _resetMessage =
+                "Unable to send the reset email right now. Please try again.";
+        }
+        finally
+        {
+            _isSendingReset = false;
+
+            _resetCaptchaToken = null;
+
+            if (_showForgotPassword && _resetTurnstile is not null)
+            {
+                await _resetTurnstile.ResetAsync();
+            }
+        }
+    }
+
+    private void OnCaptchaTokenChanged(string? token)
+    {
+        _captchaToken = token;
+    }
+}

@@ -4,11 +4,17 @@
 @using HeartJourneyWeb.Services.Auth
 @using HeartJourneyWeb.Services.MilestoneProgress
 @using HeartJourneyWeb.Components
+@using HeartJourneyWeb.Services.JourneyAccess
+@using HeartJourneyWeb.Services.Checkout
+@using HeartJourneyWeb.Helpers
+@implements IDisposable
+@inject IJourneyAccessService JourneyAccessService
+@inject ICheckoutService CheckoutService
+@inject IJSRuntime JS
 @inject IMilestoneProgressService MilestoneProgressService
 @inject NavigationManager NavigationManager
 @inject IContentRepository ContentRepository
 @inject IAuthService AuthService
-@inject NavigationManager NavigationManager
 
 <PageTitle>@(_intro?.Title ?? "Milestone Intro")</PageTitle>
 
@@ -134,6 +140,10 @@
             }
 
             <div class="intro-actions">
+                @if (!string.IsNullOrWhiteSpace(_checkoutError))
+                {
+                    <p class="error-card" role="alert">@_checkoutError</p>
+                }
                 @if (_currentStep > 0)
                 {
                     <button type="button"
@@ -147,10 +157,12 @@
                 {
                     <button type="button"
                             class="milestone-primary-button"
-                            disabled="@_isContinuing"
+                            disabled="@(_isContinuing || _isConfirmingPurchase)"
                             @onclick="ContinueToGrowthAreasAsync">
                         @(_isContinuing
-                            ? "Continuing..."
+                            ? (_hasJourneyAccess ? "Continuing..." : "Opening Checkout...")
+                            : !_hasJourneyAccess
+                                ? "Pay to Unlock Journey"
                             : ReviewMode
                                 ? "Return to Growth Areas"
                                 : "Continue to Growth Areas")
@@ -179,6 +191,16 @@
     [SupplyParameterFromQuery(Name = "review")]
     public bool ReviewMode { get; set; }
 
+    // PAYWALL PREVIEW: restore card four after authentication, cancellation, or purchase.
+    [SupplyParameterFromQuery(Name = "step")]
+    public int? RequestedStep { get; set; }
+    [SupplyParameterFromQuery(Name = "checkout")]
+    public string? CheckoutResult { get; set; }
+    private bool _hasJourneyAccess;
+    private bool _isConfirmingPurchase;
+    private string? _checkoutError;
+    private CancellationTokenSource? _accessCheck;
+
     private MilestoneIntroView? _intro;
     private bool _isLoading = true;
     private bool _isContinuing;
@@ -194,25 +216,24 @@
     {
         _isLoading = true;
         _errorMessage = null;
-        _currentStep = 0;
-
-        await AuthService.InitializeAsync();
-
-        if (!AuthService.IsSignedIn)
-        {
-            var currentPath = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
-
-            NavigationManager.NavigateTo(
-                $"/auth?returnUrl=/{Uri.EscapeDataString(currentPath)}");
-
-            return;
-        }
+        _currentStep = RequestedStep == 4 ? 3 : 0;
+        _hasJourneyAccess = false;
+        _checkoutError = null;
+        _accessCheck?.Cancel();
+        _accessCheck?.Dispose();
+        _accessCheck = new CancellationTokenSource();
 
         try
         {
             _intro = await ContentRepository.GetMilestoneIntroBySlugsAsync(
                 JourneySlug,
                 MilestoneSlug);
+            // PAYWALL PREVIEW: signed-out visitors can read all four cards without personal data.
+            await AuthService.InitializeAsync();
+            if (AuthService.IsSignedIn)
+            {
+                _hasJourneyAccess = await JourneyAccessService.HasAccessAsync(JourneySlug);
+            }
         }
         catch (Exception ex)
         {
@@ -221,6 +242,18 @@
         finally
         {
             _isLoading = false;
+        }
+
+        if (!string.IsNullOrEmpty(CheckoutResult) && _intro is not null)
+        {
+            _currentStep = 3;
+            try { await JS.InvokeVoidAsync("localStorage.removeItem", CheckoutReturnRecovery.StorageKey); }
+            catch (JSException) { }
+            // Confirm access after checkout, but skip polling when checkout was canceled.
+            if (CheckoutResult != "cancel" && !_hasJourneyAccess && AuthService.IsSignedIn)
+            {
+                await ConfirmPurchaseAsync(_accessCheck.Token);
+            }
         }
     }
 
@@ -255,6 +288,31 @@
 
         try
         {
+            // PAYWALL PREVIEW: recheck ownership before checkout; URL flags never grant access.
+            await AuthService.InitializeAsync();
+            if (!AuthService.IsSignedIn)
+            {
+                var returnPath = JourneyPreviewNavigation.IntroUrl(JourneySlug, MilestoneSlug, fourthCard: true);
+                NavigationManager.NavigateTo($"/auth?returnUrl={Uri.EscapeDataString(returnPath)}");
+                return;
+            }
+            _checkoutError = null;
+            _hasJourneyAccess = await JourneyAccessService.HasAccessAsync(JourneySlug);
+            if (!_hasJourneyAccess)
+            {
+                var returnPath = JourneyPreviewNavigation.IntroUrl(JourneySlug, MilestoneSlug, fourthCard: true);
+                var checkoutUrl = await CheckoutService.CreateCheckoutAsync(JourneySlug, returnPath: returnPath);
+                try
+                {
+                    var pending = new CheckoutReturnRecovery.PendingCheckout(JourneySlug, returnPath, DateTimeOffset.UtcNow);
+                    await JS.InvokeVoidAsync("localStorage.setItem", CheckoutReturnRecovery.StorageKey, System.Text.Json.JsonSerializer.Serialize(pending));
+                }
+                catch (JSException) { }
+                NavigationManager.NavigateTo(checkoutUrl, forceLoad: true);
+                return;
+            }
+
+            // Count the visit only when an owner actually enters Growth Areas, never on checkout/cancel.
             if (!ReviewMode)
             {
                 await MilestoneProgressService.CompleteIntroVisitAsync(
@@ -265,10 +323,69 @@
             NavigationManager.NavigateTo(
                 $"/journeys/{JourneySlug}/milestones/{MilestoneSlug}");
         }
+        catch (Exception)
+        {
+            _checkoutError = "Unable to continue right now. Please refresh the page and try again.";
+        }
         finally
         {
             _isContinuing = false;
         }
+    }
+
+    private async Task ConfirmPurchaseAsync(CancellationToken cancellationToken)
+    {
+        _isConfirmingPurchase = true;
+        _checkoutError = null;
+
+        try
+        {
+            await AuthService.InitializeAsync();
+
+            if (!AuthService.IsSignedIn)
+            {
+                return;
+            }
+
+            // Allow a short delay for the payment webhook to grant access.
+            for (var attempt = 0; attempt < 5; attempt++)
+            {
+                _hasJourneyAccess =
+                    await JourneyAccessService.HasAccessAsync(
+                        JourneySlug,
+                        cancellationToken);
+
+                if (_hasJourneyAccess)
+                {
+                    return;
+                }
+
+                if (attempt < 4)
+                {
+                    await Task.Delay(
+                        TimeSpan.FromSeconds(2),
+                        cancellationToken);
+                }
+            }
+        }
+        catch (OperationCanceledException)
+        {
+        }
+        catch (Exception)
+        {
+            _checkoutError =
+                "Unable to check purchase status. Please refresh the page and try again.";
+        }
+        finally
+        {
+            _isConfirmingPurchase = false;
+        }
+    }
+
+    public void Dispose()
+    {
+        _accessCheck?.Cancel();
+        _accessCheck?.Dispose();
     }
 
     private static string GetMilestoneCssClass(string? milestoneSlug)

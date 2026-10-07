@@ -1,16 +1,13 @@
-﻿@page "/journeys"
+@page "/journeys"
 @using HeartJourney.Core.Features.Home
 @using HeartJourney.Core.Services.Interfaces
 @using HeartJourneyWeb.Helpers
 @using HeartJourneyWeb.Components
 @using HeartJourneyWeb.Services.JourneyAccess
-@using HeartJourneyWeb.Services.Checkout
 @using HeartJourneyWeb.Services.Auth
 @inject IAuthService AuthService
 @inject IContentRepository ContentRepository
 @inject IJourneyAccessService JourneyAccessService
-@inject ICheckoutService CheckoutService
-@inject NavigationManager Navigation
 
 <PageTitle>Journey Recreated</PageTitle>
 
@@ -62,27 +59,10 @@
                         }
                         else
                         {
-                            <button type="button"
-                                    class="journey-action"
-                                    disabled="@(_checkoutJourneySlug is not null)"
-                                    @onclick="() => UnlockJourneyAsync(journey.Slug)">
-                                
-                                @if (IsCheckoutStarting(journey.Slug))
-                                {
-                                    <i class="fa-solid fa-spinner fa-spin"
-                                        aria-hidden="true"></i>
-
-                                    <span>Opening Checkout...</span>
-                                }
-                                else
-                                {
-                                    <i class="fa-solid fa-lock-open"
-                                        aria-hidden="true"></i>
-
-                                    <span>Unlock Journey</span>
-                                }
-
-                            </button>
+                            @* PAYWALL PREVIEW: exploration starts here; checkout lives on intro card four. *@
+                            <a href="@($"/journeys/{journey.Slug}")" class="journey-action">
+                                Explore Journey
+                            </a>
                         }
                     }
                     else
@@ -110,13 +90,13 @@
     private HashSet<string> _ownedJourneySlugs =
         new(StringComparer.OrdinalIgnoreCase);
 
-    private string? _checkoutJourneySlug;
-    private string? _checkoutError;
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
+            // PAYWALL PREVIEW: restore ownership before choosing Explore versus Continue.
+            await AuthService.InitializeAsync();
             var journeys = await ContentRepository.GetJourneyCardsAsync();
             
             _journeys = journeys.ToList();
@@ -146,61 +126,4 @@
         return !string.IsNullOrWhiteSpace(journeySlug) && _ownedJourneySlugs.Contains(journeySlug);
     }
 
-    private async Task UnlockJourneyAsync(string journeySlug)
-    {
-        // Make sure authentication state has been restored.
-        await AuthService.InitializeAsync();
-
-        // Not signed in?
-        // Send them to the login page instead of Stripe.
-        if (!AuthService.IsSignedIn)
-        {
-            var returnUrl =
-                Uri.EscapeDataString("/journeys");
-
-            Navigation.NavigateTo(
-                $"/auth?returnUrl={returnUrl}");
-
-            return;
-        }
-        
-        // Prevent multiple checkout sessions from being
-        // started at the same time.
-        if (_checkoutJourneySlug is not null)
-        {
-            return;
-        }
-
-        _checkoutJourneySlug = journeySlug;
-        _checkoutError = null;
-
-        try
-        {
-            var checkoutUrl =
-                await CheckoutService
-                    .CreateCheckoutAsync(
-                        journeySlug);
-
-            Navigation.NavigateTo(checkoutUrl, forceLoad: true);
-        }
-        catch (Exception ex)
-        {
-            _checkoutError = ex.Message;
-        }
-        finally
-        {
-            _checkoutJourneySlug = null;
-        }
-    }
-
-    private bool IsCheckoutStarting(string? journeySlug)
-    {
-        return
-            !string.IsNullOrWhiteSpace(journeySlug)
-            &&
-            string.Equals(
-                _checkoutJourneySlug,
-                journeySlug,
-                StringComparison.OrdinalIgnoreCase);
-    }
 }

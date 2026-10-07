@@ -1,0 +1,38 @@
+@inject IJSRuntime JS
+@inject NavigationManager Navigation
+
+@code {
+    // PAYWALL PREVIEW: a navigation hint only. Stored state never grants paid access.
+    public const string StorageKey = "heartjourney.checkout.preview";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        try
+        {
+            var json = await JS.InvokeAsync<string?>("localStorage.getItem", StorageKey);
+            if (json is null) return;
+            var pending = System.Text.Json.JsonSerializer.Deserialize<PendingCheckout>(json);
+            if (pending is null || string.IsNullOrWhiteSpace(pending.JourneySlug) ||
+                string.IsNullOrWhiteSpace(pending.ReturnPath) ||
+                DateTimeOffset.UtcNow - pending.CreatedAt > TimeSpan.FromMinutes(30) ||
+                pending.CreatedAt > DateTimeOffset.UtcNow.AddMinutes(1))
+            {
+                await JS.InvokeVoidAsync("localStorage.removeItem", StorageKey);
+                return;
+            }
+            var path = new Uri(Navigation.Uri).AbsolutePath;
+            // Recover only generic checkout destinations, leaving other browsing/authentication alone.
+            if (path == "/" || path == "/journeys" || path == $"/journeys/{Uri.EscapeDataString(pending.JourneySlug)}")
+            {
+                await JS.InvokeVoidAsync("localStorage.removeItem", StorageKey);
+                var safePath = HeartJourneyWeb.Helpers.JourneyPreviewNavigation.SafeReturnUrl(pending.ReturnPath);
+                Navigation.NavigateTo(safePath + (safePath.Contains('?') ? "&" : "?") + "checkout=return", replace: true);
+            }
+        }
+        catch (JSException) { /* Explicit checkout URLs still work when browser storage is unavailable. */ }
+        catch (System.Text.Json.JsonException) { /* Ignore invalid browser navigation hints. */ }
+    }
+
+    public sealed record PendingCheckout(string JourneySlug, string ReturnPath, DateTimeOffset CreatedAt);
+}

@@ -1,0 +1,222 @@
+.milestone-intro-shell {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 3rem 1.25rem 4rem;
+}
+
+.breadcrumb {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+    font-size: 0.95rem;
+    opacity: 0.75;
+}
+
+.breadcrumb a {
+    text-decoration: none;
+    font-weight: 700;
+}
+
+.intro-card {
+    position: relative;
+    overflow: hidden;
+
+    background: var(--color-surface);
+
+    border: 1px solid color-mix(
+        in srgb,
+        var(--milestone-color) 32%,
+        white
+    );
+
+    border-radius: var(--radius-lg);
+
+    padding: 2rem;
+
+    box-shadow:
+        0 22px 55px color-mix(
+            in srgb,
+            var(--milestone-color) 20%,
+            transparent
+        );
+}
+
+.intro-card::before {
+    content: "";
+    position: absolute;
+
+    top: 0;
+    left: 0;
+    right: 0;
+
+    height: 4px;
+
+    background: var(--milestone-color);
+}
+
+.step-indicator {
+    display: inline-flex;
+
+    margin-bottom: 1rem;
+    padding: .35rem .65rem;
+
+    border-radius: 999px;
+
+    background: color-mix(
+        in srgb,
+        var(--milestone-color) 10%,
+        white
+    );
+
+    color: var(--milestone-color);
+
+    font-size: .8rem;
+    font-weight: 700;
+}
+
+.eyebrow {
+    color: var(--milestone-color);
+
+    font-size: .8rem;
+    font-weight: 700;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+}
+
+.intro-card h1 {
+    color: var(--color-text);
+
+    margin-top: .4rem;
+    margin-bottom: 1rem;
+
+    line-height: 1.15;
+}
+
+.motto {
+    color: var(--color-text);
+    font-weight: 700;
+}
+
+.intro-text,
+.intro-list {
+    color: var(--color-text-muted);
+
+    font-size: 1.05rem;
+    line-height: 1.7;
+}
+
+.verse-list {
+    display: grid;
+    gap: 1rem;
+
+    margin-top: 1.25rem;
+}
+
+.verse-card {
+    padding: 1rem 1.1rem;
+
+    background: color-mix(
+        in srgb,
+        var(--milestone-color) 6%,
+        white
+    );
+
+    border: 1px solid color-mix(
+        in srgb,
+        var(--milestone-color) 20%,
+        white
+    );
+
+    border-radius: var(--radius-md);
+}
+
+.verse-card p {
+    margin: 0 0 .5rem;
+
+    color: var(--color-text);
+    line-height: 1.6;
+}
+
+.verse-card strong {
+    color: var(--milestone-color);
+}
+
+.intro-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.milestone-primary-button {
+    background: var(--milestone-color);
+    color: white;
+
+    border: none;
+    border-radius: var(--radius-md);
+
+    padding: .8rem 1.2rem;
+
+    font-weight: 700;
+    cursor: pointer;
+
+    transition:
+        transform var(--transition-fast),
+        filter var(--transition-fast),
+        box-shadow var(--transition-fast);
+}
+
+.milestone-primary-button:hover {
+    filter: brightness(.95);
+    box-shadow: var(--shadow-sm);
+}
+
+.milestone-primary-button:active {
+    transform: scale(.98);
+}
+
+.milestone-primary-button:disabled {
+    opacity: .55;
+    cursor: not-allowed;
+}
+
+.error-card {
+    border: 1px solid color-mix(
+        in srgb,
+        var(--color-danger) 35%,
+        white
+    );
+
+    border-radius: var(--radius-md);
+    padding: 1rem;
+
+    background: color-mix(
+        in srgb,
+        var(--color-danger) 7%,
+        white
+    );
+
+    color: var(--color-text);
+}
+
+@media (max-width: 640px) {
+    .milestone-intro-shell {
+        padding: 2rem 1rem 3rem;
+    }
+
+    .intro-card {
+        padding: 1.5rem;
+    }
+
+    .intro-actions {
+        flex-direction: column-reverse;
+        align-items: stretch;
+    }
+
+    .intro-actions button {
+        width: 100%;
+    }
+}

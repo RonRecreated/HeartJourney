@@ -1,0 +1,97 @@
+@using HeartJourneyWeb.Services.Auth
+@using HeartJourneyWeb.Services.JourneyAccess
+@using HeartJourneyWeb.Components
+@implements IDisposable
+@inject IAuthService AuthService
+@inject IJourneyAccessService JourneyAccessService
+@inject NavigationManager Navigation
+
+@if (_isChecking)
+{
+    <JourneyLoader Message="Checking Journey access..." />
+}
+else if (_checkFailed)
+{
+    <div class="error-card" role="alert">
+        <strong>Unable to check Journey access.</strong>
+        <p>Please refresh the page and try again.</p>
+    </div>
+}
+else if (_hasAccess)
+{
+    @ChildContent
+}
+
+@code {
+    [Parameter]
+    public string JourneySlug { get; set; } = string.Empty;
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    private bool _isChecking = true;
+    private bool _hasAccess;
+    private bool _checkFailed;
+    private bool _disposed;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _isChecking = true;
+        _hasAccess = false;
+        _checkFailed = false;
+
+        try
+        {
+            await AuthService.InitializeAsync();
+
+            if (_disposed)
+            {
+                return;
+            }
+
+            if (!AuthService.IsSignedIn)
+            {
+                var returnUrl = Uri.EscapeDataString(
+                    "/" + Navigation.ToBaseRelativePath(Navigation.Uri));
+
+                Navigation.NavigateTo(
+                    $"/auth?returnUrl={returnUrl}",
+                    replace: true);
+
+                return;
+            }
+
+            var hasAccess = await JourneyAccessService
+                .HasAccessAsync(JourneySlug);
+
+            if (_disposed)
+            {
+                return;
+            }
+
+            if (!hasAccess)
+            {
+                Navigation.NavigateTo(
+                    $"/journeys/{Uri.EscapeDataString(JourneySlug)}",
+                    replace: true);
+
+                return;
+            }
+
+            _hasAccess = true;
+        }
+        catch
+        {
+            _checkFailed = true;
+        }
+        finally
+        {
+            _isChecking = false;
+        }
+    }
+
+    public void Dispose()
+    {
+        _disposed = true;
+    }
+}

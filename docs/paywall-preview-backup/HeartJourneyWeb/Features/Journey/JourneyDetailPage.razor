@@ -1,0 +1,330 @@
+@page "/journeys/{Slug}"
+@using HeartJourney.Core.Features.Journey
+@using HeartJourneyWeb.Helpers
+@using HeartJourney.Core.Services.Interfaces
+@using HeartJourneyWeb.Services.Auth
+@using HeartJourneyWeb.Services.Profiles
+@using HeartJourneyWeb.Services.MilestoneProgress
+@using HeartJourneyWeb.Services.JourneyAccess
+@using HeartJourneyWeb.Services.Checkout
+@using HeartJourneyWeb.Components
+@inject IJourneyAccessService JourneyAccessService
+@inject ICheckoutService CheckoutService
+@inject NavigationManager Navigation
+@inject IMilestoneProgressService MilestoneProgressService
+@inject IAuthService AuthService
+@inject IProfileService ProfileService
+@inject IContentRepository ContentRepository
+
+<PageTitle>@(_journey?.Title ?? "Journey")</PageTitle>
+
+<section class="journey-detail-shell">
+    @if (_isLoading)
+    {
+        <JourneyLoader Message="Preparing your Journey..." />
+    }
+    else if (!string.IsNullOrWhiteSpace(_errorMessage))
+    {
+        <div class="error-card">
+            <strong>Something went wrong.</strong>
+            <p>@_errorMessage</p>
+        </div>
+    }
+    else if (!_hasJourneyAccess)
+    {
+        <section class="journey-access-required">
+            <div class="access-required-card">
+
+                <div class="access-icon">
+                    <i class="fa-solid fa-route"
+                        aria-hidden="true"></i>
+                </div>
+
+                <p class="access-eyebrow">
+                    Relationship Journey
+                </p>
+
+                <h1>Unlock This Journey</h1>
+
+                <p>
+                    Unlock the Relationship Journey to continue
+                    through its milestones, reflections, insights,
+                    and growth steps.
+                </p>
+
+                <button type="button"
+                        class="journey-action"
+                        disabled="@_checkoutStarting"
+                        @onclick="UnlockJourneyAsync">
+
+                    @if (_checkoutStarting)
+                    {
+                        <i class="fa-solid fa-spinner fa-spin"
+                            aria-hidden="true"></i>
+
+                        <span>Opening Checkout...</span>
+                    }
+                    else
+                    {
+                        <i class="fa-solid fa-lock-open"
+                            aria-hidden="true"></i>
+
+                        <span>Unlock Relationship Journey</span>
+                    }
+
+                </button>
+
+                <a href="/journeys" class="back-to-journeys">
+                    Back to My Journeys
+                </a>
+
+            </div>
+        </section>
+    }
+    else if (_journey is null)
+    {
+        <p>Journey not found.</p>
+    }
+    else
+    {
+        <nav class="breadcrumb"
+            aria-label="Breadcrumb">
+            <a href="/journeys">My Journeys</a>
+            <span>/</span>
+            <span>Relationship Journey</span>
+        </nav>
+
+        <header class="journey-hero">
+            <p class="eyebrow">Journey Recreated</p>
+            <h1>@_journey.Title</h1>
+
+            @if (!string.IsNullOrWhiteSpace(_journey.Summary))
+            {
+                <p class="summary">@_journey.Summary</p>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(_journey.Purpose))
+            {
+                <p class="purpose">@_journey.Purpose</p>
+            }
+        </header>
+
+        <section class="milestone-section">
+            <h2>Where are you today?</h2>
+            <p class="section-text">
+                Choose the milestone that best reflects your current season.
+            </p>
+
+            @if (_journey.Milestones.Count == 0)
+            {
+                <p>No published milestones were found for this journey.</p>
+            }
+            else
+            {
+                <div class="milestone-grid">
+                    @foreach (var milestone in _journey.Milestones)
+                    {
+                        var isCurrentSeason = IsCurrentSeason(milestone);
+                        
+                        <article class="milestone-card @GetMilestoneCssClass(milestone.Slug) @(isCurrentSeason ? "current-season" : null)">
+                            @if (isCurrentSeason)
+                            {
+                                <div class="season-badge">Your Current Season</div>
+                            }
+                            
+                            <div class="milestone-icon">
+                                <i class="@IconHelper.GetIconClass(milestone.Icon)"
+                                    aria-hidden="true"></i>
+                            </div>
+
+                            <h3>@milestone.Title</h3>
+
+                            @if (!string.IsNullOrWhiteSpace(milestone.Motto))
+                            {
+                                <p class="motto">@milestone.Motto</p>
+                            }
+
+                            @if (!string.IsNullOrWhiteSpace(milestone.Summary))
+                            {
+                                <p>@milestone.Summary</p>
+                            }
+
+                            @if (HasStartedMilestone(milestone.Slug))
+                            {
+                                <a class="milestone-action" href="@GetMilestoneResumeUrl(milestone.Slug)">
+                                    Resume
+                                </a>
+                            }
+                            else if (isCurrentSeason)
+                            {
+                                <a class="milestone-action" href="@GetMilestoneResumeUrl(milestone.Slug)">
+                                    Begin Here
+                                </a>
+                            }
+                            else
+                            {
+                                <a class="milestone-action" href="@GetMilestoneResumeUrl(milestone.Slug)">
+                                    Walk this milestone
+                                </a>
+                            }
+                        </article>
+                    }
+                </div>
+            }
+        </section>
+    }
+</section>
+
+@code {
+    [Parameter]
+    public string Slug { get; set; } = string.Empty;
+
+    private JourneyDetailView? _journey;
+    private HeartJourneyProfile? _profile;
+    private string? _currentSeasonSlug;
+    private bool _isLoading = true;
+    private bool _hasJourneyAccess;
+    private bool _checkoutStarting;
+    private string? _errorMessage;
+    private HashSet<string> _startedMilestoneSlugs =
+        new(StringComparer.OrdinalIgnoreCase);
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _isLoading = true;
+        _errorMessage = null;
+        _hasJourneyAccess = false;
+
+        try
+        {
+            // ---------------------------------
+            // 1. Initialize authentication first
+            // ---------------------------------
+            await AuthService.InitializeAsync();
+
+            if (!AuthService.IsSignedIn)
+            {
+                var returnUrl =
+                    Uri.EscapeDataString(Navigation.ToBaseRelativePath(Navigation.Uri));
+
+                Navigation.NavigateTo($"/auth?returnUrl=/{returnUrl}");
+
+                return;
+            }
+
+            // ---------------------------------
+            // 2. Check whether the user owns
+            //    this Journey
+            // ---------------------------------
+            _hasJourneyAccess =
+                await JourneyAccessService.HasAccessAsync(Slug);
+
+            if (!_hasJourneyAccess)
+            {
+                // Stop here.
+                // Do NOT load Sanity Journey content,
+                // profile information, or progress.
+                return;
+            }
+
+            // ---------------------------------
+            // 3. User has access.
+            //    Now load Journey content.
+            // ---------------------------------
+            _journey = await ContentRepository
+                .GetJourneyDetailBySlugAsync(Slug);
+
+            // ---------------------------------
+            // 4. Load the user's profile
+            // ---------------------------------
+            _profile = await ProfileService
+                .GetProfileAsync();
+
+            _currentSeasonSlug = _profile?.CurrentRelationshipSeason;
+
+            // ---------------------------------
+            // 5. Load milestone progress
+            // ---------------------------------
+            var milestoneProgress =
+                await MilestoneProgressService
+                    .GetProgressForJourneyAsync(Slug);
+
+            _startedMilestoneSlugs = milestoneProgress
+                .Where(progress =>
+                    !string.IsNullOrWhiteSpace(progress.MilestoneSlug))
+                .Select(progress =>
+                    progress.MilestoneSlug)
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = ex.Message;
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private bool IsCurrentSeason(MilestoneCard milestone)
+    {
+        return !string.IsNullOrWhiteSpace(_currentSeasonSlug)
+            && string.Equals(
+                milestone.Slug,
+                _currentSeasonSlug,
+                StringComparison.OrdinalIgnoreCase);
+    }
+
+    private bool HasStartedMilestone(string milestoneSlug)
+    {
+        return _startedMilestoneSlugs.Contains(milestoneSlug);
+    }
+
+    private string GetMilestoneResumeUrl(string milestoneSlug)
+    {
+        return $"/journeys/{Slug}/milestones/{milestoneSlug}/resume";
+    }
+
+    private static string GetMilestoneCssClass(string? milestoneSlug)
+    {
+        return milestoneSlug?.ToLowerInvariant() switch
+        {
+            "single" => "milestone-single",
+            "talking" => "milestone-talking",
+            "courting" => "milestone-courting",
+            "engaged" => "milestone-engaged",
+            "married" => "milestone-married",
+            "divorced" => "milestone-divorced",
+            _ => string.Empty
+        };
+    }
+
+    private async Task UnlockJourneyAsync()
+    {
+        if (_checkoutStarting)
+        {
+            return;
+        }
+
+        _checkoutStarting = true;
+        _errorMessage = null;
+
+        try
+        {
+            var checkoutUrl = await CheckoutService
+                .CreateCheckoutAsync(Slug);
+
+            Navigation.NavigateTo(
+                checkoutUrl,
+                forceLoad: true);
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = ex.Message;
+        }
+        finally
+        {
+            _checkoutStarting = false;
+        }
+    }
+}

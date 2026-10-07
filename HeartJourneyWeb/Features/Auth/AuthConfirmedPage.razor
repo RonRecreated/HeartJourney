@@ -22,8 +22,13 @@
 </section>
 
 @code {
+    // PAYWALL PREVIEW: the confirmation email can carry the local milestone destination.
+    [SupplyParameterFromQuery]
+    public string? ReturnUrl { get; set; }
+
     private void GoToSignIn()
     {
-        NavigationManager.NavigateTo("/auth");
+        var destination = HeartJourneyWeb.Helpers.JourneyPreviewNavigation.SafeReturnUrl(ReturnUrl);
+        NavigationManager.NavigateTo($"/auth?returnUrl={Uri.EscapeDataString(destination)}");
     }
 }

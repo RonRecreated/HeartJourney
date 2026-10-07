@@ -13,20 +13,24 @@ public class CheckoutService : ICheckoutService
     private readonly HttpClient _httpClient;
     private readonly IAuthService _authService;
     private readonly AppSupabaseOptions _options;
+    private readonly Microsoft.AspNetCore.Components.NavigationManager _navigation;
 
     public CheckoutService(
         HttpClient httpClient,
         IAuthService authService,
-        IOptions<AppSupabaseOptions> options)
+        IOptions<AppSupabaseOptions> options,
+        Microsoft.AspNetCore.Components.NavigationManager navigation)
     {
         _httpClient = httpClient;
         _authService = authService;
         _options = options.Value;
+        _navigation = navigation;
     }
 
     public async Task<string> CreateCheckoutAsync(
         string journeySlug,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        string? returnPath = null)
     {
         var accessToken =
             await _authService.GetValidAccessTokenAsync();
@@ -55,11 +59,17 @@ public class CheckoutService : ICheckoutService
             "apikey",
             _options.Key);
 
+        // PAYWALL PREVIEW: the function must validate these URLs against the app's allowed origin.
+        // Existing functions may ignore them; browser recovery retains the selected milestone too.
+        var safePath = HeartJourneyWeb.Helpers.JourneyPreviewNavigation.SafeReturnUrl(returnPath);
+        var separator = safePath.Contains('?') ? "&" : "?";
         request.Content =
             JsonContent.Create(
                 new
                 {
-                    journeySlug
+                    journeySlug,
+                    successUrl = _navigation.ToAbsoluteUri(safePath + separator + "checkout=success").ToString(),
+                    cancelUrl = _navigation.ToAbsoluteUri(safePath + separator + "checkout=cancel").ToString()
                 });
 
         using var response =

@@ -202,6 +202,13 @@
     color: var(--color-text);
 }
 
+/* PAYWALL PREVIEW: keep the offer visually distinct from the prayer invitation. */
+.preview-note { font-size: .9rem; color: var(--color-text); opacity: .8; }
+.purchase-offer { margin-top: 1.5rem; padding: 1.25rem; border: 1px solid currentColor; border-radius: var(--radius-md); }
+.purchase-offer h2 { font-size: 1.3rem; }
+.purchase-offer button { display: block; margin-top: 1rem; }
+.preview-exit { display: inline-block; margin-top: 1rem; }
+
 @media (max-width: 640px) {
     .milestone-intro-shell {
         padding: 2rem 1rem 3rem;

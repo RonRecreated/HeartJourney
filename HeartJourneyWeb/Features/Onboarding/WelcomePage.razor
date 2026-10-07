@@ -51,18 +51,23 @@
 </section>
 
 @code {
+    // PAYWALL PREVIEW: onboarding must return to the chosen purchase card.
+    [SupplyParameterFromQuery]
+    public string? ReturnUrl { get; set; }
+    private string SafeDestination => HeartJourneyWeb.Helpers.JourneyPreviewNavigation.SafeReturnUrl(ReturnUrl);
+
     protected override async Task OnInitializedAsync()
     {
         await AuthService.InitializeAsync();
 
         if (!AuthService.IsSignedIn)
         {
-            NavigationManager.NavigateTo("/auth");
+            NavigationManager.NavigateTo($"/auth?returnUrl={Uri.EscapeDataString(SafeDestination)}");
         }
     }
 
     private void GoToOnboarding()
     {
-        NavigationManager.NavigateTo("/onboarding");
+        NavigationManager.NavigateTo($"/onboarding?returnUrl={Uri.EscapeDataString(SafeDestination)}");
     }
 }

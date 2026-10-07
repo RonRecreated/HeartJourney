@@ -1,0 +1,29 @@
+@page "/auth/confirmed"
+@inject NavigationManager NavigationManager
+
+<PageTitle>Email Confirmed - Journey Recreated</PageTitle>
+
+<section class="auth-confirmed-shell">
+    <div class="confirmed-card">
+        <p class="eyebrow">Journey Recreated</p>
+
+        <h1>Your email has been confirmed</h1>
+
+        <p class="intro">
+            Thank you for confirming your account. You can now sign in and proceed to recreate your journey.
+        </p>
+
+        <button type="button"
+                class="primary-button"
+                @onclick="GoToSignIn">
+            Sign In
+        </button>
+    </div>
+</section>
+
+@code {
+    private void GoToSignIn()
+    {
+        NavigationManager.NavigateTo("/auth");
+    }
+}

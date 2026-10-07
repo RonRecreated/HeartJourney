@@ -1,11 +1,14 @@
 ﻿<Router AppAssembly="@typeof(App).Assembly"
         NotFoundPage="typeof(Features.NotFound)">
     <Found Context="routeData">
-        @if (routeData.RouteValues.TryGetValue(
+        @* PAYWALL PREVIEW: intro/resume are public; all other JourneySlug pages keep the payment guard. *@
+        @if (!HeartJourneyWeb.Helpers.JourneyPreviewNavigation.IsPreviewPage(routeData.PageType) &&
+            routeData.RouteValues.TryGetValue(
             "JourneySlug", out var journeySlug))
         {
             <RequireJourneyAccess
                 JourneySlug="@(journeySlug?.ToString() ?? string.Empty)"
+                MilestoneSlug="@(routeData.RouteValues.GetValueOrDefault("MilestoneSlug")?.ToString())"
                 @key="routeData">
                 <RouteView RouteData="@routeData"
                            DefaultLayout="@typeof(MainLayout)" />
@@ -22,3 +25,6 @@
         }
     </Found>
 </Router>
+
+@* PAYWALL PREVIEW: recover the chosen milestone if the existing checkout function returns to a generic page. *@
+<HeartJourneyWeb.Components.CheckoutReturnRecovery />

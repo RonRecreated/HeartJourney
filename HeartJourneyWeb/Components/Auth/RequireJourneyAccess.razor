@@ -26,6 +26,10 @@ else if (_hasAccess)
     [Parameter]
     public string JourneySlug { get; set; } = string.Empty;
 
+    // PAYWALL PREVIEW: direct links to paid content return to that milestone's purchase card.
+    [Parameter]
+    public string? MilestoneSlug { get; set; }
+
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
 
@@ -51,6 +55,13 @@ else if (_hasAccess)
 
             if (!AuthService.IsSignedIn)
             {
+                // PAYWALL PREVIEW: direct paid links first show the free purchase card, not sign-up.
+                if (!string.IsNullOrWhiteSpace(MilestoneSlug))
+                {
+                    Navigation.NavigateTo(HeartJourneyWeb.Helpers.JourneyPreviewNavigation.IntroUrl(
+                        JourneySlug, MilestoneSlug, fourthCard: true), replace: true);
+                    return;
+                }
                 var returnUrl = Uri.EscapeDataString(
                     "/" + Navigation.ToBaseRelativePath(Navigation.Uri));
 
@@ -72,7 +83,9 @@ else if (_hasAccess)
             if (!hasAccess)
             {
                 Navigation.NavigateTo(
-                    $"/journeys/{Uri.EscapeDataString(JourneySlug)}",
+                    string.IsNullOrWhiteSpace(MilestoneSlug)
+                        ? $"/journeys/{Uri.EscapeDataString(JourneySlug)}"
+                        : HeartJourneyWeb.Helpers.JourneyPreviewNavigation.IntroUrl(JourneySlug, MilestoneSlug, fourthCard: true),
                     replace: true);
 
                 return;

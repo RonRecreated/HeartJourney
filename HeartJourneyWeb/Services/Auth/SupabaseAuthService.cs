@@ -84,9 +84,14 @@ public class SupabaseAuthService : IAuthService
     {
         try
         {
+            // PAYWALL PREVIEW: preserve the purchase card even when confirmation opens another tab.
+            var query = new Uri(_navigationManager.Uri).Query.TrimStart('?').Split('&');
+            var returnValue = query.FirstOrDefault(part => part.StartsWith("returnUrl=", StringComparison.OrdinalIgnoreCase));
+            var destination = HeartJourneyWeb.Helpers.JourneyPreviewNavigation.SafeReturnUrl(
+                returnValue is null ? null : Uri.UnescapeDataString(returnValue[(returnValue.IndexOf('=') + 1)..]));
             var redirectTo = Uri.EscapeDataString(
                 _navigationManager
-                    .ToAbsoluteUri("/auth/confirmed")
+                    .ToAbsoluteUri($"/auth/confirmed?returnUrl={Uri.EscapeDataString(destination)}")
                     .ToString());
 
             using var response = await PostAuthAsync(

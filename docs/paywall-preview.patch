@@ -1,0 +1,1144 @@
+diff --git a/HeartJourneyWeb/App.razor b/HeartJourneyWeb/App.razor
+index bdcdbcb..bd98c37 100644
+--- a/HeartJourneyWeb/App.razor
++++ b/HeartJourneyWeb/App.razor
+@@ -1,11 +1,14 @@
+ ﻿<Router AppAssembly="@typeof(App).Assembly"
+         NotFoundPage="typeof(Features.NotFound)">
+     <Found Context="routeData">
+-        @if (routeData.RouteValues.TryGetValue(
++        @* PAYWALL PREVIEW: intro/resume are public; all other JourneySlug pages keep the payment guard. *@
++        @if (!HeartJourneyWeb.Helpers.JourneyPreviewNavigation.IsPreviewPage(routeData.PageType) &&
++            routeData.RouteValues.TryGetValue(
+             "JourneySlug", out var journeySlug))
+         {
+             <RequireJourneyAccess
+                 JourneySlug="@(journeySlug?.ToString() ?? string.Empty)"
++                MilestoneSlug="@(routeData.RouteValues.GetValueOrDefault("MilestoneSlug")?.ToString())"
+                 @key="routeData">
+                 <RouteView RouteData="@routeData"
+                            DefaultLayout="@typeof(MainLayout)" />
+@@ -21,4 +24,7 @@
+                              Selector="h1" />
+         }
+     </Found>
+-</Router>
+\ No newline at end of file
++</Router>
++
++@* PAYWALL PREVIEW: recover the chosen milestone if the existing checkout function returns to a generic page. *@
++<HeartJourneyWeb.Components.CheckoutReturnRecovery />
+diff --git a/HeartJourneyWeb/Components/Auth/RequireJourneyAccess.razor b/HeartJourneyWeb/Components/Auth/RequireJourneyAccess.razor
+index f81c03a..947be90 100644
+--- a/HeartJourneyWeb/Components/Auth/RequireJourneyAccess.razor
++++ b/HeartJourneyWeb/Components/Auth/RequireJourneyAccess.razor
+@@ -26,6 +26,10 @@ else if (_hasAccess)
+     [Parameter]
+     public string JourneySlug { get; set; } = string.Empty;
+ 
++    // PAYWALL PREVIEW: direct links to paid content return to that milestone's purchase card.
++    [Parameter]
++    public string? MilestoneSlug { get; set; }
++
+     [Parameter]
+     public RenderFragment? ChildContent { get; set; }
+ 
+@@ -51,6 +55,13 @@ else if (_hasAccess)
+ 
+             if (!AuthService.IsSignedIn)
+             {
++                // PAYWALL PREVIEW: direct paid links first show the free purchase card, not sign-up.
++                if (!string.IsNullOrWhiteSpace(MilestoneSlug))
++                {
++                    Navigation.NavigateTo(HeartJourneyWeb.Helpers.JourneyPreviewNavigation.IntroUrl(
++                        JourneySlug, MilestoneSlug, fourthCard: true), replace: true);
++                    return;
++                }
+                 var returnUrl = Uri.EscapeDataString(
+                     "/" + Navigation.ToBaseRelativePath(Navigation.Uri));
+ 
+@@ -72,7 +83,9 @@ else if (_hasAccess)
+             if (!hasAccess)
+             {
+                 Navigation.NavigateTo(
+-                    $"/journeys/{Uri.EscapeDataString(JourneySlug)}",
++                    string.IsNullOrWhiteSpace(MilestoneSlug)
++                        ? $"/journeys/{Uri.EscapeDataString(JourneySlug)}"
++                        : HeartJourneyWeb.Helpers.JourneyPreviewNavigation.IntroUrl(JourneySlug, MilestoneSlug, fourthCard: true),
+                     replace: true);
+ 
+                 return;
+@@ -94,4 +107,4 @@ else if (_hasAccess)
+     {
+         _disposed = true;
+     }
+-}
+\ No newline at end of file
++}
+diff --git a/HeartJourneyWeb/Features/Auth/AuthConfirmedPage.razor b/HeartJourneyWeb/Features/Auth/AuthConfirmedPage.razor
+index c7c282b..f723d9f 100644
+--- a/HeartJourneyWeb/Features/Auth/AuthConfirmedPage.razor
++++ b/HeartJourneyWeb/Features/Auth/AuthConfirmedPage.razor
+@@ -22,8 +22,13 @@
+ </section>
+ 
+ @code {
++    // PAYWALL PREVIEW: the confirmation email can carry the local milestone destination.
++    [SupplyParameterFromQuery]
++    public string? ReturnUrl { get; set; }
++
+     private void GoToSignIn()
+     {
+-        NavigationManager.NavigateTo("/auth");
++        var destination = HeartJourneyWeb.Helpers.JourneyPreviewNavigation.SafeReturnUrl(ReturnUrl);
++        NavigationManager.NavigateTo($"/auth?returnUrl={Uri.EscapeDataString(destination)}");
+     }
+-}
+\ No newline at end of file
++}
+diff --git a/HeartJourneyWeb/Features/Auth/AuthPage.razor b/HeartJourneyWeb/Features/Auth/AuthPage.razor
+index 4c21ebc..08a5f4a 100644
+--- a/HeartJourneyWeb/Features/Auth/AuthPage.razor
++++ b/HeartJourneyWeb/Features/Auth/AuthPage.razor
+@@ -166,6 +166,9 @@
+     [SupplyParameterFromQuery]
+     public string? ReturnUrl { get; set; }
+ 
++    // PAYWALL PREVIEW: keep the selected milestone through sign-in without accepting external redirects.
++    private string SafeDestination => HeartJourneyWeb.Helpers.JourneyPreviewNavigation.SafeReturnUrl(ReturnUrl);
++
+     protected override async Task OnInitializedAsync()
+     {
+         await AuthService.InitializeAsync();
+@@ -173,7 +176,7 @@
+         if (AuthService.IsSignedIn)
+         {
+             NavigationManager.NavigateTo(
+-                string.IsNullOrWhiteSpace(ReturnUrl) ? "/journeys" : ReturnUrl);
++                SafeDestination);
+         }
+     }
+ 
+@@ -229,12 +232,12 @@
+ 
+                 if (!profile.OnboardingCompleted)
+                 {
+-                    NavigationManager.NavigateTo("/welcome");
++                    NavigationManager.NavigateTo($"/welcome?returnUrl={Uri.EscapeDataString(SafeDestination)}");
+                     return;
+                 }
+                 
+                 NavigationManager.NavigateTo(
+-                    string.IsNullOrWhiteSpace(ReturnUrl) ? "/journeys" : ReturnUrl);
++                    SafeDestination);
+             }
+         }
+         finally
+@@ -315,4 +318,4 @@
+     {
+         _captchaToken = token;
+     }
+-}
+\ No newline at end of file
++}
+diff --git a/HeartJourneyWeb/Features/Home/HomePage.razor b/HeartJourneyWeb/Features/Home/HomePage.razor
+index d5d0fe4..001c0d6 100644
+--- a/HeartJourneyWeb/Features/Home/HomePage.razor
++++ b/HeartJourneyWeb/Features/Home/HomePage.razor
+@@ -1,16 +1,13 @@
+-﻿@page "/journeys"
++@page "/journeys"
+ @using HeartJourney.Core.Features.Home
+ @using HeartJourney.Core.Services.Interfaces
+ @using HeartJourneyWeb.Helpers
+ @using HeartJourneyWeb.Components
+ @using HeartJourneyWeb.Services.JourneyAccess
+-@using HeartJourneyWeb.Services.Checkout
+ @using HeartJourneyWeb.Services.Auth
+ @inject IAuthService AuthService
+ @inject IContentRepository ContentRepository
+ @inject IJourneyAccessService JourneyAccessService
+-@inject ICheckoutService CheckoutService
+-@inject NavigationManager Navigation
+ 
+ <PageTitle>Journey Recreated</PageTitle>
+ 
+@@ -62,27 +59,10 @@
+                         }
+                         else
+                         {
+-                            <button type="button"
+-                                    class="journey-action"
+-                                    disabled="@(_checkoutJourneySlug is not null)"
+-                                    @onclick="() => UnlockJourneyAsync(journey.Slug)">
+-                                
+-                                @if (IsCheckoutStarting(journey.Slug))
+-                                {
+-                                    <i class="fa-solid fa-spinner fa-spin"
+-                                        aria-hidden="true"></i>
+-
+-                                    <span>Opening Checkout...</span>
+-                                }
+-                                else
+-                                {
+-                                    <i class="fa-solid fa-lock-open"
+-                                        aria-hidden="true"></i>
+-
+-                                    <span>Unlock Journey</span>
+-                                }
+-
+-                            </button>
++                            @* PAYWALL PREVIEW: exploration starts here; checkout lives on intro card four. *@
++                            <a href="@($"/journeys/{journey.Slug}")" class="journey-action">
++                                Explore Journey
++                            </a>
+                         }
+                     }
+                     else
+@@ -110,13 +90,13 @@
+     private HashSet<string> _ownedJourneySlugs =
+         new(StringComparer.OrdinalIgnoreCase);
+ 
+-    private string? _checkoutJourneySlug;
+-    private string? _checkoutError;
+ 
+     protected override async Task OnInitializedAsync()
+     {
+         try
+         {
++            // PAYWALL PREVIEW: restore ownership before choosing Explore versus Continue.
++            await AuthService.InitializeAsync();
+             var journeys = await ContentRepository.GetJourneyCardsAsync();
+             
+             _journeys = journeys.ToList();
+@@ -146,61 +126,4 @@
+         return !string.IsNullOrWhiteSpace(journeySlug) && _ownedJourneySlugs.Contains(journeySlug);
+     }
+ 
+-    private async Task UnlockJourneyAsync(string journeySlug)
+-    {
+-        // Make sure authentication state has been restored.
+-        await AuthService.InitializeAsync();
+-
+-        // Not signed in?
+-        // Send them to the login page instead of Stripe.
+-        if (!AuthService.IsSignedIn)
+-        {
+-            var returnUrl =
+-                Uri.EscapeDataString("/journeys");
+-
+-            Navigation.NavigateTo(
+-                $"/auth?returnUrl={returnUrl}");
+-
+-            return;
+-        }
+-        
+-        // Prevent multiple checkout sessions from being
+-        // started at the same time.
+-        if (_checkoutJourneySlug is not null)
+-        {
+-            return;
+-        }
+-
+-        _checkoutJourneySlug = journeySlug;
+-        _checkoutError = null;
+-
+-        try
+-        {
+-            var checkoutUrl =
+-                await CheckoutService
+-                    .CreateCheckoutAsync(
+-                        journeySlug);
+-
+-            Navigation.NavigateTo(checkoutUrl, forceLoad: true);
+-        }
+-        catch (Exception ex)
+-        {
+-            _checkoutError = ex.Message;
+-        }
+-        finally
+-        {
+-            _checkoutJourneySlug = null;
+-        }
+-    }
+-
+-    private bool IsCheckoutStarting(string? journeySlug)
+-    {
+-        return
+-            !string.IsNullOrWhiteSpace(journeySlug)
+-            &&
+-            string.Equals(
+-                _checkoutJourneySlug,
+-                journeySlug,
+-                StringComparison.OrdinalIgnoreCase);
+-    }
+-}
+\ No newline at end of file
++}
+diff --git a/HeartJourneyWeb/Features/Journey/JourneyDetailPage.razor b/HeartJourneyWeb/Features/Journey/JourneyDetailPage.razor
+index 7cf0d4e..b7452ea 100644
+--- a/HeartJourneyWeb/Features/Journey/JourneyDetailPage.razor
++++ b/HeartJourneyWeb/Features/Journey/JourneyDetailPage.razor
+@@ -6,10 +6,8 @@
+ @using HeartJourneyWeb.Services.Profiles
+ @using HeartJourneyWeb.Services.MilestoneProgress
+ @using HeartJourneyWeb.Services.JourneyAccess
+-@using HeartJourneyWeb.Services.Checkout
+ @using HeartJourneyWeb.Components
+ @inject IJourneyAccessService JourneyAccessService
+-@inject ICheckoutService CheckoutService
+ @inject NavigationManager Navigation
+ @inject IMilestoneProgressService MilestoneProgressService
+ @inject IAuthService AuthService
+@@ -30,57 +28,6 @@
+             <p>@_errorMessage</p>
+         </div>
+     }
+-    else if (!_hasJourneyAccess)
+-    {
+-        <section class="journey-access-required">
+-            <div class="access-required-card">
+-
+-                <div class="access-icon">
+-                    <i class="fa-solid fa-route"
+-                        aria-hidden="true"></i>
+-                </div>
+-
+-                <p class="access-eyebrow">
+-                    Relationship Journey
+-                </p>
+-
+-                <h1>Unlock This Journey</h1>
+-
+-                <p>
+-                    Unlock the Relationship Journey to continue
+-                    through its milestones, reflections, insights,
+-                    and growth steps.
+-                </p>
+-
+-                <button type="button"
+-                        class="journey-action"
+-                        disabled="@_checkoutStarting"
+-                        @onclick="UnlockJourneyAsync">
+-
+-                    @if (_checkoutStarting)
+-                    {
+-                        <i class="fa-solid fa-spinner fa-spin"
+-                            aria-hidden="true"></i>
+-
+-                        <span>Opening Checkout...</span>
+-                    }
+-                    else
+-                    {
+-                        <i class="fa-solid fa-lock-open"
+-                            aria-hidden="true"></i>
+-
+-                        <span>Unlock Relationship Journey</span>
+-                    }
+-
+-                </button>
+-
+-                <a href="/journeys" class="back-to-journeys">
+-                    Back to My Journeys
+-                </a>
+-
+-            </div>
+-        </section>
+-    }
+     else if (_journey is null)
+     {
+         <p>Journey not found.</p>
+@@ -184,7 +131,6 @@
+     private string? _currentSeasonSlug;
+     private bool _isLoading = true;
+     private bool _hasJourneyAccess;
+-    private bool _checkoutStarting;
+     private string? _errorMessage;
+     private HashSet<string> _startedMilestoneSlugs =
+         new(StringComparer.OrdinalIgnoreCase);
+@@ -202,15 +148,7 @@
+             // ---------------------------------
+             await AuthService.InitializeAsync();
+ 
+-            if (!AuthService.IsSignedIn)
+-            {
+-                var returnUrl =
+-                    Uri.EscapeDataString(Navigation.ToBaseRelativePath(Navigation.Uri));
+-
+-                Navigation.NavigateTo($"/auth?returnUrl=/{returnUrl}");
+-
+-                return;
+-            }
++            // PAYWALL PREVIEW: the overview and milestone selection are available without an account.
+ 
+             // ---------------------------------
+             // 2. Check whether the user owns
+@@ -219,21 +157,22 @@
+             _hasJourneyAccess =
+                 await JourneyAccessService.HasAccessAsync(Slug);
+ 
+-            if (!_hasJourneyAccess)
+-            {
+-                // Stop here.
+-                // Do NOT load Sanity Journey content,
+-                // profile information, or progress.
+-                return;
+-            }
+ 
+             // ---------------------------------
+-            // 3. User has access.
+-            //    Now load Journey content.
++            // 3. Load the public Journey overview for owners and preview visitors.
+             // ---------------------------------
+             _journey = await ContentRepository
+                 .GetJourneyDetailBySlugAsync(Slug);
+ 
++            // PAYWALL PREVIEW: anonymous previews never load or create personal progress.
++            _profile = null;
++            _currentSeasonSlug = null;
++            _startedMilestoneSlugs.Clear();
++            if (!AuthService.IsSignedIn)
++            {
++                return;
++            }
++
+             // ---------------------------------
+             // 4. Load the user's profile
+             // ---------------------------------
+@@ -282,7 +221,10 @@
+ 
+     private string GetMilestoneResumeUrl(string milestoneSlug)
+     {
+-        return $"/journeys/{Slug}/milestones/{milestoneSlug}/resume";
++        // PAYWALL PREVIEW: owners resume normally; visitors go directly to the free intro.
++        return _hasJourneyAccess
++            ? $"/journeys/{Slug}/milestones/{milestoneSlug}/resume"
++            : HeartJourneyWeb.Helpers.JourneyPreviewNavigation.IntroUrl(Slug, milestoneSlug);
+     }
+ 
+     private static string GetMilestoneCssClass(string? milestoneSlug)
+@@ -299,32 +241,4 @@
+         };
+     }
+ 
+-    private async Task UnlockJourneyAsync()
+-    {
+-        if (_checkoutStarting)
+-        {
+-            return;
+-        }
+-
+-        _checkoutStarting = true;
+-        _errorMessage = null;
+-
+-        try
+-        {
+-            var checkoutUrl = await CheckoutService
+-                .CreateCheckoutAsync(Slug);
+-
+-            Navigation.NavigateTo(
+-                checkoutUrl,
+-                forceLoad: true);
+-        }
+-        catch (Exception ex)
+-        {
+-            _errorMessage = ex.Message;
+-        }
+-        finally
+-        {
+-            _checkoutStarting = false;
+-        }
+-    }
+-}
+\ No newline at end of file
++}
+diff --git a/HeartJourneyWeb/Features/Milestone/MilestoneIntroPage.razor b/HeartJourneyWeb/Features/Milestone/MilestoneIntroPage.razor
+index 6a4f3cb..c8e3377 100644
+--- a/HeartJourneyWeb/Features/Milestone/MilestoneIntroPage.razor
++++ b/HeartJourneyWeb/Features/Milestone/MilestoneIntroPage.razor
+@@ -4,11 +4,17 @@
+ @using HeartJourneyWeb.Services.Auth
+ @using HeartJourneyWeb.Services.MilestoneProgress
+ @using HeartJourneyWeb.Components
++@using HeartJourneyWeb.Services.JourneyAccess
++@using HeartJourneyWeb.Services.Checkout
++@using HeartJourneyWeb.Helpers
++@implements IDisposable
++@inject IJourneyAccessService JourneyAccessService
++@inject ICheckoutService CheckoutService
++@inject IJSRuntime JS
+ @inject IMilestoneProgressService MilestoneProgressService
+ @inject NavigationManager NavigationManager
+ @inject IContentRepository ContentRepository
+ @inject IAuthService AuthService
+-@inject NavigationManager NavigationManager
+ 
+ <PageTitle>@(_intro?.Title ?? "Milestone Intro")</PageTitle>
+ 
+@@ -43,6 +49,12 @@
+                 Step @(_currentStep + 1) of @_steps.Count
+             </div>
+ 
++            @* PAYWALL PREVIEW: disclose the payment boundary before visitors invest their time. *@
++            @if (!_hasJourneyAccess)
++            {
++                <p class="preview-note">Explore this introduction free. Purchase is required to continue into the guided growth areas.</p>
++            }
++
+             @if (_currentStep == 0)
+             {
+                 <p class="eyebrow">A hopeful season</p>
+@@ -133,7 +145,35 @@
+                 }
+             }
+ 
++            @* PAYWALL PREVIEW: the prayer card remains readable; purchase unlocks the whole journey. *@
++            @if (_currentStep == 3 && !_hasJourneyAccess)
++            {
++                <section class="purchase-offer" aria-labelledby="purchase-title">
++                    <h2 id="purchase-title">Continue your @_intro.JourneyTitle</h2>
++                    <p>Unlock this journey's milestones, guided reflections, insights, and practical growth steps.</p>
++                    <p>You can review the price and payment terms in checkout before paying.</p>
++                    <a href="/refund-policy">Refund policy</a>
++                    @if (_isConfirmingPurchase)
++                    {
++                        <p role="status">Confirming your purchase...</p>
++                    }
++                    @if (!string.IsNullOrWhiteSpace(_purchaseMessage))
++                    {
++                        <p role="status">@_purchaseMessage</p>
++                    }
++                    @if (!string.IsNullOrWhiteSpace(_checkoutError))
++                    {
++                        <p class="error-card" role="alert">@_checkoutError</p>
++                    }
++                    <button type="button" class="secondary-button" disabled="@(_isConfirmingPurchase || _isContinuing)" @onclick="RecheckAccessAsync">Check purchase status</button>
++                </section>
++            }
++
+             <div class="intro-actions">
++                @if (_hasJourneyAccess && !string.IsNullOrWhiteSpace(_checkoutError))
++                {
++                    <p class="error-card" role="alert">@_checkoutError</p>
++                }
+                 @if (_currentStep > 0)
+                 {
+                     <button type="button"
+@@ -147,10 +187,12 @@
+                 {
+                     <button type="button"
+                             class="milestone-primary-button"
+-                            disabled="@_isContinuing"
++                            disabled="@(_isContinuing || _isConfirmingPurchase)"
+                             @onclick="ContinueToGrowthAreasAsync">
+                         @(_isContinuing
+-                            ? "Continuing..."
++                            ? (_hasJourneyAccess ? "Continuing..." : "Opening Checkout...")
++                            : !_hasJourneyAccess
++                                ? "Unlock Journey"
+                             : ReviewMode
+                                 ? "Return to Growth Areas"
+                                 : "Continue to Growth Areas")
+@@ -165,6 +207,10 @@
+                     </button>
+                 } 
+             </div>
++            @if (_currentStep == 3 && !_hasJourneyAccess)
++            {
++                <a class="preview-exit" href="@($"/journeys/{Uri.EscapeDataString(JourneySlug)}")">Return to Milestones</a>
++            }
+         </div>
+     }
+ </section>
+@@ -179,6 +225,17 @@
+     [SupplyParameterFromQuery(Name = "review")]
+     public bool ReviewMode { get; set; }
+ 
++    // PAYWALL PREVIEW: restore card four after authentication, cancellation, or purchase.
++    [SupplyParameterFromQuery(Name = "step")]
++    public int? RequestedStep { get; set; }
++    [SupplyParameterFromQuery(Name = "checkout")]
++    public string? CheckoutResult { get; set; }
++    private bool _hasJourneyAccess;
++    private bool _isConfirmingPurchase;
++    private string? _checkoutError;
++    private string? _purchaseMessage;
++    private CancellationTokenSource? _accessCheck;
++
+     private MilestoneIntroView? _intro;
+     private bool _isLoading = true;
+     private bool _isContinuing;
+@@ -194,25 +251,25 @@
+     {
+         _isLoading = true;
+         _errorMessage = null;
+-        _currentStep = 0;
+-
+-        await AuthService.InitializeAsync();
+-
+-        if (!AuthService.IsSignedIn)
+-        {
+-            var currentPath = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+-
+-            NavigationManager.NavigateTo(
+-                $"/auth?returnUrl=/{Uri.EscapeDataString(currentPath)}");
+-
+-            return;
+-        }
++        _currentStep = RequestedStep == 4 ? 3 : 0;
++        _hasJourneyAccess = false;
++        _checkoutError = null;
++        _purchaseMessage = null;
++        _accessCheck?.Cancel();
++        _accessCheck?.Dispose();
++        _accessCheck = new CancellationTokenSource();
+ 
+         try
+         {
+             _intro = await ContentRepository.GetMilestoneIntroBySlugsAsync(
+                 JourneySlug,
+                 MilestoneSlug);
++            // PAYWALL PREVIEW: signed-out visitors can read all four cards without personal data.
++            await AuthService.InitializeAsync();
++            if (AuthService.IsSignedIn)
++            {
++                _hasJourneyAccess = await JourneyAccessService.HasAccessAsync(JourneySlug);
++            }
+         }
+         catch (Exception ex)
+         {
+@@ -222,6 +279,17 @@
+         {
+             _isLoading = false;
+         }
++
++        if (!string.IsNullOrEmpty(CheckoutResult) && _intro is not null)
++        {
++            _currentStep = 3;
++            try { await JS.InvokeVoidAsync("localStorage.removeItem", CheckoutReturnRecovery.StorageKey); }
++            catch (JSException) { }
++            if (CheckoutResult == "cancel")
++                _purchaseMessage = "Checkout was canceled. You can continue exploring or return when you are ready.";
++            else if (!_hasJourneyAccess && AuthService.IsSignedIn)
++                await ConfirmPurchaseAsync(_accessCheck.Token);
++        }
+     }
+ 
+     private void PreviousStep()
+@@ -255,6 +323,31 @@
+ 
+         try
+         {
++            // PAYWALL PREVIEW: recheck ownership before checkout; URL flags never grant access.
++            await AuthService.InitializeAsync();
++            if (!AuthService.IsSignedIn)
++            {
++                var returnPath = JourneyPreviewNavigation.IntroUrl(JourneySlug, MilestoneSlug, fourthCard: true);
++                NavigationManager.NavigateTo($"/auth?returnUrl={Uri.EscapeDataString(returnPath)}");
++                return;
++            }
++            _checkoutError = null;
++            _hasJourneyAccess = await JourneyAccessService.HasAccessAsync(JourneySlug);
++            if (!_hasJourneyAccess)
++            {
++                var returnPath = JourneyPreviewNavigation.IntroUrl(JourneySlug, MilestoneSlug, fourthCard: true);
++                var checkoutUrl = await CheckoutService.CreateCheckoutAsync(JourneySlug, returnPath: returnPath);
++                try
++                {
++                    var pending = new CheckoutReturnRecovery.PendingCheckout(JourneySlug, returnPath, DateTimeOffset.UtcNow);
++                    await JS.InvokeVoidAsync("localStorage.setItem", CheckoutReturnRecovery.StorageKey, System.Text.Json.JsonSerializer.Serialize(pending));
++                }
++                catch (JSException) { }
++                NavigationManager.NavigateTo(checkoutUrl, forceLoad: true);
++                return;
++            }
++
++            // Count the visit only when an owner actually enters Growth Areas, never on checkout/cancel.
+             if (!ReviewMode)
+             {
+                 await MilestoneProgressService.CompleteIntroVisitAsync(
+@@ -265,12 +358,51 @@
+             NavigationManager.NavigateTo(
+                 $"/journeys/{JourneySlug}/milestones/{MilestoneSlug}");
+         }
++        catch (Exception)
++        {
++            _checkoutError = "Unable to continue right now. Please try again. If you already paid, check your purchase status.";
++        }
+         finally
+         {
+             _isContinuing = false;
+         }
+     }
+ 
++    private Task RecheckAccessAsync() => ConfirmPurchaseAsync(_accessCheck?.Token ?? CancellationToken.None);
++
++    private async Task ConfirmPurchaseAsync(CancellationToken cancellationToken)
++    {
++        _isConfirmingPurchase = true;
++        _checkoutError = null;
++        _purchaseMessage = null;
++        try
++        {
++            await AuthService.InitializeAsync();
++            if (!AuthService.IsSignedIn)
++            {
++                _purchaseMessage = "Sign in using the account you purchased with to check access.";
++                return;
++            }
++            // PAYWALL PREVIEW: allow a short webhook delay; no unbounded background polling.
++            for (var attempt = 0; attempt < 5; attempt++)
++            {
++                _hasJourneyAccess = await JourneyAccessService.HasAccessAsync(JourneySlug, cancellationToken);
++                if (_hasJourneyAccess) return;
++                if (attempt < 4) await Task.Delay(TimeSpan.FromSeconds(2), cancellationToken);
++            }
++            _purchaseMessage = "Access is not confirmed yet. If you completed payment, wait a moment and check again before purchasing again.";
++        }
++        catch (OperationCanceledException) { }
++        catch (Exception) { _checkoutError = "Unable to check purchase status. Please try again."; }
++        finally { _isConfirmingPurchase = false; }
++    }
++
++    public void Dispose()
++    {
++        _accessCheck?.Cancel();
++        _accessCheck?.Dispose();
++    }
++
+     private static string GetMilestoneCssClass(string? milestoneSlug)
+     {
+         return milestoneSlug?.ToLowerInvariant() switch
+@@ -284,4 +416,4 @@
+             _ => string.Empty
+         };
+     }
+-}
+\ No newline at end of file
++}
+diff --git a/HeartJourneyWeb/Features/Milestone/MilestoneIntroPage.razor.css b/HeartJourneyWeb/Features/Milestone/MilestoneIntroPage.razor.css
+index cc12343..dce0dcb 100644
+--- a/HeartJourneyWeb/Features/Milestone/MilestoneIntroPage.razor.css
++++ b/HeartJourneyWeb/Features/Milestone/MilestoneIntroPage.razor.css
+@@ -202,6 +202,13 @@
+     color: var(--color-text);
+ }
+ 
++/* PAYWALL PREVIEW: keep the offer visually distinct from the prayer invitation. */
++.preview-note { font-size: .9rem; color: var(--color-text); opacity: .8; }
++.purchase-offer { margin-top: 1.5rem; padding: 1.25rem; border: 1px solid currentColor; border-radius: var(--radius-md); }
++.purchase-offer h2 { font-size: 1.3rem; }
++.purchase-offer button { display: block; margin-top: 1rem; }
++.preview-exit { display: inline-block; margin-top: 1rem; }
++
+ @media (max-width: 640px) {
+     .milestone-intro-shell {
+         padding: 2rem 1rem 3rem;
+@@ -219,4 +226,4 @@
+     .intro-actions button {
+         width: 100%;
+     }
+-}
+\ No newline at end of file
++}
+diff --git a/HeartJourneyWeb/Features/Milestone/MilestoneResumePage.razor b/HeartJourneyWeb/Features/Milestone/MilestoneResumePage.razor
+index 5f0c6ab..425e970 100644
+--- a/HeartJourneyWeb/Features/Milestone/MilestoneResumePage.razor
++++ b/HeartJourneyWeb/Features/Milestone/MilestoneResumePage.razor
+@@ -5,12 +5,13 @@
+ @using HeartJourneyWeb.Components
+ @inject IMilestoneProgressService MilestoneProgressService
+ @inject NavigationManager NavigationManager
++@inject HeartJourneyWeb.Services.Auth.IAuthService AuthService
++@inject HeartJourneyWeb.Services.JourneyAccess.IJourneyAccessService JourneyAccessService
+ 
+-<RequireAuth>
++@* PAYWALL PREVIEW: this entry route chooses preview or paid resume before creating progress. *@
+     <section class="resume-shell">
+         <JourneyLoader Message="Preparing your Milestone..." />
+     </section>
+-</RequireAuth>
+ 
+ @code {
+     [Parameter]
+@@ -28,6 +29,15 @@
+             return;
+         }
+ 
++        // PAYWALL PREVIEW: old intro visit counts cannot let an unpaid visitor skip the paywall.
++        await AuthService.InitializeAsync();
++        if (!AuthService.IsSignedIn || !await JourneyAccessService.HasAccessAsync(JourneySlug))
++        {
++            _hasNavigated = true;
++            NavigationManager.NavigateTo(HeartJourneyWeb.Helpers.JourneyPreviewNavigation.IntroUrl(JourneySlug, MilestoneSlug));
++            return;
++        }
++
+         var progress = await MilestoneProgressService.GetProgressAsync(
+             JourneySlug,
+             MilestoneSlug);
+@@ -52,4 +62,4 @@
+         NavigationManager.NavigateTo(
+             $"/journeys/{JourneySlug}/milestones/{MilestoneSlug}");
+     }
+-}
+\ No newline at end of file
++}
+diff --git a/HeartJourneyWeb/Features/Onboarding/OnboardingPage.razor b/HeartJourneyWeb/Features/Onboarding/OnboardingPage.razor
+index b2ffa81..dd57d99 100644
+--- a/HeartJourneyWeb/Features/Onboarding/OnboardingPage.razor
++++ b/HeartJourneyWeb/Features/Onboarding/OnboardingPage.razor
+@@ -102,6 +102,11 @@
+ </section>
+ 
+ @code {
++    // PAYWALL PREVIEW: preserve the destination after the user's profile is saved.
++    [SupplyParameterFromQuery]
++    public string? ReturnUrl { get; set; }
++    private string SafeDestination => HeartJourneyWeb.Helpers.JourneyPreviewNavigation.SafeReturnUrl(ReturnUrl);
++
+     private readonly OnboardingFormModel _form = new();
+ 
+     private HeartJourneyProfile? _profile;
+@@ -115,7 +120,7 @@
+ 
+         if (!AuthService.IsSignedIn)
+         {
+-            NavigationManager.NavigateTo("/auth");
++            NavigationManager.NavigateTo($"/auth?returnUrl={Uri.EscapeDataString(SafeDestination)}");
+             return;
+         }
+ 
+@@ -160,7 +165,7 @@
+ 
+             await ProfileService.UpdateProfileAsync(_profile);
+ 
+-            NavigationManager.NavigateTo("/journeys");
++            NavigationManager.NavigateTo(SafeDestination);
+         }
+         catch (Exception ex)
+         {
+@@ -171,4 +176,4 @@
+             _isSaving = false;
+         }
+     }
+-}
+\ No newline at end of file
++}
+diff --git a/HeartJourneyWeb/Features/Onboarding/WelcomePage.razor b/HeartJourneyWeb/Features/Onboarding/WelcomePage.razor
+index 5f69fc6..97ca3df 100644
+--- a/HeartJourneyWeb/Features/Onboarding/WelcomePage.razor
++++ b/HeartJourneyWeb/Features/Onboarding/WelcomePage.razor
+@@ -51,18 +51,23 @@
+ </section>
+ 
+ @code {
++    // PAYWALL PREVIEW: onboarding must return to the chosen purchase card.
++    [SupplyParameterFromQuery]
++    public string? ReturnUrl { get; set; }
++    private string SafeDestination => HeartJourneyWeb.Helpers.JourneyPreviewNavigation.SafeReturnUrl(ReturnUrl);
++
+     protected override async Task OnInitializedAsync()
+     {
+         await AuthService.InitializeAsync();
+ 
+         if (!AuthService.IsSignedIn)
+         {
+-            NavigationManager.NavigateTo("/auth");
++            NavigationManager.NavigateTo($"/auth?returnUrl={Uri.EscapeDataString(SafeDestination)}");
+         }
+     }
+ 
+     private void GoToOnboarding()
+     {
+-        NavigationManager.NavigateTo("/onboarding");
++        NavigationManager.NavigateTo($"/onboarding?returnUrl={Uri.EscapeDataString(SafeDestination)}");
+     }
+-}
+\ No newline at end of file
++}
+diff --git a/HeartJourneyWeb/Services/Auth/SupabaseAuthService.cs b/HeartJourneyWeb/Services/Auth/SupabaseAuthService.cs
+index 69a2717..f47955f 100644
+--- a/HeartJourneyWeb/Services/Auth/SupabaseAuthService.cs
++++ b/HeartJourneyWeb/Services/Auth/SupabaseAuthService.cs
+@@ -84,9 +84,14 @@ public class SupabaseAuthService : IAuthService
+     {
+         try
+         {
++            // PAYWALL PREVIEW: preserve the purchase card even when confirmation opens another tab.
++            var query = new Uri(_navigationManager.Uri).Query.TrimStart('?').Split('&');
++            var returnValue = query.FirstOrDefault(part => part.StartsWith("returnUrl=", StringComparison.OrdinalIgnoreCase));
++            var destination = HeartJourneyWeb.Helpers.JourneyPreviewNavigation.SafeReturnUrl(
++                returnValue is null ? null : Uri.UnescapeDataString(returnValue[(returnValue.IndexOf('=') + 1)..]));
+             var redirectTo = Uri.EscapeDataString(
+                 _navigationManager
+-                    .ToAbsoluteUri("/auth/confirmed")
++                    .ToAbsoluteUri($"/auth/confirmed?returnUrl={Uri.EscapeDataString(destination)}")
+                     .ToString());
+ 
+             using var response = await PostAuthAsync(
+@@ -460,4 +465,4 @@ public class SupabaseAuthService : IAuthService
+ 
+         return document;
+     }
+-}
+\ No newline at end of file
++}
+diff --git a/HeartJourneyWeb/Services/Checkout/CheckoutService.cs b/HeartJourneyWeb/Services/Checkout/CheckoutService.cs
+index c69b6c7..3a8160b 100644
+--- a/HeartJourneyWeb/Services/Checkout/CheckoutService.cs
++++ b/HeartJourneyWeb/Services/Checkout/CheckoutService.cs
+@@ -13,20 +13,24 @@ public class CheckoutService : ICheckoutService
+     private readonly HttpClient _httpClient;
+     private readonly IAuthService _authService;
+     private readonly AppSupabaseOptions _options;
++    private readonly Microsoft.AspNetCore.Components.NavigationManager _navigation;
+ 
+     public CheckoutService(
+         HttpClient httpClient,
+         IAuthService authService,
+-        IOptions<AppSupabaseOptions> options)
++        IOptions<AppSupabaseOptions> options,
++        Microsoft.AspNetCore.Components.NavigationManager navigation)
+     {
+         _httpClient = httpClient;
+         _authService = authService;
+         _options = options.Value;
++        _navigation = navigation;
+     }
+ 
+     public async Task<string> CreateCheckoutAsync(
+         string journeySlug,
+-        CancellationToken cancellationToken = default)
++        CancellationToken cancellationToken = default,
++        string? returnPath = null)
+     {
+         var accessToken =
+             await _authService.GetValidAccessTokenAsync();
+@@ -55,11 +59,17 @@ public class CheckoutService : ICheckoutService
+             "apikey",
+             _options.Key);
+ 
++        // PAYWALL PREVIEW: the function must validate these URLs against the app's allowed origin.
++        // Existing functions may ignore them; browser recovery retains the selected milestone too.
++        var safePath = HeartJourneyWeb.Helpers.JourneyPreviewNavigation.SafeReturnUrl(returnPath);
++        var separator = safePath.Contains('?') ? "&" : "?";
+         request.Content =
+             JsonContent.Create(
+                 new
+                 {
+-                    journeySlug
++                    journeySlug,
++                    successUrl = _navigation.ToAbsoluteUri(safePath + separator + "checkout=success").ToString(),
++                    cancelUrl = _navigation.ToAbsoluteUri(safePath + separator + "checkout=cancel").ToString()
+                 });
+ 
+         using var response =
+@@ -122,4 +132,4 @@ public class CheckoutService : ICheckoutService
+         [JsonPropertyName("error")]
+         public string? Error { get; set; }
+     }
+-}
+\ No newline at end of file
++}
+diff --git a/HeartJourneyWeb/Services/Checkout/ICheckoutService.cs b/HeartJourneyWeb/Services/Checkout/ICheckoutService.cs
+index 154b53f..1daa4ef 100644
+--- a/HeartJourneyWeb/Services/Checkout/ICheckoutService.cs
++++ b/HeartJourneyWeb/Services/Checkout/ICheckoutService.cs
+@@ -4,5 +4,6 @@ public interface ICheckoutService
+ {
+     Task<string> CreateCheckoutAsync(
+         string journeySlug,
+-        CancellationToken cancellationToken = default);
+-}
+\ No newline at end of file
++        CancellationToken cancellationToken = default,
++        string? returnPath = null);
++}
+diff --git a/HeartJourneyWeb/Components/CheckoutReturnRecovery.razor b/HeartJourneyWeb/Components/CheckoutReturnRecovery.razor
+new file mode 100644
+--- /dev/null
++++ b/HeartJourneyWeb/Components/CheckoutReturnRecovery.razor
+@@ -0,0 +1,38 @@
++@inject IJSRuntime JS
++@inject NavigationManager Navigation
++
++@code {
++    // PAYWALL PREVIEW: a navigation hint only. Stored state never grants paid access.
++    public const string StorageKey = "heartjourney.checkout.preview";
++
++    protected override async Task OnAfterRenderAsync(bool firstRender)
++    {
++        if (!firstRender) return;
++        try
++        {
++            var json = await JS.InvokeAsync<string?>("localStorage.getItem", StorageKey);
++            if (json is null) return;
++            var pending = System.Text.Json.JsonSerializer.Deserialize<PendingCheckout>(json);
++            if (pending is null || string.IsNullOrWhiteSpace(pending.JourneySlug) ||
++                string.IsNullOrWhiteSpace(pending.ReturnPath) ||
++                DateTimeOffset.UtcNow - pending.CreatedAt > TimeSpan.FromMinutes(30) ||
++                pending.CreatedAt > DateTimeOffset.UtcNow.AddMinutes(1))
++            {
++                await JS.InvokeVoidAsync("localStorage.removeItem", StorageKey);
++                return;
++            }
++            var path = new Uri(Navigation.Uri).AbsolutePath;
++            // Recover only generic checkout destinations, leaving other browsing/authentication alone.
++            if (path == "/" || path == "/journeys" || path == $"/journeys/{Uri.EscapeDataString(pending.JourneySlug)}")
++            {
++                await JS.InvokeVoidAsync("localStorage.removeItem", StorageKey);
++                var safePath = HeartJourneyWeb.Helpers.JourneyPreviewNavigation.SafeReturnUrl(pending.ReturnPath);
++                Navigation.NavigateTo(safePath + (safePath.Contains('?') ? "&" : "?") + "checkout=return", replace: true);
++            }
++        }
++        catch (JSException) { /* Explicit checkout URLs still work when browser storage is unavailable. */ }
++        catch (System.Text.Json.JsonException) { /* Ignore invalid browser navigation hints. */ }
++    }
++
++    public sealed record PendingCheckout(string JourneySlug, string ReturnPath, DateTimeOffset CreatedAt);
++}
+diff --git a/HeartJourneyWeb/Helpers/JourneyPreviewNavigation.cs b/HeartJourneyWeb/Helpers/JourneyPreviewNavigation.cs
+new file mode 100644
+--- /dev/null
++++ b/HeartJourneyWeb/Helpers/JourneyPreviewNavigation.cs
+@@ -0,0 +1,30 @@
++namespace HeartJourneyWeb.Helpers;
++
++// PAYWALL PREVIEW: shared, explicit navigation rules keep protected pages protected.
++public static class JourneyPreviewNavigation
++{
++    public static bool IsPreviewPage(Type pageType) =>
++        pageType == typeof(Features.Milestone.MilestoneIntroPage) ||
++        pageType == typeof(Features.Milestone.MilestoneResumePage);
++
++    // Only local app paths may be carried through authentication or checkout.
++    public static string SafeReturnUrl(string? path, string fallback = "/journeys")
++    {
++        if (string.IsNullOrWhiteSpace(path)) return fallback;
++        var decoded = path;
++        // Validate encoded paths too, so encoded slashes/backslashes cannot become external redirects.
++        for (var attempt = 0; attempt < 4; attempt++)
++        {
++            if (!decoded.StartsWith('/') || decoded.StartsWith("//") ||
++                decoded.Contains('\\') || decoded.Any(char.IsControl)) return fallback;
++            var next = Uri.UnescapeDataString(decoded);
++            if (next == decoded) return path;
++            decoded = next;
++        }
++        return fallback;
++    }
++
++    public static string IntroUrl(string journeySlug, string milestoneSlug, bool fourthCard = false) =>
++        $"/journeys/{Uri.EscapeDataString(journeySlug)}/milestones/{Uri.EscapeDataString(milestoneSlug)}/intro" +
++        (fourthCard ? "?step=4" : string.Empty);
++}
+diff --git a/tests/PaywallPreviewChecks/PaywallPreviewChecks.csproj b/tests/PaywallPreviewChecks/PaywallPreviewChecks.csproj
+new file mode 100644
+--- /dev/null
++++ b/tests/PaywallPreviewChecks/PaywallPreviewChecks.csproj
+@@ -0,0 +1,12 @@
++<Project Sdk="Microsoft.NET.Sdk">
++  <PropertyGroup>
++    <OutputType>Exe</OutputType>
++    <TargetFramework>net10.0</TargetFramework>
++    <ImplicitUsings>enable</ImplicitUsings>
++    <Nullable>enable</Nullable>
++  </PropertyGroup>
++  <ItemGroup>
++    <FrameworkReference Include="Microsoft.AspNetCore.App" />
++    <ProjectReference Include="../../HeartJourneyWeb/HeartJourneyWeb.csproj" />
++  </ItemGroup>
++</Project>
+diff --git a/tests/PaywallPreviewChecks/Program.cs b/tests/PaywallPreviewChecks/Program.cs
+new file mode 100644
+--- /dev/null
++++ b/tests/PaywallPreviewChecks/Program.cs
+@@ -0,0 +1,80 @@
++using System.Net;
++using System.Reflection;
++using System.Text.Json;
++using HeartJourneyWeb.Helpers;
++using HeartJourneyWeb.Services.Auth;
++using HeartJourneyWeb.Services.Checkout;
++using HeartJourneyWeb.Services.Supabase;
++using Microsoft.AspNetCore.Components;
++using Microsoft.Extensions.Options;
++
++// PAYWALL PREVIEW: dependency-free regression checks; no real checkout or account calls.
++var count = 0;
++void Check(bool condition, string name)
++{
++    if (!condition) throw new Exception("FAILED: " + name);
++    count++;
++}
++Check(JourneyPreviewNavigation.IsPreviewPage(typeof(HeartJourneyWeb.Features.Milestone.MilestoneIntroPage)), "intro is public");
++Check(JourneyPreviewNavigation.IsPreviewPage(typeof(HeartJourneyWeb.Features.Milestone.MilestoneResumePage)), "resume can dispatch previews");
++foreach (var page in new[] { typeof(HeartJourneyWeb.Features.Milestone.MilestoneDetailPage), typeof(HeartJourneyWeb.Features.Reflection.DimensionReflectionPage), typeof(HeartJourneyWeb.Features.Reflection.DimensionInsightPage) })
++    Check(!JourneyPreviewNavigation.IsPreviewPage(page), "paid page stays guarded: " + page.Name);
++foreach (var path in new[] { "https://example.com", "//example.com", "/\\example.com", "/%2fexample.com", "/%5cexample.com", "/%252fexample.com", "/journeys%0a", "" })
++    Check(JourneyPreviewNavigation.SafeReturnUrl(path) == "/journeys", "reject unsafe redirect: " + path);
++var destination = JourneyPreviewNavigation.IntroUrl("relationship", "single", fourthCard: true);
++Check(JourneyPreviewNavigation.SafeReturnUrl(destination) == destination, "keep selected fourth card");
++Check(JourneyPreviewNavigation.SafeReturnUrl("/journeys/a%20b") == "/journeys/a%20b", "allow safe encoded paths");
++
++var auth = DispatchProxy.Create<IAuthService, AuthProxy>();
++var proxy = (AuthProxy)(object)auth;
++var httpHandler = new CheckoutHandler();
++var service = new CheckoutService(new HttpClient(httpHandler), auth,
++    Options.Create(new SupabaseOptions { Url = "https://api.example.test", Key = "test-key" }), new TestNavigation());
++var url = await service.CreateCheckoutAsync("relationship", returnPath: destination);
++Check(url == "https://checkout.example.test/session", "use checkout response URL");
++using (var body = JsonDocument.Parse(httpHandler.Body!))
++{
++    Check(body.RootElement.GetProperty("journeySlug").GetString() == "relationship", "purchase remains journey-wide");
++    Check(body.RootElement.GetProperty("successUrl").GetString() == "https://app.example.test" + destination + "&checkout=success", "success restores card four");
++    Check(body.RootElement.GetProperty("cancelUrl").GetString() == "https://app.example.test" + destination + "&checkout=cancel", "cancel restores card four");
++}
++Check(httpHandler.Authorization == "Bearer test-token", "checkout requires authenticated request");
++await service.CreateCheckoutAsync("relationship", returnPath: "//evil.example");
++using (var body = JsonDocument.Parse(httpHandler.Body!))
++    Check(body.RootElement.GetProperty("successUrl").GetString() == "https://app.example.test/journeys?checkout=success", "unsafe checkout return falls back locally");
++proxy.Token = null;
++var previousCalls = httpHandler.Calls;
++try
++{
++    await service.CreateCheckoutAsync("relationship", returnPath: destination);
++    throw new Exception("FAILED: checkout allowed without a token");
++}
++catch (InvalidOperationException) { Check(httpHandler.Calls == previousCalls, "signed-out user cannot start checkout"); }
++Console.WriteLine($"Passed {count} paywall preview checks.");
++
++public class AuthProxy : DispatchProxy
++{
++    public string? Token { get; set; } = "test-token";
++    protected override object? Invoke(MethodInfo? method, object?[]? args) =>
++        method?.Name == nameof(IAuthService.GetValidAccessTokenAsync)
++            ? Task.FromResult(Token) : throw new NotSupportedException(method?.Name);
++}
++sealed class TestNavigation : NavigationManager
++{
++    public TestNavigation() => Initialize("https://app.example.test/", "https://app.example.test/journeys");
++    protected override void NavigateToCore(string uri, bool forceLoad) => throw new NotSupportedException();
++}
++sealed class CheckoutHandler : HttpMessageHandler
++{
++    public string? Body { get; private set; }
++    public string? Authorization { get; private set; }
++    public int Calls { get; private set; }
++    protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
++    {
++        Calls++;
++        Body = await request.Content!.ReadAsStringAsync(cancellationToken);
++        Authorization = request.Headers.Authorization?.ToString();
++        return new HttpResponseMessage(HttpStatusCode.OK)
++        { Content = new StringContent("{\"checkoutUrl\":\"https://checkout.example.test/session\"}") };
++    }
++}
+diff --git a/tests/PaywallPreviewChecks/.gitignore b/tests/PaywallPreviewChecks/.gitignore
+new file mode 100644
+--- /dev/null
++++ b/tests/PaywallPreviewChecks/.gitignore
+@@ -0,0 +1,2 @@
++bin/
++obj/

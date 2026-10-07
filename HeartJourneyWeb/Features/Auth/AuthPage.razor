@@ -166,6 +166,9 @@
     [SupplyParameterFromQuery]
     public string? ReturnUrl { get; set; }
 
+    // PAYWALL PREVIEW: keep the selected milestone through sign-in without accepting external redirects.
+    private string SafeDestination => HeartJourneyWeb.Helpers.JourneyPreviewNavigation.SafeReturnUrl(ReturnUrl);
+
     protected override async Task OnInitializedAsync()
     {
         await AuthService.InitializeAsync();
@@ -173,7 +176,7 @@
         if (AuthService.IsSignedIn)
         {
             NavigationManager.NavigateTo(
-                string.IsNullOrWhiteSpace(ReturnUrl) ? "/journeys" : ReturnUrl);
+                SafeDestination);
         }
     }
 
@@ -229,12 +232,12 @@
 
                 if (!profile.OnboardingCompleted)
                 {
-                    NavigationManager.NavigateTo("/welcome");
+                    NavigationManager.NavigateTo($"/welcome?returnUrl={Uri.EscapeDataString(SafeDestination)}");
                     return;
                 }
                 
                 NavigationManager.NavigateTo(
-                    string.IsNullOrWhiteSpace(ReturnUrl) ? "/journeys" : ReturnUrl);
+                    SafeDestination);
             }
         }
         finally

@@ -5,12 +5,13 @@
 @using HeartJourneyWeb.Components
 @inject IMilestoneProgressService MilestoneProgressService
 @inject NavigationManager NavigationManager
+@inject HeartJourneyWeb.Services.Auth.IAuthService AuthService
+@inject HeartJourneyWeb.Services.JourneyAccess.IJourneyAccessService JourneyAccessService
 
-<RequireAuth>
+@* PAYWALL PREVIEW: this entry route chooses preview or paid resume before creating progress. *@
     <section class="resume-shell">
         <JourneyLoader Message="Preparing your Milestone..." />
     </section>
-</RequireAuth>
 
 @code {
     [Parameter]
@@ -25,6 +26,15 @@
     {
         if (_hasNavigated)
         {
+            return;
+        }
+
+        // PAYWALL PREVIEW: old intro visit counts cannot let an unpaid visitor skip the paywall.
+        await AuthService.InitializeAsync();
+        if (!AuthService.IsSignedIn || !await JourneyAccessService.HasAccessAsync(JourneySlug))
+        {
+            _hasNavigated = true;
+            NavigationManager.NavigateTo(HeartJourneyWeb.Helpers.JourneyPreviewNavigation.IntroUrl(JourneySlug, MilestoneSlug));
             return;
         }
 

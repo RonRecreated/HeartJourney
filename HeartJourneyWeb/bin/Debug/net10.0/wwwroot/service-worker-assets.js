@@ -1,25 +1,25 @@
 self.assetsManifest = {
-  "version": "+nndlXuM",
+  "version": "eMMB90OY",
   "assets": [
     {
       "hash": "sha256-E+Ir5NyuG+fKArkwBBOumy6uSiFj1c2cECOS0DeJ6Wg=",
       "url": "HeartJourneyWeb.styles.css"
     },
     {
-      "hash": "sha256-eAd1ppa/6uAc3gOmbLajOYwDkNGLIW5CBPaFtEasK4U=",
-      "url": "_framework/HeartJourney.Core.4tyxxu2n6p.wasm"
+      "hash": "sha256-zyqF8uFxVmPgaMIBkhkA01PAytQOE7R6X6c06kXEmtw=",
+      "url": "_framework/HeartJourney.Core.dtdhlgcp1o.pdb"
     },
     {
-      "hash": "sha256-mR7HvFwedvU9bERvCGr1zVdT43gM+DKf4InO8Q6B3c4=",
-      "url": "_framework/HeartJourney.Core.xekxxm2xjg.pdb"
+      "hash": "sha256-4KBJ4+vuk4381BUc0AXf5P9EskRihgsV3HtGUZInGIk=",
+      "url": "_framework/HeartJourney.Core.wg4iwm0xh9.wasm"
     },
     {
-      "hash": "sha256-rX/pOsBNX0m9qkLEkoaWek5H61jEQaFdckfbSh8/ECg=",
-      "url": "_framework/HeartJourneyWeb.n3d4pzg9p1.pdb"
+      "hash": "sha256-HRsWjXhT2MZi0xpIKoMT5VANCmnN5zWHnOJsZ41eLqs=",
+      "url": "_framework/HeartJourneyWeb.1fk7wee7x4.pdb"
     },
     {
-      "hash": "sha256-X8FeW2JzGo7LwyONAXHkjVzfN01VzMnzxNd/Bcb307k=",
-      "url": "_framework/HeartJourneyWeb.xch7b4zx20.wasm"
+      "hash": "sha256-PS+aJIEl8RJ2ngomEY5JPrQWwWPtbiY0bZ0Mr2lcM+0=",
+      "url": "_framework/HeartJourneyWeb.1n4vy57wua.wasm"
     },
     {
       "hash": "sha256-TKbWsc5gCE+04slSkrqeNGTb7K8LiRW72Tm+1gzKxqU=",
@@ -886,8 +886,8 @@ self.assetsManifest = {
       "url": "_framework/blazor.webassembly.958z1vx7fr.js"
     },
     {
-      "hash": "sha256-RXk7vfw01zFOhomVGxRUWnFsEshjgafFOlinSnf4qps=",
-      "url": "_framework/dotnet.19c9vlegko.js"
+      "hash": "sha256-hMdOtHnHkyjm8cLekfJFn3Feh4mzRqzUSvywSHSMRMk=",
+      "url": "_framework/dotnet.g3kjcs1rue.js"
     },
     {
       "hash": "sha256-gkQ8GxkWyh0BLme64OuSZ0ABha5f8RfJ8n5+z0SaOJI=",
@@ -970,7 +970,7 @@ self.assetsManifest = {
       "url": "images/journey-recreated-logo.png"
     },
     {
-      "hash": "sha256-KL+v/5Z2Tn1sYlu+MTy+UnoWSmyTzkEgUcsLClqR/zI=",
+      "hash": "sha256-lEe2mRT+c2ikl8Fvdfcsdq9osxHNRZ74hf2f0/1/4d4=",
       "url": "index.html"
     },
     {
