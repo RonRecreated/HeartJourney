@@ -6,6 +6,7 @@
 @using HeartJourneyWeb.Services.ReflectionAnswers
 @using HeartJourneyWeb.Services.DimensionProgress
 @using HeartJourneyWeb.Services.ActionSteps
+@using HeartJourneyWeb.Components
 @inject IUserActionStepService UserActionStepService
 @inject IDimensionProgressService DimensionProgressService
 @inject IReflectionAnswerService ReflectionAnswerService
@@ -17,7 +18,7 @@
 <section class="reflection-shell @GetMilestoneCssClass(MilestoneSlug)">
     @if (_isLoading)
     {
-        <p>Loading reflection...</p>
+        <JourneyLoader Message="Loading reflection..." />
     }
     else if (!string.IsNullOrWhiteSpace(_errorMessage))
     {

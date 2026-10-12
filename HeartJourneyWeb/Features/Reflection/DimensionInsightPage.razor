@@ -8,6 +8,7 @@
 @using HeartJourneyWeb.Components.Auth
 @using HeartJourneyWeb.Features.Reflection
 @using HeartJourneyWeb.Services.ActionSteps
+@using HeartJourneyWeb.Components
 
 @inject IUserActionStepService UserActionStepService
 @inject IContentRepository ContentRepository
@@ -20,7 +21,7 @@
     {
         <section class="insight-shell">
             <article class="insight-card">
-                <p>Preparing your insight...</p>
+                <JourneyLoader Message="Preparing your insights..." />
             </article>
         </section>
     }
