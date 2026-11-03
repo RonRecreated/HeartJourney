@@ -313,12 +313,21 @@
                     _playProduct = product;
                 }
                 _billingReady = true;
-            }
-            catch (Exception)
+            }           
+            catch (Exception ex)
             {
-                if (_disposed || version != _billingVersion) return;
-                _billingMessage = "Payment setup is unavailable. Please check your connection and retry.";
+                if (_disposed || version != _billingVersion)
+                    return;
+
+                Console.Error.WriteLine(
+                    $"[Journey Billing] Setup failed: {ex}"
+                );
+
+                _billingMessage =
+                    "Payment setup failed. Please check the browser " +
+                    "console for the diagnostic error.";
             }
+
             StateHasChanged();
         }
         if (_disposed) return;

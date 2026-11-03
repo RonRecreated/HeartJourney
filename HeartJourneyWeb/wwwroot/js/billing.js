@@ -14,16 +14,54 @@ window.journeyBilling = (() => {
         } catch { return marker; }
     }
 
+    
     async function detectProvider() {
         const playLaunch = isPlayLaunch();
-        if (typeof window.getDigitalGoodsService === 'function') {
+
+        console.info("[Journey Billing] Detection started", {
+            playLaunch,
+            digitalGoodsAPI:
+                typeof window.getDigitalGoodsService,
+            paymentRequestAPI:
+                typeof window.PaymentRequest
+        });
+
+        service = null;
+
+        if (typeof window.getDigitalGoodsService === "function") {
             try {
                 service = await window.getDigitalGoodsService(method);
-                if (service && typeof window.PaymentRequest === 'function') return 'google_play';
-            } catch { /* A regular browser can expose the API without store support. */ }
+
+                if (
+                    service &&
+                    typeof window.PaymentRequest === "function"
+                ) {
+                    console.info(
+                        "[Journey Billing] Google Play Billing available"
+                    );
+                    return "google_play";
+                }
+
+                console.warn(
+                    "[Journey Billing] Billing service or PaymentRequest unavailable"
+                );
+            } catch (error) {
+                console.warn(
+                    "[Journey Billing] Digital Goods API failed",
+                    error?.name,
+                    error?.message
+                );
+            }
         }
-        return playLaunch ? 'unavailable' : 'stripe';
+
+        console.info(
+            "[Journey Billing] Provider result:",
+            playLaunch ? "unavailable" : "stripe"
+        );
+
+        return playLaunch ? "unavailable" : "stripe";
     }
+
 
     async function prepare(productId) {
         product = null;
