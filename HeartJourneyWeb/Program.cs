@@ -14,6 +14,7 @@ using HeartJourneyWeb.Services.MilestoneReset;
 using HeartJourneyWeb.Services.Account;
 using HeartJourneyWeb.Services.JourneyAccess;
 using HeartJourneyWeb.Services.Checkout;
+using HeartJourneyWeb.Services.Billing;
 using HeartJourneyWeb;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
@@ -48,5 +49,6 @@ builder.Services.AddScoped<IMilestoneResetService, MilestoneResetService>();
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IJourneyAccessService, JourneyAccessService>();
 builder.Services.AddScoped<ICheckoutService, CheckoutService>();
+builder.Services.AddScoped<IBillingService, BillingService>();
 
 await builder.Build().RunAsync();

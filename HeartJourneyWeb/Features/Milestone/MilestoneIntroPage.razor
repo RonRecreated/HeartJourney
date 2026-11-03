@@ -6,8 +6,10 @@
 @using HeartJourneyWeb.Components
 @using HeartJourneyWeb.Services.JourneyAccess
 @using HeartJourneyWeb.Services.Checkout
+@using HeartJourneyWeb.Services.Billing
 @using HeartJourneyWeb.Helpers
-@implements IDisposable
+@implements IAsyncDisposable
+@inject IBillingService BillingService
 @inject IJourneyAccessService JourneyAccessService
 @inject ICheckoutService CheckoutService
 @inject IJSRuntime JS
@@ -144,6 +146,14 @@
                 {
                     <p class="error-card" role="alert">@_checkoutError</p>
                 }
+                @if (!string.IsNullOrWhiteSpace(_billingMessage))
+                {
+                    <p class="preview-note" role="status">@_billingMessage</p>
+                }
+                @if (_currentStep == 3 && !_hasJourneyAccess && _playProduct is not null)
+                {
+                    <p class="preview-note">Unlock this journey for @_playProduct.Price, one-time through Google Play.</p>
+                }
                 @if (_currentStep > 0)
                 {
                     <button type="button"
@@ -156,8 +166,9 @@
                 @if (_currentStep == _steps.Count - 1)
                 {
                     <button type="button"
+                            @ref="_purchaseButton"
                             class="milestone-primary-button"
-                            disabled="@(_isContinuing || _isConfirmingPurchase)"
+                            disabled="@(_isContinuing || _isConfirmingPurchase || (!_hasJourneyAccess && !_billingReady))"
                             @onclick="ContinueToGrowthAreasAsync">
                         @(_isContinuing
                             ? (_hasJourneyAccess ? "Continuing..." : "Opening Checkout...")
@@ -167,6 +178,16 @@
                                 ? "Return to Growth Areas"
                                 : "Continue to Growth Areas")
                     </button>
+                    @if (!_hasJourneyAccess && _billingProvider == "google_play")
+                    {
+                        <button type="button" class="secondary-button"
+                                disabled="@(_isContinuing || _isConfirmingPurchase || !_billingReady)"
+                                @onclick="RestorePlayPurchaseAsync">Restore Google Play purchase</button>
+                    }
+                    @if (!_hasJourneyAccess && _billingInitialized && !_billingReady)
+                    {
+                        <button type="button" class="secondary-button" @onclick="RetryBilling">Retry payment setup</button>
+                    }
                 }
                 else
                 {
@@ -200,6 +221,15 @@
     private bool _isConfirmingPurchase;
     private string? _checkoutError;
     private CancellationTokenSource? _accessCheck;
+    private ElementReference _purchaseButton;
+    private DotNetObjectReference<MilestoneIntroPage>? _billingCallback;
+    private string _billingProvider = "unavailable";
+    private PlayProduct? _playProduct;
+    private bool _billingInitialized;
+    private bool _billingReady;
+    private string? _billingMessage;
+    private int _billingVersion;
+    private bool _disposed;
 
     private MilestoneIntroView? _intro;
     private bool _isLoading = true;
@@ -219,6 +249,11 @@
         _currentStep = RequestedStep == 4 ? 3 : 0;
         _hasJourneyAccess = false;
         _checkoutError = null;
+        _billingVersion++;
+        _billingInitialized = false;
+        _billingReady = false;
+        _playProduct = null;
+        _billingMessage = null;
         _accessCheck?.Cancel();
         _accessCheck?.Dispose();
         _accessCheck = new CancellationTokenSource();
@@ -255,6 +290,123 @@
                 await ConfirmPurchaseAsync(_accessCheck.Token);
             }
         }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_disposed || _isLoading || _intro is null || _currentStep != 3) return;
+        if (!_billingInitialized && !_hasJourneyAccess)
+        {
+            _billingInitialized = true;
+            var version = _billingVersion;
+            try
+            {
+                var provider = await BillingService.DetectProviderAsync();
+                if (_disposed || version != _billingVersion) return;
+                _billingProvider = provider;
+                if (provider == "unavailable")
+                    throw new InvalidOperationException("Google Play billing is unavailable. Please check your connection and retry.");
+                if (provider == "google_play" && AuthService.IsSignedIn)
+                {
+                    var product = await BillingService.PrepareAsync(JourneySlug);
+                    if (_disposed || version != _billingVersion) return;
+                    _playProduct = product;
+                }
+                _billingReady = true;
+            }
+            catch (Exception)
+            {
+                if (_disposed || version != _billingVersion) return;
+                _billingMessage = "Payment setup is unavailable. Please check your connection and retry.";
+            }
+            StateHasChanged();
+        }
+        if (_disposed) return;
+        if (!_hasJourneyAccess && _billingReady && _playProduct is not null)
+        {
+            _billingCallback ??= DotNetObjectReference.Create(this);
+            await BillingService.BindAsync(_purchaseButton, _billingCallback);
+        }
+        else
+            await BillingService.UnbindAsync(_purchaseButton);
+    }
+
+    private void RetryBilling()
+    {
+        _billingInitialized = false;
+        _billingReady = false;
+        _billingMessage = null;
+    }
+
+    [JSInvokable]
+    public Task OnPlayPurchaseStarted()
+    {
+        _isContinuing = true;
+        _checkoutError = null;
+        _billingMessage = "Confirming your Google Play purchase...";
+        return InvokeAsync(StateHasChanged);
+    }
+
+    [JSInvokable]
+    public async Task<string> OnPlayPurchaseCompleted(string productId, string purchaseToken)
+    {
+        try
+        {
+            var result = await BillingService.VerifyAsync(JourneySlug, productId, purchaseToken);
+            _hasJourneyAccess = await JourneyAccessService.HasAccessAsync(JourneySlug);
+            _billingMessage = _hasJourneyAccess ? "Your journey is unlocked. Continue when you are ready."
+                : result.Status == "pending" ? "Your payment is pending. Use Restore Google Play purchase after payment completes."
+                : "Your purchase is being confirmed. Use Restore Google Play purchase before paying again.";
+            return _hasJourneyAccess ? "granted" : result.Status;
+        }
+        catch (Exception ex)
+        {
+            _checkoutError = ex is InvalidOperationException ? ex.Message
+                : "Unable to confirm your purchase. Please try Restore Google Play purchase before paying again.";
+            _billingMessage = null;
+            return "unconfirmed";
+        }
+        finally
+        {
+            _isContinuing = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    [JSInvokable]
+    public Task OnPlayPurchaseFailed(bool canceled)
+    {
+        _isContinuing = false;
+        _billingMessage = canceled ? "Purchase canceled. You have not unlocked the journey."
+            : "The purchase could not be completed. Try Restore Google Play purchase before paying again.";
+        return InvokeAsync(StateHasChanged);
+    }
+
+    private async Task RestorePlayPurchaseAsync()
+    {
+        if (_isContinuing) return;
+        if (!AuthService.IsSignedIn)
+        {
+            var path = JourneyPreviewNavigation.IntroUrl(JourneySlug, MilestoneSlug, fourthCard: true);
+            NavigationManager.NavigateTo($"/auth?returnUrl={Uri.EscapeDataString(path)}");
+            return;
+        }
+        _isContinuing = true;
+        _checkoutError = null;
+        try
+        {
+            var purchases = await BillingService.ListPurchasesAsync();
+            var matching = purchases.Where(p => p.ItemId == _playProduct?.ProductId).ToArray();
+            if (matching.Length == 0)
+                _billingMessage = "No purchase for this journey was found on the current Google Play account.";
+            foreach (var purchase in matching)
+                await OnPlayPurchaseCompleted(purchase.ItemId, purchase.PurchaseToken);
+        }
+        catch (Exception ex)
+        {
+            _checkoutError = ex is InvalidOperationException ? ex.Message : "Unable to restore purchases. Please try again.";
+        }
+        finally { _isContinuing = false; }
     }
 
     private void PreviousStep()
@@ -300,6 +452,13 @@
             _hasJourneyAccess = await JourneyAccessService.HasAccessAsync(JourneySlug);
             if (!_hasJourneyAccess)
             {
+                // Prepared Play purchases are opened by the native JS click listener.
+                // Never send a Play launch to Stripe when billing is unavailable.
+                if (_billingProvider != "stripe")
+                {
+                    _billingMessage = "Please retry payment setup before continuing.";
+                    return;
+                }
                 var returnPath = JourneyPreviewNavigation.IntroUrl(JourneySlug, MilestoneSlug, fourthCard: true);
                 var checkoutUrl = await CheckoutService.CreateCheckoutAsync(JourneySlug, returnPath: returnPath);
                 try
@@ -382,10 +541,14 @@
         }
     }
 
-    public void Dispose()
+    public async ValueTask DisposeAsync()
     {
+        _disposed = true;
         _accessCheck?.Cancel();
         _accessCheck?.Dispose();
+        try { await BillingService.UnbindAsync(_purchaseButton); }
+        catch (JSException) { }
+        _billingCallback?.Dispose();
     }
 
     private static string GetMilestoneCssClass(string? milestoneSlug)

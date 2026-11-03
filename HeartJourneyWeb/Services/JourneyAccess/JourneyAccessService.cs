@@ -82,7 +82,8 @@ public class JourneyAccessService : IJourneyAccessService
                     PropertyNameCaseInsensitive = true
                 });
 
-        return records is { Count: > 0 };
+        return records is { Count: > 0 }
+            || (await GetGooglePlayAccessAsync(journeySlug, cancellationToken)).Count > 0;
     }
 
 
@@ -131,7 +132,7 @@ public class JourneyAccessService : IJourneyAccessService
             await response.Content.ReadAsStringAsync(
                 cancellationToken);
 
-        return
+        var records =
             JsonSerializer.Deserialize<
                 List<JourneyAccessRecord>>(
                 json,
@@ -140,6 +141,25 @@ public class JourneyAccessService : IJourneyAccessService
                     PropertyNameCaseInsensitive = true
                 })
             ?? [];
+        var playRecords = await GetGooglePlayAccessAsync(null, cancellationToken);
+        return records.Concat(playRecords).DistinctBy(record => record.JourneySlug).ToArray();
+    }
+
+    private async Task<IReadOnlyList<JourneyAccessRecord>> GetGooglePlayAccessAsync(
+        string? journeySlug, CancellationToken cancellationToken)
+    {
+        // The server-owned view exposes entitlements, never Google purchase tokens.
+        var url = _options.Url.TrimEnd('/') + "/rest/v1/google_play_journey_access?select=*";
+        if (journeySlug is not null)
+            url += "&journey_slug=eq." + Uri.EscapeDataString(journeySlug);
+        using var request = new HttpRequestMessage(HttpMethod.Get, url);
+        await AddSupabaseHeadersAsync(request);
+        using var response = await _httpClient.SendAsync(request, cancellationToken);
+        // Permit a staged rollout: Stripe continues working before the migration is deployed.
+        if (response.StatusCode == System.Net.HttpStatusCode.NotFound) return [];
+        response.EnsureSuccessStatusCode();
+        return JsonSerializer.Deserialize<List<JourneyAccessRecord>>(
+            await response.Content.ReadAsStringAsync(cancellationToken)) ?? [];
     }
 
 

@@ -5,7 +5,7 @@ var e=!1;const t=async()=>WebAssembly.validate(new Uint8Array([0,97,115,109,1,0,
   "mainAssemblyName": "HeartJourneyWeb",
   "applicationEnvironment": "Development",
   "resources": {
-    "hash": "sha256-bMKIXNNSMFVvJTzC51/Z+AFuMuigUuVN7YWGBpfgL0Q=",
+    "hash": "sha256-OqC/Vc+ZpAf9fxNbK+eTkq2N6a+Pc35zgPH0RfRi1v4=",
     "jsModuleNative": [
       {
         "name": "dotnet.native.vzj2a6aakt.js"
@@ -1338,8 +1338,8 @@ var e=!1;const t=async()=>WebAssembly.validate(new Uint8Array([0,97,115,109,1,0,
       },
       {
         "virtualPath": "HeartJourney.Core.wasm",
-        "name": "HeartJourney.Core.wg4iwm0xh9.wasm",
-        "hash": "sha256-4KBJ4+vuk4381BUc0AXf5P9EskRihgsV3HtGUZInGIk=",
+        "name": "HeartJourney.Core.hchu2mq7qf.wasm",
+        "hash": "sha256-UW3EuecUZo9vJlSzZPoiZfPHjRF67rh8NtiuLAaAYBQ=",
         "cache": "force-cache"
       },
       {
@@ -1350,33 +1350,33 @@ var e=!1;const t=async()=>WebAssembly.validate(new Uint8Array([0,97,115,109,1,0,
       },
       {
         "virtualPath": "HeartJourneyWeb.wasm",
-        "name": "HeartJourneyWeb.1n4vy57wua.wasm",
-        "hash": "sha256-PS+aJIEl8RJ2ngomEY5JPrQWwWPtbiY0bZ0Mr2lcM+0=",
+        "name": "HeartJourneyWeb.xr6pui0453.wasm",
+        "hash": "sha256-jVTsPWYMrm0OY1rFzSHFwOChW7UM8f/3FlbvovInWBI=",
         "cache": "force-cache"
       }
     ],
     "pdb": [
       {
         "virtualPath": "HeartJourney.Core.pdb",
-        "name": "HeartJourney.Core.dtdhlgcp1o.pdb",
-        "hash": "sha256-zyqF8uFxVmPgaMIBkhkA01PAytQOE7R6X6c06kXEmtw=",
+        "name": "HeartJourney.Core.pb43kvl0nj.pdb",
+        "hash": "sha256-WwekMiWtwnekmHlBzXWsp+J+sXOfQ2n5QvHlX5/0CPI=",
         "cache": "force-cache"
       },
       {
         "virtualPath": "HeartJourneyWeb.pdb",
-        "name": "HeartJourneyWeb.1fk7wee7x4.pdb",
-        "hash": "sha256-HRsWjXhT2MZi0xpIKoMT5VANCmnN5zWHnOJsZ41eLqs=",
+        "name": "HeartJourneyWeb.aaun8olgye.pdb",
+        "hash": "sha256-7k74oUiXRMG3mLZcDAZwU5PiLTG+cFpkI6ajnWAad9A=",
         "cache": "force-cache"
       }
     ],
     "libraryInitializers": [
       {
-        "name": "_framework/Microsoft.DotNet.HotReload.WebAssembly.Browser.0ql05aqe1d.lib.module.js"
+        "name": "_framework/Microsoft.DotNet.HotReload.WebAssembly.Browser.h26gum5wpt.lib.module.js"
       }
     ],
     "modulesAfterConfigLoaded": [
       {
-        "name": "../_framework/Microsoft.DotNet.HotReload.WebAssembly.Browser.0ql05aqe1d.lib.module.js"
+        "name": "../_framework/Microsoft.DotNet.HotReload.WebAssembly.Browser.h26gum5wpt.lib.module.js"
       }
     ]
   },

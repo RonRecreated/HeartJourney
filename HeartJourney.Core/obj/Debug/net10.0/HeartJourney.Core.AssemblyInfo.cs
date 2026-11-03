@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("HeartJourney.Core")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+7e7cde1fb5016247cd61a5a07bbc990fd93f113e")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+009959d259856869bab9c10f10952041012af8ca")]
 [assembly: System.Reflection.AssemblyProductAttribute("HeartJourney.Core")]
 [assembly: System.Reflection.AssemblyTitleAttribute("HeartJourney.Core")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

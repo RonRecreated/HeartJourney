@@ -1,0 +1,4 @@
+# The handler validates user JWTs with Supabase Auth. The separate reconciliation
+# action uses a private cron secret. Never remove either handler authorization check.
+[functions.verify-google-play-purchase]
+verify_jwt = false

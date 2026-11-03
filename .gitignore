@@ -1,0 +1,8 @@
+# Billing credentials must never be committed or served with the PWA.
+**/bin/
+**/obj/
+supabase/functions/.env
+supabase/.env
+supabase/.env.*
+!supabase/.env.example
+**/*service-account*.json
