@@ -1,0 +1,16 @@
+
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.mrrecreated.journeyrecreated",
+      "sha256_cert_fingerprints": [
+        "7E:7C:E1:EB:2C:99:25:BA:03:60:03:52:53:2B:0C:F2:67:D7:66:C3:74:4B:F8:86:AD:96:8C:8E:87:32:56:A8",
+        "C3:F9:15:52:AD:93:11:1C:FF:EB:BD:47:D9:28:FB:AC:87:81:20:FC:AF:75:3F:C6:84:C1:7F:47:4B:0F:B4:B4"
+      ]
+    }
+  }
+]
