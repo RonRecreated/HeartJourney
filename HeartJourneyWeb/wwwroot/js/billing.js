@@ -40,6 +40,7 @@ window.journeyBilling = (() => {
     }
 
     function watchPurchases(callback) {
+        stopWatchingPurchases();
         recoveryCallback = callback;
         document.addEventListener(
             "visibilitychange",
@@ -47,6 +48,7 @@ window.journeyBilling = (() => {
         );
         window.addEventListener("pageshow", recoverOnResume);
         window.addEventListener("focus", recoverOnResume);
+        void recoverOnResume();
     }
 
     function stopWatchingPurchases() {
