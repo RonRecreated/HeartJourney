@@ -8,6 +8,7 @@ window.journeyBilling = (() => {
     let recoveryCallback = null;
     let recoveryBusy = false;
     let lastRecovery = 0;
+    let recoveryTimer = null;
 
     async function recoverOnResume() {
         if (!recoveryCallback || recoveryBusy || !service) return;
@@ -24,17 +25,24 @@ window.journeyBilling = (() => {
                 p => p.itemId === "relationship_journey_unlock"
             );
 
-            if (owned.length > 0) {
+            console.info(
+                "[Journey Billing] Recovery check",
+                { ownedPurchases: owned.length }
+            );
+
+            if (owned.length > 0 && recoveryCallback) {
                 await recoveryCallback.invokeMethodAsync(
                     "OnPlayRecoveryRequested"
                 );
             }
-        } catch (error) {
+        } 
+        catch (error) {
             console.warn(
                 "[Journey Billing] Purchase recovery unavailable",
                 error?.message
             );
-        } finally {
+        } 
+        finally {
             recoveryBusy = false;
         }
     }
@@ -48,17 +56,26 @@ window.journeyBilling = (() => {
         );
         window.addEventListener("pageshow", recoverOnResume);
         window.addEventListener("focus", recoverOnResume);
+        
+        // Check every 15 seconds while the page is visible.
+        recoveryTimer = setInterval(recoverOnResume, 15000);
+
+        // Perform the first check immediately.
         void recoverOnResume();
+
+        console.info("[Journey Billing] Purchase recovery watcher started");
     }
 
     function stopWatchingPurchases() {
         recoveryCallback = null;
-        document.removeEventListener(
-            "visibilitychange",
-            recoverOnResume
-        );
+        document.removeEventListener("visibilitychange", recoverOnResume);
         window.removeEventListener("pageshow", recoverOnResume);
         window.removeEventListener("focus", recoverOnResume);
+
+        if (recoveryTimer !== null) {
+            clearInterval(recoveryTimer);
+            recoveryTimer = null;
+        }
     }
 
     function isPlayLaunch() {
