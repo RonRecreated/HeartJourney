@@ -230,6 +230,7 @@
     private string? _billingMessage;
     private int _billingVersion;
     private bool _disposed;
+    private bool _watchingPlayPurchases;
 
     private MilestoneIntroView? _intro;
     private bool _isLoading = true;
@@ -335,6 +336,15 @@
         {
             _billingCallback ??= DotNetObjectReference.Create(this);
             await BillingService.BindAsync(_purchaseButton, _billingCallback);
+
+            if (!_watchingPlayPurchases)
+            {
+                await JS.InvokeVoidAsync(
+                    "journeyBilling.watchPurchases",
+                    _billingCallback);
+
+                _watchingPlayPurchases = true;
+            }
         }
         else
             await BillingService.UnbindAsync(_purchaseButton);
@@ -417,6 +427,18 @@
         }
         finally { _isContinuing = false; }
     }
+
+    
+    [JSInvokable]
+    public async Task OnPlayRecoveryRequested()
+    {
+        if (_disposed || _hasJourneyAccess ||
+            _billingProvider != "google_play")
+            return;
+
+        await InvokeAsync(RestorePlayPurchaseAsync);
+    }
+
 
     private void PreviousStep()
     {
@@ -557,6 +579,26 @@
         _accessCheck?.Dispose();
         try { await BillingService.UnbindAsync(_purchaseButton); }
         catch (JSException) { }
+        
+        if (_watchingPlayPurchases)
+        {
+            try
+            {
+                await JS.InvokeVoidAsync(
+                    "journeyBilling.stopWatchingPurchases");
+            }
+            catch (JSDisconnectedException)
+            {
+                // The browser connection has already closed.
+            }
+            catch (JSException)
+            {
+                // JavaScript may be unavailable during navigation.
+            }
+
+            _watchingPlayPurchases = false;
+        }
+
         _billingCallback?.Dispose();
     }
 

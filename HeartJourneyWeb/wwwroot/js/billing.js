@@ -4,6 +4,60 @@ window.journeyBilling = (() => {
     let service;
     let product;
     const bindings = new WeakMap();
+   
+    let recoveryCallback = null;
+    let recoveryBusy = false;
+    let lastRecovery = 0;
+
+    async function recoverOnResume() {
+        if (!recoveryCallback || recoveryBusy || !service) return;
+        if (document.visibilityState !== "visible") return;
+
+        // Avoid repeated requests from multiple focus events.
+        if (Date.now() - lastRecovery < 10000) return;
+        lastRecovery = Date.now();
+        recoveryBusy = true;
+
+        try {
+            const purchases = await listPurchases();
+            const owned = purchases.filter(
+                p => p.itemId === "relationship_journey_unlock"
+            );
+
+            if (owned.length > 0) {
+                await recoveryCallback.invokeMethodAsync(
+                    "OnPlayRecoveryRequested"
+                );
+            }
+        } catch (error) {
+            console.warn(
+                "[Journey Billing] Purchase recovery unavailable",
+                error?.message
+            );
+        } finally {
+            recoveryBusy = false;
+        }
+    }
+
+    function watchPurchases(callback) {
+        recoveryCallback = callback;
+        document.addEventListener(
+            "visibilitychange",
+            recoverOnResume
+        );
+        window.addEventListener("pageshow", recoverOnResume);
+        window.addEventListener("focus", recoverOnResume);
+    }
+
+    function stopWatchingPurchases() {
+        recoveryCallback = null;
+        document.removeEventListener(
+            "visibilitychange",
+            recoverOnResume
+        );
+        window.removeEventListener("pageshow", recoverOnResume);
+        window.removeEventListener("focus", recoverOnResume);
+    }
 
     function isPlayLaunch() {
         const marker = new URL(location.href).searchParams.get('billing') === 'google_play'
@@ -125,5 +179,5 @@ window.journeyBilling = (() => {
         if (!service) throw new Error('Google Play billing unavailable.');
         return (await service.listPurchases()).map(p => ({ itemId: p.itemId, purchaseToken: p.purchaseToken }));
     }
-    return { detectProvider, prepare, bind, unbind, listPurchases };
+    return { detectProvider, prepare, bind, unbind, listPurchases, watchPurchases, stopWatchingPurchases };
 })();
