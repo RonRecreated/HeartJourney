@@ -1,10 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "SxlDFI0kWzI=",
+  "dgSpecHash": "P6inPq2bAZI=",
   "success": true,
   "projectFilePath": "D:\\heart-journey\\HeartJourneyWeb\\HeartJourneyWeb.csproj",
   "expectedPackageFiles": [
-    "C:\\Users\\ronal\\.nuget\\packages\\microsoft.aspnetcore.app.internal.assets\\10.0.14\\microsoft.aspnetcore.app.internal.assets.10.0.14.nupkg.sha512",
+    "C:\\Users\\ronal\\.nuget\\packages\\microsoft.aspnetcore.app.internal.assets\\10.0.15\\microsoft.aspnetcore.app.internal.assets.10.0.15.nupkg.sha512",
     "C:\\Users\\ronal\\.nuget\\packages\\microsoft.aspnetcore.authorization\\10.0.9\\microsoft.aspnetcore.authorization.10.0.9.nupkg.sha512",
     "C:\\Users\\ronal\\.nuget\\packages\\microsoft.aspnetcore.components\\10.0.9\\microsoft.aspnetcore.components.10.0.9.nupkg.sha512",
     "C:\\Users\\ronal\\.nuget\\packages\\microsoft.aspnetcore.components.analyzers\\10.0.9\\microsoft.aspnetcore.components.analyzers.10.0.9.nupkg.sha512",
@@ -38,7 +38,7 @@
     "C:\\Users\\ronal\\.nuget\\packages\\microsoft.io.recyclablememorystream\\3.0.0\\microsoft.io.recyclablememorystream.3.0.0.nupkg.sha512",
     "C:\\Users\\ronal\\.nuget\\packages\\microsoft.jsinterop\\10.0.9\\microsoft.jsinterop.10.0.9.nupkg.sha512",
     "C:\\Users\\ronal\\.nuget\\packages\\microsoft.jsinterop.webassembly\\10.0.9\\microsoft.jsinterop.webassembly.10.0.9.nupkg.sha512",
-    "C:\\Users\\ronal\\.nuget\\packages\\microsoft.net.illink.tasks\\10.0.14\\microsoft.net.illink.tasks.10.0.14.nupkg.sha512",
+    "C:\\Users\\ronal\\.nuget\\packages\\microsoft.net.illink.tasks\\10.0.15\\microsoft.net.illink.tasks.10.0.15.nupkg.sha512",
     "C:\\Users\\ronal\\.nuget\\packages\\microsoft.net.sdk.webassembly.pack\\10.0.11\\microsoft.net.sdk.webassembly.pack.10.0.11.nupkg.sha512",
     "C:\\Users\\ronal\\.nuget\\packages\\mimemapping\\3.0.1\\mimemapping.3.0.1.nupkg.sha512",
     "C:\\Users\\ronal\\.nuget\\packages\\newtonsoft.json\\13.0.3\\newtonsoft.json.13.0.3.nupkg.sha512",
